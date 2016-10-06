@@ -73,8 +73,15 @@ public class PostgreSQLConnection : Connection {
     
     public func execute(query: Query, onCompletion: @escaping ((QueryResult) -> ())) {
         let postgresQuery = query.build(queryBuilder: queryBuilder)
-        let queryResult = PQexec(connection, postgresQuery)
-        
+        executeQuery(query: postgresQuery, onCompletion: onCompletion)
+    }
+    
+    public func execute(_ raw: String, onCompletion: @escaping ((QueryResult) -> ())) {
+        executeQuery(query: raw, onCompletion: onCompletion)
+    }
+
+    private func executeQuery(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
+        let queryResult = PQexec(connection, query)
         guard let result = queryResult else {
             onCompletion(.error(QueryError.noResult))
             return
