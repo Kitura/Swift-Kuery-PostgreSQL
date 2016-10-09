@@ -18,7 +18,7 @@ import XCTest
 import SwiftKuery
 @testable import SwiftKueryPostgreSQL
 
-public class MyTable : Table {
+public struct MyTable : Table {
     let a = Column("a")
     let b = Column("b")
     
@@ -50,7 +50,7 @@ class KueryTests: XCTestCase {
                 
                 let s1 = Select(from: t)
                 print("=======\(connection.descriptionOf(query: s1))=======")
-                connection.execute(query: s1) { result in
+                s1.execute(connection) { result in
                     XCTAssertEqual(result.success, true, "SELECT failed")
                     XCTAssertNotNil(result.asRows, "SELECT returned no rows")
                     let (_, rows) = result.asRows!
@@ -136,98 +136,116 @@ class KueryTests: XCTestCase {
                                                     let (titles, rows) = result.asRows!
                                                     XCTAssertEqual(rows.count, 2, "SELECT returned wrong number of rows: \(rows.count) instead of 2")
                                                     XCTAssertEqual(titles[0], "a", "Wrong column name: \(titles[0]) instead of a")
-                                                    XCTAssertEqual(rows[0][0]! as! String, "BANANA", "Wrong column name: \(rows[0][0]) instead of BANANA")
-                                                    XCTAssertEqual(rows[1][0]! as! String, "Apple", "Wrong column name: \(rows[1][0]) instead of Apple")
+                                                    XCTAssertEqual(rows[0][0]! as! String, "BANANA", "Wrong value in row 0 column 0: \(rows[0][0]) instead of BANANA")
+                                                    XCTAssertEqual(rows[1][0]! as! String, "Apple", "Wrong value in row 1 column 0: \(rows[1][0]) instead of Apple")
                                                     
                                                     KueryTests.printResultAsRows(result: result)
                                                     
-                                                    let s5 = Select(t.a, t.b, from: t)
-                                                        .limit(to: 2)
+                                                    let s4Raw = Select(RawField("left(a, 2) as raw"), from: t)
+                                                        .where("b >= 0")
+                                                        .group(by: t.a)
                                                         .order(by: .DESC(t.a))
-                                                    print("=======\(connection.descriptionOf(query: s5))=======")
-                                                    connection.execute(query: s5) { result in
+                                                        .having("sum(b) > 3")
+                                                    print("=======\(connection.descriptionOf(query: s4Raw))=======")
+                                                    connection.execute(query: s4Raw) { result in
                                                         XCTAssertEqual(result.success, true, "SELECT failed")
                                                         XCTAssertNotNil(result.asRows, "SELECT returned no rows")
-                                                        let (_, rows) = result.asRows!
+                                                        let (titles, rows) = result.asRows!
                                                         XCTAssertEqual(rows.count, 2, "SELECT returned wrong number of rows: \(rows.count) instead of 2")
-                                                        XCTAssertEqual(rows[0][0]! as! String, "appricot", "Wrong column name: \(rows[0][0]) instead of appricot")
-                                                        XCTAssertEqual(rows[1][0]! as! String, "BANANA", "Wrong column name: \(rows[1][0]) instead of BANANA")
+                                                        XCTAssertEqual(titles[0], "raw", "Wrong column name: \(titles[0]) instead of raw")
+                                                        XCTAssertEqual(rows[0][0]! as! String, "BA", "Wrong value in row 0 column 0: \(rows[0][0]) instead of BA")
+                                                        XCTAssertEqual(rows[1][0]! as! String, "Ap", "Wrong value in row 1 column 0: \(rows[1][0]) instead of Ap")
+                                                        
                                                         KueryTests.printResultAsRows(result: result)
                                                         
-                                                        let u1 = Update(table: t, set: [(t.a, "peach"), (t.b, 2)])
-                                                            .where(t.a == "BANANA")
-                                                        print("=======\(connection.descriptionOf(query: u1))=======")
-                                                        connection.execute(query: u1) { result in
-                                                            XCTAssertEqual(result.success, true, "UPDATE failed")
-                                                            XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError)")
+                                                        let s5 = Select(t.a, t.b, from: t)
+                                                            .limit(to: 2)
+                                                            .order(by: .DESC(t.a))
+                                                        print("=======\(connection.descriptionOf(query: s5))=======")
+                                                        connection.execute(query: s5) { result in
+                                                            XCTAssertEqual(result.success, true, "SELECT failed")
+                                                            XCTAssertNotNil(result.asRows, "SELECT returned no rows")
+                                                            let (_, rows) = result.asRows!
+                                                            XCTAssertEqual(rows.count, 2, "SELECT returned wrong number of rows: \(rows.count) instead of 2")
+                                                            XCTAssertEqual(rows[0][0]! as! String, "appricot", "Wrong value in row 0 column 0: \(rows[0][0]) instead of appricot")
+                                                            XCTAssertEqual(rows[1][0]! as! String, "BANANA", "Wrong value in row 1 column 0: \(rows[1][0]) instead of BANANA")
+                                                            KueryTests.printResultAsRows(result: result)
                                                             
-                                                            KueryTests.printSuccess(result: result)
-                                                            
-                                                            let s6 = Select(t.a, t.b, from: t)
+                                                            let u1 = Update(table: t, set: [(t.a, "peach"), (t.b, 2)])
                                                                 .where(t.a == "BANANA")
-                                                            print("=======\(connection.descriptionOf(query: s6))=======")
-                                                            connection.execute(query: s6) { result in
-                                                                XCTAssertEqual(result.success, true, "SELECT failed")
-                                                                XCTAssertNotNil(result.asRows, "SELECT returned no rows")
-                                                                let (_, rows) = result.asRows!
-                                                                XCTAssertEqual(rows.count, 0, "Result not empty")
+                                                            print("=======\(connection.descriptionOf(query: u1))=======")
+                                                            connection.execute(query: u1) { result in
+                                                                XCTAssertEqual(result.success, true, "UPDATE failed")
+                                                                XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError)")
                                                                 
-                                                                let d2 = Delete(from: t)
-                                                                    .where(t.b == "2")
-                                                                print("=======\(connection.descriptionOf(query: d2))=======")
-                                                                connection.execute(query: d2) { result in
-                                                                    XCTAssertEqual(result.success, true, "DELETE failed")
-                                                                    XCTAssertNil(result.asError, "Error in DELETE: \(result.asError)")
+                                                                KueryTests.printSuccess(result: result)
+                                                                
+                                                                let s6 = Select(t.a, t.b, from: t)
+                                                                    .where(t.a == "BANANA")
+                                                                print("=======\(connection.descriptionOf(query: s6))=======")
+                                                                connection.execute(query: s6) { result in
+                                                                    XCTAssertEqual(result.success, true, "SELECT failed")
+                                                                    XCTAssertNotNil(result.asRows, "SELECT returned no rows")
+                                                                    let (_, rows) = result.asRows!
+                                                                    XCTAssertEqual(rows.count, 0, "Result not empty")
                                                                     
-                                                                    KueryTests.printSuccess(result: result)
-                                                                    
-                                                                    let s7 = Select(ucase(t.a).as("upper"), t.b, from: t)
-                                                                        .where(t.a.between("a", and: "b"))
-                                                                    print("=======\(connection.descriptionOf(query: s7))=======")
-                                                                    connection.execute(query: s7) { result in
-                                                                        XCTAssertEqual(result.success, true, "SELECT failed")
-                                                                        XCTAssertNotNil(result.asRows, "SELECT returned no rows")
-                                                                        let (titles, rows) = result.asRows!
-                                                                        XCTAssertEqual(rows.count, 1, "SELECT returned wrong number of rows: \(rows.count) instead of 1")
-                                                                        XCTAssertEqual(titles[0], "upper", "Wrong column name: \(titles[0]) instead of upper")
-                                                                        XCTAssertEqual(rows[0][0]! as! String, "APPRICOT", "Wrong column name: \(rows[0][0]) instead of APPRICOT")
+                                                                    let d2 = Delete(from: t)
+                                                                        .where(t.b == "2")
+                                                                    print("=======\(connection.descriptionOf(query: d2))=======")
+                                                                    connection.execute(query: d2) { result in
+                                                                        XCTAssertEqual(result.success, true, "DELETE failed")
+                                                                        XCTAssertNil(result.asError, "Error in DELETE: \(result.asError)")
                                                                         
-                                                                        KueryTests.printResultAsRows(result: result)
+                                                                        KueryTests.printSuccess(result: result)
                                                                         
-                                                                        let s8 = Select(from: t)
-                                                                            .where(t.a.in("Apple", "lalala"))
-                                                                        print("=======\(connection.descriptionOf(query: s8))=======")
-                                                                        connection.execute(query: s8) { result in
+                                                                        let s7 = Select(ucase(t.a).as("upper"), t.b, from: t)
+                                                                            .where(t.a.between("a", and: "b"))
+                                                                        print("=======\(connection.descriptionOf(query: s7))=======")
+                                                                        connection.execute(query: s7) { result in
                                                                             XCTAssertEqual(result.success, true, "SELECT failed")
                                                                             XCTAssertNotNil(result.asRows, "SELECT returned no rows")
-                                                                            let (_, rows) = result.asRows!
-                                                                            XCTAssertEqual(rows.count, 2, "SELECT returned wrong number of rows: \(rows.count) instead of 2")
-                                                                            XCTAssertEqual(rows[0][0]! as! String, "Apple", "Wrong column name: \(rows[0][0]) instead of Apple")
+                                                                            let (titles, rows) = result.asRows!
+                                                                            XCTAssertEqual(rows.count, 1, "SELECT returned wrong number of rows: \(rows.count) instead of 1")
+                                                                            XCTAssertEqual(titles[0], "upper", "Wrong column name: \(titles[0]) instead of upper")
+                                                                            XCTAssertEqual(rows[0][0]! as! String, "APPRICOT", "Wrong value in row 0 column 0: \(rows[0][0]) instead of APPRICOT")
                                                                             
                                                                             KueryTests.printResultAsRows(result: result)
                                                                             
-                                                                            let s9 = Select(from: t)
-                                                                                .where("a IN ('Apple', 'lalala')")
-                                                                            print("=======\(connection.descriptionOf(query: s9))=======")
-                                                                            connection.execute(query: s9) { result in
+                                                                            let s8 = Select(from: t)
+                                                                                .where(t.a.in("Apple", "lalala"))
+                                                                            print("=======\(connection.descriptionOf(query: s8))=======")
+                                                                            connection.execute(query: s8) { result in
                                                                                 XCTAssertEqual(result.success, true, "SELECT failed")
                                                                                 XCTAssertNotNil(result.asRows, "SELECT returned no rows")
                                                                                 let (_, rows) = result.asRows!
                                                                                 XCTAssertEqual(rows.count, 2, "SELECT returned wrong number of rows: \(rows.count) instead of 2")
-                                                                                XCTAssertEqual(rows[0][0]! as! String, "Apple", "Wrong column name: \(rows[0][0]) instead of Apple")
+                                                                                XCTAssertEqual(rows[0][0]! as! String, "Apple", "Wrong value in row 0 column 0: \(rows[0][0]) instead of Apple")
                                                                                 
                                                                                 KueryTests.printResultAsRows(result: result)
                                                                                 
-                                                                                let s10 = "Select * from myTable where a IN ('Apple', 'lalala')"
-                                                                                print("=======\(s10)=======")
-                                                                                connection.execute(s10) { result in
+                                                                                let s9 = Select(from: t)
+                                                                                    .where("a IN ('Apple', 'lalala')")
+                                                                                print("=======\(connection.descriptionOf(query: s9))=======")
+                                                                                connection.execute(query: s9) { result in
                                                                                     XCTAssertEqual(result.success, true, "SELECT failed")
                                                                                     XCTAssertNotNil(result.asRows, "SELECT returned no rows")
                                                                                     let (_, rows) = result.asRows!
                                                                                     XCTAssertEqual(rows.count, 2, "SELECT returned wrong number of rows: \(rows.count) instead of 2")
-                                                                                    XCTAssertEqual(rows[0][0]! as! String, "Apple", "Wrong column name: \(rows[0][0]) instead of Apple")
+                                                                                    XCTAssertEqual(rows[0][0]! as! String, "Apple", "Wrong value in row 0 column 0: \(rows[0][0]) instead of Apple")
                                                                                     
                                                                                     KueryTests.printResultAsRows(result: result)
+                                                                                    
+                                                                                    let s10 = "Select * from myTable where a IN ('Apple', 'lalala')"
+                                                                                    print("=======\(s10)=======")
+                                                                                    connection.execute(s10) { result in
+                                                                                        XCTAssertEqual(result.success, true, "SELECT failed")
+                                                                                        XCTAssertNotNil(result.asRows, "SELECT returned no rows")
+                                                                                        let (_, rows) = result.asRows!
+                                                                                        XCTAssertEqual(rows.count, 2, "SELECT returned wrong number of rows: \(rows.count) instead of 2")
+                                                                                        XCTAssertEqual(rows[0][0]! as! String, "Apple", "Wrong value in row 0 column 0: \(rows[0][0]) instead of Apple")
+                                                                                        
+                                                                                        KueryTests.printResultAsRows(result: result)
+                                                                                    }
                                                                                 }
                                                                             }
                                                                         }
