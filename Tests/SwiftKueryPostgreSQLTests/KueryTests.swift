@@ -41,27 +41,18 @@ class KueryTests: XCTestCase {
         let port = Int32(read(fileName: "port.txt"))!
         let username = read(fileName: "username.txt")
         let password = read(fileName: "password.txt")
-        let connection = PostgreSQLConnection(host: host, port: port, queryBuilder: QueryBuilder(), options: [.userName(username), .password(password)])
+        let connection = PostgreSQLConnection(host: host, port: port, options: [.userName(username), .password(password)])
         connection.connect() { error in
             XCTAssertNil(error, "Error connecting to PostgreSQL server: \(error)")
             
-            let d1 = Delete(from: t)
-            print("=======\(connection.descriptionOf(query: d1))=======")
-            connection.execute(query: d1) { result in
-                XCTAssertEqual(result.success, true, "DELETE failed")
-                XCTAssertNil(result.asError, "Error in DELETE: \(result.asError)")
-                
-                KueryTests.printSuccess(result: result)
-                
-                let s1 = Select(from: t)
-                print("=======\(connection.descriptionOf(query: s1))=======")
-                s1.execute(connection) { result in
-                    XCTAssertEqual(result.success, true, "SELECT failed")
-                    XCTAssertNotNil(result.asRows, "SELECT returned no rows")
-                    let (_, rows) = result.asRows!
-                    XCTAssertEqual(rows.count, 0, "Table not empty after DELETE all")
+            print("=======CREATE TABLE mytable (a varchar(40), b integer)=======")
+            connection.execute("CREATE TABLE mytable ("
+                + "a varchar(40), "
+                + "b integer)") { result in
+                    XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError)")
                     
-                    KueryTests.printResultAsRows(result: result)
+                    KueryTests.printSuccess(result: result)
                     
                     let i1 = Insert(into: t, values: "apple", 10)
                     print("=======\(connection.descriptionOf(query: i1))=======")
@@ -95,6 +86,7 @@ class KueryTests: XCTestCase {
                                     
                                     KueryTests.printSuccess(result: result)
                                     
+                                    let s1 = Select(from: t)
                                     print("=======\(connection.descriptionOf(query: s1))=======")
                                     connection.execute(query: s1) { result in
                                         XCTAssertEqual(result.success, true, "SELECT failed")
@@ -250,6 +242,34 @@ class KueryTests: XCTestCase {
                                                                                         XCTAssertEqual(rows[0][0]! as! String, "apple", "Wrong value in row 0 column 0: \(rows[0][0]) instead of apple")
                                                                                         
                                                                                         KueryTests.printResultAsRows(result: result)
+                                                                                        let d1 = Delete(from: t)
+                                                                                        print("=======\(connection.descriptionOf(query: d1))=======")
+                                                                                        connection.execute(query: d1) { result in
+                                                                                            XCTAssertEqual(result.success, true, "DELETE failed")
+                                                                                            XCTAssertNil(result.asError, "Error in DELETE: \(result.asError)")
+                                                                                            
+                                                                                            KueryTests.printSuccess(result: result)
+                                                                                            
+                                                                                            let s1 = Select(from: t)
+                                                                                            print("=======\(connection.descriptionOf(query: s1))=======")
+                                                                                            s1.execute(connection) { result in
+                                                                                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                                                                                XCTAssertNotNil(result.asRows, "SELECT returned no rows")
+                                                                                                let (_, rows) = result.asRows!
+                                                                                                XCTAssertEqual(rows.count, 0, "Table not empty after DELETE all")
+                                                                                                
+                                                                                                KueryTests.printResultAsRows(result: result)
+                                                                                                
+                                                                                                let drop = Raw(query: "DROP TABLE", table: t)
+                                                                                                print("=======\(connection.descriptionOf(query: drop))=======")
+                                                                                                drop.execute(connection) { result in
+                                                                                                    XCTAssertEqual(result.success, true, "DROP TABLE failed")
+                                                                                                    XCTAssertNil(result.asError, "Error in DELETE: \(result.asError)")
+                                                                                                    
+                                                                                                    KueryTests.printSuccess(result: result)
+                                                                                                }
+                                                                                            }
+                                                                                        }
                                                                                     }
                                                                                 }
                                                                             }
@@ -270,7 +290,6 @@ class KueryTests: XCTestCase {
                 }
             }
         }
-    }
     
     static func printSuccess(result: QueryResult) {
         if result.success  {

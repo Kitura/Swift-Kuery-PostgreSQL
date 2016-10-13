@@ -19,6 +19,14 @@ import CLibpq
 
 import Foundation
 
+public enum ConnectionOptions {
+    case options(String)
+    case databaseName(String)
+    case userName(String)
+    case password(String)
+    case connectionTimeout(Int)
+}
+
 // https://www.postgresql.org/docs/8.0/static/libpq-exec.html
 public class PostgreSQLConnection : Connection {
     
@@ -26,7 +34,7 @@ public class PostgreSQLConnection : Connection {
     private var connectionParameters: String
     public var queryBuilder: QueryBuilder
     
-    public required init(host: String, port: Int32, queryBuilder: QueryBuilder, options: [ConnectionOptions]?) {
+    public required init(host: String, port: Int32, options: [ConnectionOptions]?) {
         connectionParameters = "host = \(host) port = \(port)"
         if let options = options {
             for option in options {
@@ -44,11 +52,11 @@ public class PostgreSQLConnection : Connection {
                 }
             }
         }
-        self.queryBuilder = queryBuilder
-        queryBuilder.updateNames([QueryBuilder.QueryNames.ascd : "ASC", QueryBuilder.QueryNames.ucase : "UPPER", QueryBuilder.QueryNames.lcase : "LOWER"])
+        self.queryBuilder = QueryBuilder()
+        queryBuilder.updateNames([QueryBuilder.QueryNames.ascd : "ASC", QueryBuilder.QueryNames.ucase : "UPPER", QueryBuilder.QueryNames.lcase : "LOWER", QueryBuilder.QueryNames.len : "LENGTH"])
     }
     
-    public func execute(query: Query, parameters: ValueType..., onCompletion: @escaping ((QueryResult) -> ())) {
+    public func execute(query: Query, parameters: Any..., onCompletion: @escaping ((QueryResult) -> ())) {
         
     }
     
@@ -56,14 +64,15 @@ public class PostgreSQLConnection : Connection {
         return query.build(queryBuilder: queryBuilder)
     }
 
-    public func connect(onCompletion: (String?) -> ()) {
+    public func connect(onCompletion: (QueryError?) -> ()) {
         connection = PQconnectdb(connectionParameters)
         
-        var error : String? = String(validatingUTF8: PQerrorMessage(connection))
-        if error != nil && error!.isEmpty {
-            error = nil
+        let error: String? = String(validatingUTF8: PQerrorMessage(connection))
+        var queryError: QueryError? = nil
+        if error != nil && !error!.isEmpty {
+            queryError = QueryError.connection(error!)
         }
-        onCompletion(error)
+        onCompletion(queryError)
     }
     
     public func closeConnection() {
@@ -83,7 +92,7 @@ public class PostgreSQLConnection : Connection {
     private func executeQuery(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
         let queryResult = PQexec(connection, query)
         guard let result = queryResult else {
-            onCompletion(.error(QueryError.noResult))
+            onCompletion(.error(QueryError.noResult("No result returned for the query")))
             return
         }
         
@@ -103,8 +112,8 @@ public class PostgreSQLConnection : Connection {
         }
     }
     
-    private static func getRows(queryResult: OpaquePointer) -> ([String], [[ValueType?]]) {
-        var result = [[ValueType?]]()
+    private static func getRows(queryResult: OpaquePointer) -> ([String], [[Any?]]) {
+        var result = [[Any?]]()
         let rows = PQntuples(queryResult)
         let columns = PQnfields(queryResult)
         var columnNames = [String]()
@@ -114,7 +123,7 @@ public class PostgreSQLConnection : Connection {
         }
         
         for rowIndex in 0 ..< rows {
-            var row = [ValueType?]()
+            var row = [Any?]()
             
             for column in 0 ..< columns {
                 if PQgetisnull(queryResult, rowIndex, column) == 1 {
@@ -130,7 +139,7 @@ public class PostgreSQLConnection : Connection {
         return (columnNames, result)
     }
     
-    private static func convert(_ queryResult: OpaquePointer, row: Int32, column: Int32) -> ValueType {
+    private static func convert(_ queryResult: OpaquePointer, row: Int32, column: Int32) -> Any {
         let data = Data(bytes: PQgetvalue(queryResult, row, column),
                         count: Int(PQgetlength(queryResult, row, column)))
         
