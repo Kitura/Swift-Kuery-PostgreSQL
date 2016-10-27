@@ -53,7 +53,7 @@ public class PostgreSQLConnection : Connection {
             }
         }
         self.queryBuilder = QueryBuilder()
-        queryBuilder.updateNames([QueryBuilder.QueryNames.ascd : "ASC", QueryBuilder.QueryNames.ucase : "UPPER", QueryBuilder.QueryNames.lcase : "LOWER", QueryBuilder.QueryNames.len : "LENGTH"])
+        queryBuilder.updateNames([QueryBuilder.QueryNames.ucase : "UPPER", QueryBuilder.QueryNames.lcase : "LOWER", QueryBuilder.QueryNames.len : "LENGTH"])
     }
     
     public func execute(query: Query, parameters: Any..., onCompletion: @escaping ((QueryResult) -> ())) {
