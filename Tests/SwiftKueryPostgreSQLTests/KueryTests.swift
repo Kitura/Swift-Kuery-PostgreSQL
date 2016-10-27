@@ -370,7 +370,7 @@ class KueryTests: XCTestCase {
                                 
                                 KueryTests.printResultAsRows(result: result)
                                 
-                                let u1 = Update(table: t, set: [(t.a, "peach"), (t.b, 2)])
+                                let u1 = Update(t, set: [(t.a, "peach"), (t.b, 2)])
                                     .where(t.a == "banana")
                                 print("=======\(connection.descriptionOf(query: u1))=======")
                                 connection.execute(query: u1) { result in
