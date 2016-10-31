@@ -19,18 +19,10 @@ import CLibpq
 
 import Foundation
 
-public enum ConnectionOptions {
-    case options(String)
-    case databaseName(String)
-    case userName(String)
-    case password(String)
-    case connectionTimeout(Int)
-}
-
 // https://www.postgresql.org/docs/8.0/static/libpq-exec.html
 public class PostgreSQLConnection : Connection {
     
-    private var connection: OpaquePointer? = nil///???
+    private var connection: OpaquePointer?
     private var connectionParameters: String
     public var queryBuilder: QueryBuilder
     
@@ -53,11 +45,7 @@ public class PostgreSQLConnection : Connection {
             }
         }
         self.queryBuilder = QueryBuilder()
-        queryBuilder.updateNames([QueryBuilder.QueryNames.ucase : "UPPER", QueryBuilder.QueryNames.lcase : "LOWER", QueryBuilder.QueryNames.len : "LENGTH"])
-    }
-    
-    public func execute(query: Query, parameters: Any..., onCompletion: @escaping ((QueryResult) -> ())) {
-        
+        queryBuilder.updateSubstitutions([QueryBuilder.QuerySubstitutionNames.ucase : "UPPER", QueryBuilder.QuerySubstitutionNames.lcase : "LOWER", QueryBuilder.QuerySubstitutionNames.len : "LENGTH", QueryBuilder.QuerySubstitutionNames.numberedParameter : "$", QueryBuilder.QuerySubstitutionNames.namedParameter : ""])
     }
     
     public func descriptionOf(query: Query) -> String {
@@ -79,7 +67,28 @@ public class PostgreSQLConnection : Connection {
         PQfinish(connection)
         connection = nil
     }
-    
+
+    public func execute(query: Query, parameters: Any..., onCompletion: @escaping ((QueryResult) -> ())) {
+        let postgresQuery = query.build(queryBuilder: queryBuilder)
+
+        var parameterData = [UnsafePointer<Int8>?]()
+        // At the moment we only create string parameters. Binary parameters should be added.
+        for parameter in parameters {
+            let value = AnyCollection("\(parameter)".utf8CString)
+            let pointer = UnsafeMutablePointer<Int8>.allocate(capacity: Int(value.count))
+            for (index, byte) in value.enumerated() {
+                pointer[index] = byte
+            }
+            parameterData.append(pointer)
+        }
+        do {
+            let queryResult: OpaquePointer? =  parameterData.withUnsafeBufferPointer { buffer in
+                return PQexecParams(connection, postgresQuery, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 0)
+            }
+            processQueryResult(queryResult, onCompletion: onCompletion)
+        }
+     }
+
     public func execute(query: Query, onCompletion: @escaping ((QueryResult) -> ())) {
         let postgresQuery = query.build(queryBuilder: queryBuilder)
         executeQuery(query: postgresQuery, onCompletion: onCompletion)
@@ -91,16 +100,17 @@ public class PostgreSQLConnection : Connection {
 
     private func executeQuery(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
         let queryResult = PQexec(connection, query)
+        processQueryResult(queryResult, onCompletion: onCompletion)
+    }
+    
+    private func processQueryResult(_ queryResult: OpaquePointer?, onCompletion: @escaping ((QueryResult) -> ())) {
         guard let result = queryResult else {
             onCompletion(.error(QueryError.noResult("No result returned for the query")))
             return
         }
         
         let status = PQresultStatus(result)
-        /*if status == 5 || status == 6 {
-         onCompletion(.error(PQresultErrorMessage(queryResult)))
-         }
-         else */if status == PGRES_COMMAND_OK {
+        if status == PGRES_COMMAND_OK {
             onCompletion(.successNoData)
          }
          else if status == PGRES_TUPLES_OK {
@@ -151,56 +161,3 @@ public class PostgreSQLConnection : Connection {
         }
     }
 }
-
-//public enum Status: Int, ResultStatus {
-//    case EmptyQuery
-//    case CommandOK
-//    case TuplesOK
-//    case CopyOut
-//    case CopyIn
-//    case BadResponse
-//    case NonFatalError
-//    case FatalError
-//    case CopyBoth
-//    case SingleTuple
-//    case Unknown
-//
-//    public init(status: ExecStatusType) {
-//        switch status {
-//        case PGRES_EMPTY_QUERY:
-//            self = .EmptyQuery
-//            break
-//        case PGRES_COMMAND_OK:
-//            self = .CommandOK
-//            break
-//        case PGRES_TUPLES_OK:
-//            self = .TuplesOK
-//            break
-//        case PGRES_COPY_OUT:
-//            self = .CopyOut
-//            break
-//        case PGRES_COPY_IN:
-//            self = .CopyIn
-//            break
-//        case PGRES_BAD_RESPONSE:
-//            self = .BadResponse
-//            break
-//        case PGRES_NONFATAL_ERROR:
-//            self = .NonFatalError
-//            break
-//        case PGRES_FATAL_ERROR:
-//            self = .FatalError
-//            break
-//        case PGRES_COPY_BOTH:
-//            self = .CopyBoth
-//            break
-//        case PGRES_SINGLE_TUPLE:
-//            self = .SingleTuple
-//            break
-//        default:
-//            self = .Unknown
-//            break
-//        }
-//    }
-//}
-//
