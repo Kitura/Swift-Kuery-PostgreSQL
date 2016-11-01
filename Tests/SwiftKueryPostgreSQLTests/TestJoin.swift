@@ -20,7 +20,7 @@ import SwiftKuery
 @testable import SwiftKueryPostgreSQL
 
 #if os(Linux)
-let table1Nameoin = "table1JoinLinux"
+let table1Join = "table1JoinLinux"
 let table2Join = "table2JoinLinux"
 #else
 let table1Join = "table1JoinOSX"
