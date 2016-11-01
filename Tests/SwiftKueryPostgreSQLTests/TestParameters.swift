@@ -33,7 +33,7 @@ class TestParameters: XCTestCase {
         ]
     }
 
-    public class MyTable : Table {
+    class MyTable : Table {
         let a = Column("a")
         let b = Column("b")
         

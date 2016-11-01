@@ -35,14 +35,14 @@ class TestJoin: XCTestCase {
         ]
     }
     
-    public class MyTable1 : Table {
+    class MyTable1 : Table {
         let a = Column("a")
         let b = Column("b")
         
         let name = table1Join
     }
     
-    public class MyTable2 : Table {
+    class MyTable2 : Table {
         let c = Column("c")
         let b = Column("b")
         
