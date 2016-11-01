@@ -48,10 +48,10 @@ public class PostgreSQLConnection : Connection {
         queryBuilder.updateSubstitutions([QueryBuilder.QuerySubstitutionNames.ucase : "UPPER", QueryBuilder.QuerySubstitutionNames.lcase : "LOWER", QueryBuilder.QuerySubstitutionNames.len : "LENGTH", QueryBuilder.QuerySubstitutionNames.numberedParameter : "$", QueryBuilder.QuerySubstitutionNames.namedParameter : ""])
     }
     
-    public func descriptionOf(query: Query) -> String {
-        return query.build(queryBuilder: queryBuilder)
+    public func descriptionOf(query: Query) throws -> String {
+        return try query.build(queryBuilder: queryBuilder)
     }
-
+    
     public func connect(onCompletion: (QueryError?) -> ()) {
         connection = PQconnectdb(connectionParameters)
         
@@ -67,10 +67,47 @@ public class PostgreSQLConnection : Connection {
         PQfinish(connection)
         connection = nil
     }
-
-    public func execute(query: Query, parameters: Any..., onCompletion: @escaping ((QueryResult) -> ())) {
-        let postgresQuery = query.build(queryBuilder: queryBuilder)
-
+    
+    public func execute(query: Query, parameters: [Any], onCompletion: @escaping ((QueryResult) -> ())) {
+        do {
+            let postgresQuery = try query.build(queryBuilder: queryBuilder)
+            executeQueryWithParameters(query: postgresQuery, parameters: parameters, onCompletion: onCompletion)
+        }
+        catch QueryError.syntaxError(let error) {
+            onCompletion(.error(QueryError.syntaxError(error)))
+        }
+        catch {
+            onCompletion(.error(QueryError.syntaxError("Failed to build the query")))
+        }
+    }
+    
+    public func execute(query: Query, onCompletion: @escaping ((QueryResult) -> ())) {
+        do {
+            let postgresQuery = try query.build(queryBuilder: queryBuilder)
+            executeQuery(query: postgresQuery, onCompletion: onCompletion)
+        }
+        catch QueryError.syntaxError(let error) {
+            onCompletion(.error(QueryError.syntaxError(error)))
+        }
+        catch {
+            onCompletion(.error(QueryError.syntaxError("Failed to build the query")))
+        }
+    }
+    
+    public func execute(_ raw: String, onCompletion: @escaping ((QueryResult) -> ())) {
+        executeQuery(query: raw, onCompletion: onCompletion)
+    }
+    
+    public func execute(_ raw: String, parameters: [Any], onCompletion: @escaping ((QueryResult) -> ())) {
+        executeQueryWithParameters(query: raw, parameters: parameters, onCompletion: onCompletion)
+    }
+    
+    private func executeQuery(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
+        let queryResult = PQexec(connection, query)
+        processQueryResult(queryResult, onCompletion: onCompletion)
+    }
+    
+    private func executeQueryWithParameters(query: String, parameters: [Any], onCompletion: @escaping ((QueryResult) -> ())) {
         var parameterData = [UnsafePointer<Int8>?]()
         // At the moment we only create string parameters. Binary parameters should be added.
         for parameter in parameters {
@@ -81,28 +118,12 @@ public class PostgreSQLConnection : Connection {
             }
             parameterData.append(pointer)
         }
-        do {
-            let queryResult: OpaquePointer? =  parameterData.withUnsafeBufferPointer { buffer in
-                return PQexecParams(connection, postgresQuery, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 0)
-            }
-            processQueryResult(queryResult, onCompletion: onCompletion)
+        let queryResult: OpaquePointer? =  parameterData.withUnsafeBufferPointer { buffer in
+            return PQexecParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 0)
         }
-     }
-
-    public func execute(query: Query, onCompletion: @escaping ((QueryResult) -> ())) {
-        let postgresQuery = query.build(queryBuilder: queryBuilder)
-        executeQuery(query: postgresQuery, onCompletion: onCompletion)
-    }
-    
-    public func execute(_ raw: String, onCompletion: @escaping ((QueryResult) -> ())) {
-        executeQuery(query: raw, onCompletion: onCompletion)
-    }
-
-    private func executeQuery(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
-        let queryResult = PQexec(connection, query)
         processQueryResult(queryResult, onCompletion: onCompletion)
     }
-    
+
     private func processQueryResult(_ queryResult: OpaquePointer?, onCompletion: @escaping ((QueryResult) -> ())) {
         guard let result = queryResult else {
             onCompletion(.error(QueryError.noResult("No result returned for the query")))
@@ -112,12 +133,12 @@ public class PostgreSQLConnection : Connection {
         let status = PQresultStatus(result)
         if status == PGRES_COMMAND_OK {
             onCompletion(.successNoData)
-         }
-         else if status == PGRES_TUPLES_OK {
+        }
+        else if status == PGRES_TUPLES_OK {
             let (titles, rows) = PostgreSQLConnection.getRows(queryResult: result)
             onCompletion(.rows(titles: titles, rows: rows))
-         }
-         else {
+        }
+        else {
             onCompletion(.error(QueryError.databaseError(String(validatingUTF8: PQresultErrorMessage(result))!)))
         }
     }

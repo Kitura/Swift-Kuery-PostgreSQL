@@ -51,5 +51,75 @@ func read(fileName: String) -> String {
     }
 }
 
+func executeQuery(query: Query, connection: Connection, callback: @escaping (QueryResult)->()) {
+    do {
+        try print("=======\(connection.descriptionOf(query: query))=======")
+    }
+    catch {}
+    connection.execute(query: query) { result in
+        printResult(result)
+        callback(result)
+    }
+}
+
+func executeQueryWithParameters(query: Query, connection: Connection, parameters: Any..., callback: @escaping (QueryResult)->()) {
+    do {
+        try print("=======\(connection.descriptionOf(query: query))=======")
+    }
+    catch {}
+    connection.execute(query: query, parameters: parameters) { result in
+        printResult(result)
+        callback(result)
+    }
+}
+
+func executeRawQuery(_ raw: String, connection: Connection, callback: @escaping (QueryResult)->()) {
+    print("=======\(raw)=======")
+    connection.execute(raw) { result in
+        printResult(result)
+        callback(result)
+    }
+}
+
+func cleanUp(table: String, connection: Connection, callback: @escaping (QueryResult)->()) {
+    connection.execute("DROP TABLE " + table) { result in
+        callback(result)
+    }
+}
+
+func printResult(_ result: QueryResult) {
+    if let (titles, rows) = result.asRows {
+        for title in titles {
+            print(title.padding(toLength: 11, withPad: " ", startingAt: 0), terminator: "")
+        }
+        print()
+        for row in rows {
+            for value in row {
+                var valueToPrint = ""
+                if value != nil {
+                    valueToPrint = value as! String
+                }
+                print(valueToPrint.padding(toLength: 11, withPad: " ", startingAt: 0), terminator: "")
+            }
+            print()
+        }
+    }
+    else if result.success  {
+        print("Success")
+    }
+    else if let queryError = result.asError {
+        print("Error in query: ", queryError)
+    }
+}
+
+func createConnection() -> PostgreSQLConnection {
+    let host = read(fileName: "host.txt")
+    let port = Int32(read(fileName: "port.txt"))!
+    let username = read(fileName: "username.txt")
+    let password = read(fileName: "password.txt")
+    
+    return PostgreSQLConnection(host: host, port: port, options: [.userName(username), .password(password)])
+}
+
 // Dummy class for test framework
 class CommonUtils { }
