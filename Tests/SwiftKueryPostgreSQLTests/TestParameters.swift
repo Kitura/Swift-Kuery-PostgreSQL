@@ -52,12 +52,12 @@ class TestParameters: XCTestCase {
                     
                     executeRawQuery("CREATE TABLE " +  t.name + " (a varchar(40), b integer)", connection: connection) { result in
                         XCTAssertEqual(result.success, true, "CREATE TABLE failed")
-                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError)")
+                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                         
                         let i1 = Insert(into: t, rows: [[Parameter(), 10], ["apricot", Parameter()], [Parameter(), Parameter()]])
                         executeQueryWithParameters(query: i1, connection: connection, parameters: "apple", 3, "banana", -8) { result in
                             XCTAssertEqual(result.success, true, "INSERT failed")
-                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError)")
+                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
                             
                             let s1 = Select(from: t)
                             executeQuery(query: s1, connection: connection) { result in
@@ -75,7 +75,7 @@ class TestParameters: XCTestCase {
                                 let u1 = Update(t, set: [(t.a, Parameter()), (t.b, Parameter())], where: t.a == "banana")
                                 executeQueryWithParameters(query: u1, connection: connection, parameters: "peach", 2) { result in
                                     XCTAssertEqual(result.success, true, "UPDATE failed")
-                                    XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError)")
+                                    XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")
                                     
                                     executeQuery(query: s1, connection: connection) { result in
                                         XCTAssertEqual(result.success, true, "SELECT failed")
@@ -84,6 +84,21 @@ class TestParameters: XCTestCase {
                                         XCTAssertEqual(rows.count, 3, "SELECT returned wrong number of rows: \(rows.count) instead of 3")
                                         XCTAssertEqual(rows[2][0]! as! String, "peach", "Wrong value in row 0 column 0: \(rows[2][0]) instead of 'peach'")
                                         XCTAssertEqual(rows[2][1]! as! String, "2", "Wrong value in row 0 column 0: \(rows[2][1]) instead of 2")
+                                        
+                                        let raw = "UPDATE " + t.name + " SET a = 'banana', b = $1 WHERE a = $2"
+                                        executeRawQueryWithParameters(raw, connection: connection, parameters: 4, "peach") { result in
+                                            XCTAssertEqual(result.success, true, "UPDATE failed")
+                                            XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")
+                                            
+                                            executeQuery(query: s1, connection: connection) { result in
+                                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                                XCTAssertNotNil(result.asRows, "SELECT returned no rows")
+                                                let (_, rows) = result.asRows!
+                                                XCTAssertEqual(rows.count, 3, "SELECT returned wrong number of rows: \(rows.count) instead of 3")
+                                                XCTAssertEqual(rows[2][0]! as! String, "banana", "Wrong value in row 0 column 0: \(rows[2][0]) instead of 'peach'")
+                                                XCTAssertEqual(rows[2][1]! as! String, "4", "Wrong value in row 0 column 0: \(rows[2][1]) instead of 4")
+                                            }
+                                        }
                                     }
                                 }
                             }

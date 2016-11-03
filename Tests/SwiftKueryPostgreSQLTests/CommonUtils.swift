@@ -73,6 +73,14 @@ func executeQueryWithParameters(query: Query, connection: Connection, parameters
     }
 }
 
+func executeRawQueryWithParameters(_ raw: String, connection: Connection, parameters: Any..., callback: @escaping (QueryResult)->()) {
+    print("=======\(raw)=======")
+    connection.execute(raw, parameters: parameters) { result in
+        printResult(result)
+        callback(result)
+    }
+}
+
 func executeRawQuery(_ raw: String, connection: Connection, callback: @escaping (QueryResult)->()) {
     print("=======\(raw)=======")
     connection.execute(raw) { result in

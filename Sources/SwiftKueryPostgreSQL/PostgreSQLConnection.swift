@@ -104,7 +104,7 @@ public class PostgreSQLConnection : Connection {
     
     private func executeQuery(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
         let queryResult = PQexec(connection, query)
-        processQueryResult(queryResult, onCompletion: onCompletion)
+        processQueryResult(queryResult, query: query, onCompletion: onCompletion)
     }
     
     private func executeQueryWithParameters(query: String, parameters: [Any], onCompletion: @escaping ((QueryResult) -> ())) {
@@ -121,12 +121,12 @@ public class PostgreSQLConnection : Connection {
         let queryResult: OpaquePointer? =  parameterData.withUnsafeBufferPointer { buffer in
             return PQexecParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 0)
         }
-        processQueryResult(queryResult, onCompletion: onCompletion)
+        processQueryResult(queryResult, query: query, onCompletion: onCompletion)
     }
 
-    private func processQueryResult(_ queryResult: OpaquePointer?, onCompletion: @escaping ((QueryResult) -> ())) {
+    private func processQueryResult(_ queryResult: OpaquePointer?, query: String, onCompletion: @escaping ((QueryResult) -> ())) {
         guard let result = queryResult else {
-            onCompletion(.error(QueryError.noResult("No result returned for the query")))
+            onCompletion(.error(QueryError.noResult("No result returned for query: \(query)")))
             return
         }
         
@@ -139,7 +139,7 @@ public class PostgreSQLConnection : Connection {
             onCompletion(.rows(titles: titles, rows: rows))
         }
         else {
-            onCompletion(.error(QueryError.databaseError(String(validatingUTF8: PQresultErrorMessage(result))!)))
+            onCompletion(.error(QueryError.databaseError("Query execution error:\n" + String(validatingUTF8: PQresultErrorMessage(result))! + "For query: " + query)))
         }
     }
     

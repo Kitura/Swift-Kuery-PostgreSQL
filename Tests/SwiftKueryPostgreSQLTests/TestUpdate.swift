@@ -53,12 +53,12 @@ class TestUpdate: XCTestCase {
                     
                     executeRawQuery("CREATE TABLE " +  t.name + " (a varchar(40), b integer)", connection: connection) { result in
                         XCTAssertEqual(result.success, true, "CREATE TABLE failed")
-                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError)")
+                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                         
                         let i1 = Insert(into: t, rows: [["apple", 10], ["apricot", 3], ["banana", 17], ["apple", 17], ["banana", -7], ["banana", 27]])
                         executeQuery(query: i1, connection: connection) { result in
                             XCTAssertEqual(result.success, true, "INSERT failed")
-                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError)")
+                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
 
                             let s1 = Select(from: t)
                             executeQuery(query: s1, connection: connection) { result in
@@ -71,7 +71,7 @@ class TestUpdate: XCTestCase {
                                     .where(t.a == "banana")
                                 executeQuery(query: u1, connection: connection) { result in
                                     XCTAssertEqual(result.success, true, "UPDATE failed")
-                                    XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError)")
+                                    XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")
                                     
                                     let s2 = Select(t.a, t.b, from: t)
                                         .where(t.a == "banana")
@@ -85,7 +85,7 @@ class TestUpdate: XCTestCase {
                                             .where(t.b == "2")
                                         executeQuery(query: d1, connection: connection) { result in
                                             XCTAssertEqual(result.success, true, "DELETE failed")
-                                            XCTAssertNil(result.asError, "Error in DELETE: \(result.asError)")
+                                            XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
                                             
                                             executeQuery(query: s1, connection: connection) { result in
                                                 XCTAssertEqual(result.success, true, "SELECT failed")
@@ -96,7 +96,7 @@ class TestUpdate: XCTestCase {
                                                 let d2 = Delete(from: t)
                                                 executeQuery(query: d2, connection: connection) { result in
                                                     XCTAssertEqual(result.success, true, "DELETE failed")
-                                                    XCTAssertNil(result.asError, "Error in DELETE: \(result.asError)")
+                                                    XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
                                                     
                                                     executeQuery(query: s1, connection: connection) { result in
                                                         XCTAssertEqual(result.success, true, "SELECT failed")

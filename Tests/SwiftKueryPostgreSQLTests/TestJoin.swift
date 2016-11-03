@@ -65,21 +65,21 @@ class TestJoin: XCTestCase {
                         executeRawQuery("CREATE TABLE " +  myTable1.name + " (a varchar(40), b integer)", connection: connection) { result in
                             
                             XCTAssertEqual(result.success, true, "CREATE TABLE failed")
-                            XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError)")
+                            XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                             
                             executeRawQuery("CREATE TABLE " +  myTable2.name + " (c varchar(40), b integer)", connection: connection) { result in
                                 XCTAssertEqual(result.success, true, "CREATE TABLE failed")
-                                XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError)")
+                                XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                                 
                                 let i1 = Insert(into: myTable1, rows: [["apple", 10], ["apricot", 3], ["banana", 17], ["apple", 17], ["banana", -7], ["banana", 27]])
                                 executeQuery(query: i1, connection: connection) { result in
                                     XCTAssertEqual(result.success, true, "INSERT failed")
-                                    XCTAssertNil(result.asError, "Error in INSERT: \(result.asError)")
+                                    XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
                                     
                                     let i2 = Insert(into: myTable2, rows: [["apple", 11], ["apricot", 3], ["banana", 17], ["apple", 1], ["peach", -7]])
                                     executeQuery(query: i2, connection: connection) { result in
                                         XCTAssertEqual(result.success, true, "INSERT failed")
-                                        XCTAssertNil(result.asError, "Error in INSERT: \(result.asError)")
+                                        XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
                                         
                                         let s1 = Select(from: myTable1)
                                             .join(myTable2)
