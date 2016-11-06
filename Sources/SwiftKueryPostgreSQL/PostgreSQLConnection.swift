@@ -175,7 +175,7 @@ public class PostgreSQLConnection : Connection {
                         count: Int(PQgetlength(queryResult, row, column)))
         
         if PQfformat(queryResult, column) == 0 {
-            return String(data: data, encoding: String.Encoding.utf8)
+            return String(data: data, encoding: String.Encoding.utf8) as Any
         }
         else {
             return data
