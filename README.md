@@ -23,6 +23,7 @@ $ brew install postgresql
 ## Running Swift-Kuery-PostgreSQL
 
 First create an instance of `Swift-Kuery-PostgreSQL` by calling:
+
 ```swift
 public required init(host: String, port: Int32, options: [ConnectionOptions]?)
 ```
@@ -33,11 +34,12 @@ public required init(host: String, port: Int32, options: [ConnectionOptions]?)
    * *databaseName* - the database name
    * *userName* - the user name
    * *password* - the user password
-   * *connectionTimeout* - maximum wait for connection, in seconds (write as a decimal integer string). Zero or not specified means wait indefinitely.
+   * *connectionTimeout* - maximum wait for connection in seconds. Zero or not specified means wait indefinitely.
 
 For more information please see [PostgreSQL manual](https://www.postgresql.org/docs/8.0/static/libpq.html#LIBPQ-CONNECT).
 
 To establish a connection call:
+
 ```swift
 public func connect(onCompletion: (QueryError?) -> ())
 ```

@@ -19,13 +19,23 @@ import CLibpq
 
 import Foundation
 
-// https://www.postgresql.org/docs/8.0/static/libpq-exec.html
+// MARK: PostgreSQLConnection
+
+/// An implementaion of `SwiftKuery.Connection` protocol for PostgreSQL.
+/// Please see [PostgreSQL manual](https://www.postgresql.org/docs/8.0/static/libpq-exec.html) for details.
 public class PostgreSQLConnection : Connection {
     
     private var connection: OpaquePointer?
     private var connectionParameters: String
+    
+    /// The `QueryBuilder` with PostgreSQL specific substitutions.
     public var queryBuilder: QueryBuilder
     
+    /// Initialize an instance of PostgreSQLConnection.
+    ///
+    /// - Parameter host: The host of the PostgreSQL server to connect to.
+    /// - Parameter port: The port of the PostgreSQL server to connect to.
+    /// - Parameter options: A set of `ConnectionOptions` to pass to the PostgreSQL server.
     public required init(host: String, port: Int32, options: [ConnectionOptions]?) {
         connectionParameters = "host = \(host) port = \(port)"
         if let options = options {
@@ -48,10 +58,18 @@ public class PostgreSQLConnection : Connection {
         queryBuilder.updateSubstitutions([QueryBuilder.QuerySubstitutionNames.ucase : "UPPER", QueryBuilder.QuerySubstitutionNames.lcase : "LOWER", QueryBuilder.QuerySubstitutionNames.len : "LENGTH", QueryBuilder.QuerySubstitutionNames.numberedParameter : "$", QueryBuilder.QuerySubstitutionNames.namedParameter : ""])
     }
     
+    /// Return a String representation of the query.
+    ///
+    /// - Parameter query: The query.
+    /// - Returns: A String representation of the query.
+    /// - Throws: QueryError.syntaxError if query build fails.
     public func descriptionOf(query: Query) throws -> String {
         return try query.build(queryBuilder: queryBuilder)
     }
     
+    /// Establish a connection with the database.
+    ///
+    /// - Parameter onCompletion: The function to be called once the connection is established.
     public func connect(onCompletion: (QueryError?) -> ()) {
         connection = PQconnectdb(connectionParameters)
         
@@ -63,11 +81,17 @@ public class PostgreSQLConnection : Connection {
         onCompletion(queryError)
     }
     
+    /// Close the connection to the database.
     public func closeConnection() {
         PQfinish(connection)
         connection = nil
     }
     
+    /// Execute a query with parameters.
+    ///
+    /// - Parameter query: The query to execute.
+    /// - Parameter parameters: An array of the parameters.
+    /// - Parameter onCompletion: The function to be called once the execution of the query is completed.
     public func execute(query: Query, parameters: [Any], onCompletion: @escaping ((QueryResult) -> ())) {
         do {
             let postgresQuery = try query.build(queryBuilder: queryBuilder)
@@ -81,6 +105,10 @@ public class PostgreSQLConnection : Connection {
         }
     }
     
+    /// Execute a query.
+    ///
+    /// - Parameter query: The query to execute.
+    /// - Parameter onCompletion: The function to be called once the execution of the query is completed.
     public func execute(query: Query, onCompletion: @escaping ((QueryResult) -> ())) {
         do {
             let postgresQuery = try query.build(queryBuilder: queryBuilder)
@@ -94,10 +122,19 @@ public class PostgreSQLConnection : Connection {
         }
     }
     
+    /// Execute a raw query.
+    ///
+    /// - Parameter query: A String with the query to execute.
+    /// - Parameter onCompletion: The function to be called once the execution of the query is completed.
     public func execute(_ raw: String, onCompletion: @escaping ((QueryResult) -> ())) {
         executeQuery(query: raw, onCompletion: onCompletion)
     }
     
+    /// Execute a raw query with parameters.
+    ///
+    /// - Parameter query: A String with the query to execute.
+    /// - Parameter parameters: An array of the parameters.
+    /// - Parameter onCompletion: The function to be called once the execution of the query is completed.
     public func execute(_ raw: String, parameters: [Any], onCompletion: @escaping ((QueryResult) -> ())) {
         executeQueryWithParameters(query: raw, parameters: parameters, onCompletion: onCompletion)
     }

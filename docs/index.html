@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>SwiftKueryPostgreSQL  Reference</title>
+    <link rel="stylesheet" type="text/css" href="css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="css/highlight.css" />
+    <meta charset="utf-8">
+    <script src="js/jquery.min.js" defer></script>
+    <script src="js/jazzy.js" defer></script>
+    
+  </head>
+  <body>
+
+
+    <a title="SwiftKueryPostgreSQL  Reference"></a>
+
+    <header class="header">
+      <p class="header-col header-col--primary">
+        <a class="header-link" href="index.html">
+          SwiftKueryPostgreSQL Docs
+        </a>
+         (100% documented)
+      </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL/">
+            <img class="header-icon" src="img/gh.png"/>
+            View on GitHub
+          </a>
+        </p>
+    
+    </header>
+
+    <p class="breadcrumbs">
+      <a class="breadcrumb" href="index.html">SwiftKueryPostgreSQL Reference</a>
+      <img class="carat" src="img/carat.png" />
+      SwiftKueryPostgreSQL  Reference
+    </p>
+
+    <div class="content-wrapper">
+      <nav class="navigation">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/PostgreSQLConnection.html">PostgreSQLConnection</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Enums.html">Enums</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/ConnectionOptions.html">ConnectionOptions</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+
+        <section class="section">
+          <div class="section-content">
+            
+            <a href='#swift-kuery-postgresql' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h1 id='swift-kuery-postgresql'>Swift-Kuery-PostgreSQL</h1>
+
+<p>PostgreSQL plugin for Swift-Kuery framework</p>
+
+<p><img src="https://img.shields.io/badge/os-Mac%20OS%20X-green.svg?style=flat" alt="Mac OS X">
+<img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux">
+<img src="https://img.shields.io/badge/license-Apache2-blue.svg?style=flat" alt="Apache 2"></p>
+<a href='#summary' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='summary'>Summary</h2>
+
+<p><a href="https://www.postgresql.org/">PostgreSQL</a> plugin for <a href="https://github.com/IBM-Swift/Swift-Kuery">Swift-Kuery</a> framework.</p>
+<a href='#postgresql-installation' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='postgresql-installation'>PostgreSQL installation</h2>
+<a href='#linux' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h3 id='linux'>Linux</h3>
+<pre class="highlight plaintext"><code>$ apt-get install libpq-dev
+</code></pre>
+<a href='#macos' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h3 id='macos'>macOS</h3>
+<pre class="highlight plaintext"><code>$ brew install postgresql
+</code></pre>
+<a href='#running-swift-kuery-postgresql' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='running-swift-kuery-postgresql'>Running Swift-Kuery-PostgreSQL</h2>
+
+<p>First create an instance of <code>Swift-Kuery-PostgreSQL</code> by calling:</p>
+<pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">required</span> <span class="nf">init</span><span class="p">(</span><span class="nv">host</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">port</span><span class="p">:</span> <span class="kt">Int32</span><span class="p">,</span> <span class="nv">options</span><span class="p">:</span> <span class="p">[</span><span class="kt">ConnectionOptions</span><span class="p">]?)</span>
+</code></pre>
+
+<p><strong>Where:</strong>
+- <em>host</em> and <em>port</em> are the host and the port of PostgreSQL
+- <em>ConnectionOptions</em>  an optional set of:
+   * <em>options</em> - command-line options to be sent to the server
+   * <em>databaseName</em> - the database name
+   * <em>userName</em> - the user name
+   * <em>password</em> - the user password
+   * <em>connectionTimeout</em> - maximum wait for connection in seconds. Zero or not specified means wait indefinitely.</p>
+
+<p>For more information please see <a href="https://www.postgresql.org/docs/8.0/static/libpq.html#LIBPQ-CONNECT">PostgreSQL manual</a>.</p>
+
+<p>To establish a connection call:</p>
+<pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">connect</span><span class="p">(</span><span class="nv">onCompletion</span><span class="p">:</span> <span class="p">(</span><span class="kt">QueryError</span><span class="p">?)</span> <span class="o">-&gt;</span> <span class="p">())</span>
+</code></pre>
+<a href='#license' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='license'>License</h2>
+
+<p>This library is licensed under Apache 2.0. Full license text is available in <a href="LICENSE.txt">LICENSE</a>.</p>
+
+          </div>
+        </section>
+
+
+      </article>
+    </div>
+    <section class="footer">
+      <p>&copy; 2016 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2016-11-06)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.0</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+    </section>
+  </body>
+</div>
+</html>

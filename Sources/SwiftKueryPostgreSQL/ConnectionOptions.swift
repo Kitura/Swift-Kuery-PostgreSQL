@@ -14,10 +14,18 @@
  limitations under the License.
  */
 
+// MARK: ConnectionOptions
+
+/// Configuration options to be passed to PostgreSQL server.
 public enum ConnectionOptions {
+    /// The command-line options to be sent to the server.
     case options(String)
+    /// The database name.
     case databaseName(String)
+    /// The user name.
     case userName(String)
+    /// The user password.
     case password(String)
+    /// The maximum wait for connection in seconds. Zero or not specified means wait indefinitely.
     case connectionTimeout(Int)
 }
