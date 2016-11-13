@@ -21,8 +21,12 @@ import SwiftKuery
 
 #if os(Linux)
 let tableSelect = "tableSelectLinux"
+let tableSelect2 = "tableSelect2Linux"
+let tableSelect3 = "tableSelect3Linux"
 #else
 let tableSelect = "tableSelectOSX"
+let tableSelect2 = "tableSelect2OSX"
+let tableSelect3 = "tableSelect3OSX"
 #endif
 
 class TestSelect: XCTestCase {
@@ -30,6 +34,7 @@ class TestSelect: XCTestCase {
     static var allTests: [(String, (TestSelect) -> () throws -> Void)] {
         return [
             ("testSelect", testSelect),
+            ("testSelectFromMany", testSelectFromMany),
         ]
     }
     
@@ -38,6 +43,18 @@ class TestSelect: XCTestCase {
         let b = Column("b")
         
         let name = tableSelect
+    }
+    class MyTable2 : Table {
+        let c = Column("c")
+        let b = Column("b")
+        
+        let name = tableSelect2
+    }
+    class MyTable3 : Table {
+        let d = Column("d")
+        let b = Column("b")
+        
+        let name = tableSelect3
     }
     
     func testSelect() {
@@ -168,6 +185,70 @@ class TestSelect: XCTestCase {
                                                                 }
                                                             }
                                                         }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            expectation.fulfill()
+        })
+    }
+    
+    func testSelectFromMany() {
+        let t1 = MyTable()
+        let t2 = MyTable2()
+        let t3 = MyTable3()
+        
+        let connection = createConnection()
+        performTest(asyncTasks: { expectation in
+            connection.connect() { error in
+                XCTAssertNil(error, "Error connecting to PostgreSQL server: \(error)")
+                
+                cleanUp(table: t1.name, connection: connection) { result in
+                    cleanUp(table: t2.name, connection: connection) { result in
+                        cleanUp(table: t3.name, connection: connection) { result in
+                            
+                            executeRawQuery("CREATE TABLE " +  t1.name + " (a varchar(40), b integer)", connection: connection) { result in
+                                XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                                XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                                
+                                executeRawQuery("CREATE TABLE " +  t2.name + " (c varchar(40), b integer)", connection: connection) { result in
+                                    XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                                    
+                                    executeRawQuery("CREATE TABLE " +  t3.name + " (d varchar(40), b integer)", connection: connection) { result in
+                                        XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                                        
+                                        let i1 = Insert(into: t1, rows: [["apple", 10], ["apricot", 3], ["banana", 17]])
+                                        executeQuery(query: i1, connection: connection) { result in
+                                            XCTAssertEqual(result.success, true, "INSERT failed")
+                                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                            
+                                            let i2 = Insert(into: t2, rows: [["apple", 17], ["banana", -7], ["banana", 10]])
+                                            executeQuery(query: i2, connection: connection) { result in
+                                                XCTAssertEqual(result.success, true, "INSERT failed")
+                                                XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                                
+                                                let i3 = Insert(into: t3, rows: [["banana", 10], ["apricot", -3], ["apple", 17]])
+                                                executeQuery(query: i3, connection: connection) { result in
+                                                    XCTAssertEqual(result.success, true, "INSERT failed")
+                                                    XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                                    
+                                                    let s1 = Select(from: [t1, t2, t3])
+                                                        .where(t1.b == t2.b && t3.b == t1.b)
+                                                    executeQuery(query: s1, connection: connection) { result in
+                                                        XCTAssertEqual(result.success, true, "SELECT failed")
+                                                        XCTAssertNotNil(result.asRows, "SELECT returned no rows")
+                                                        let (titles, rows) = result.asRows!
+                                                        XCTAssertEqual(rows.count, 2, "SELECT returned wrong number of rows: \(rows.count) instead of 2")
+                                                        XCTAssertEqual(titles.count, 6, "SELECT returned wrong number of columns: \(titles.count) instead of 6")
                                                     }
                                                 }
                                             }
