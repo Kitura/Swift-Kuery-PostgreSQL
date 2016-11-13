@@ -12,12 +12,12 @@ PostgreSQL plugin for Swift-Kuery framework
 
 ### Linux
 ```
-$ apt-get install libpq-dev
+$ sudo apt-get install libpq-dev
 ```
 
 ### macOS
 ```
-$ sudo brew install postgresql
+$ brew install postgresql
 ```
 
 ## Running Swift-Kuery-PostgreSQL
