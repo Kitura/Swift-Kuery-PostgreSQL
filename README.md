@@ -17,7 +17,7 @@ $ apt-get install libpq-dev
 
 ### macOS
 ```
-$ brew install postgresql
+$ sudo brew install postgresql
 ```
 
 ## Running Swift-Kuery-PostgreSQL
