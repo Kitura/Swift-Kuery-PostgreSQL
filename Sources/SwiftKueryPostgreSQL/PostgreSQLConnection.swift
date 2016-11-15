@@ -178,6 +178,7 @@ public class PostgreSQLConnection : Connection {
         else {
             onCompletion(.error(QueryError.databaseError("Query execution error:\n" + String(validatingUTF8: PQresultErrorMessage(result))! + "For query: " + query)))
         }
+        PQclear(result)
     }
     
     private static func getRows(queryResult: OpaquePointer) -> ([String], [[Any?]]) {
