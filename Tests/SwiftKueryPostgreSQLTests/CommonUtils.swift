@@ -112,6 +112,9 @@ func printResult(_ result: QueryResult) {
             print()
         }
     }
+    else if let value = result.asValue  {
+        print("Result: ", value)
+    }
     else if result.success  {
         print("Success")
     }
