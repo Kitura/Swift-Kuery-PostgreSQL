@@ -37,7 +37,7 @@ class TestParameters: XCTestCase {
         let a = Column("a")
         let b = Column("b")
         
-        let name = tableParameters
+        let tableName = tableParameters
     }
     
     func testParameters() {
@@ -48,9 +48,9 @@ class TestParameters: XCTestCase {
             connection.connect() { error in
                 XCTAssertNil(error, "Error connecting to PostgreSQL server: \(error)")
                 
-                cleanUp(table: t.name, connection: connection) { result in
+                cleanUp(table: t.tableName, connection: connection) { result in
                     
-                    executeRawQuery("CREATE TABLE " +  t.name + " (a varchar(40), b integer)", connection: connection) { result in
+                    executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b integer)", connection: connection) { result in
                         XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                         XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                         
@@ -85,7 +85,7 @@ class TestParameters: XCTestCase {
                                         XCTAssertEqual(rows[2][0]! as! String, "peach", "Wrong value in row 0 column 0: \(rows[2][0]) instead of 'peach'")
                                         XCTAssertEqual(rows[2][1]! as! String, "2", "Wrong value in row 0 column 0: \(rows[2][1]) instead of 2")
                                         
-                                        let raw = "UPDATE " + t.name + " SET a = 'banana', b = $1 WHERE a = $2"
+                                        let raw = "UPDATE " + t.tableName + " SET a = 'banana', b = $1 WHERE a = $2"
                                         executeRawQueryWithParameters(raw, connection: connection, parameters: 4, "peach") { result in
                                             XCTAssertEqual(result.success, true, "UPDATE failed")
                                             XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")

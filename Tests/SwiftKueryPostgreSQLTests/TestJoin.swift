@@ -39,14 +39,14 @@ class TestJoin: XCTestCase {
         let a = Column("a")
         let b = Column("b")
         
-        let name = table1Join
+        let tableName = table1Join
     }
     
     class MyTable2 : Table {
         let c = Column("c")
         let b = Column("b")
         
-        let name = table2Join
+        let tableName = table2Join
     }
     
     func testJoin() {
@@ -58,16 +58,16 @@ class TestJoin: XCTestCase {
             connection.connect() { error in
                 XCTAssertNil(error, "Error connecting to PostgreSQL server: \(error)")
                 
-                cleanUp(table: myTable1.name, connection: connection) { result in
+                cleanUp(table: myTable1.tableName, connection: connection) { result in
 
-                    cleanUp(table: myTable2.name, connection: connection) { result in
+                    cleanUp(table: myTable2.tableName, connection: connection) { result in
 
-                        executeRawQuery("CREATE TABLE " +  myTable1.name + " (a varchar(40), b integer)", connection: connection) { result in
+                        executeRawQuery("CREATE TABLE " +  myTable1.tableName + " (a varchar(40), b integer)", connection: connection) { result in
                             
                             XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                             XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                             
-                            executeRawQuery("CREATE TABLE " +  myTable2.name + " (c varchar(40), b integer)", connection: connection) { result in
+                            executeRawQuery("CREATE TABLE " +  myTable2.tableName + " (c varchar(40), b integer)", connection: connection) { result in
                                 XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                                 XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                                 

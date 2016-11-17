@@ -37,7 +37,7 @@ class TestAlias: XCTestCase {
         let a = Column("a")
         let b = Column("b")
         
-        let name = tableAlias
+        let tableName = tableAlias
     }
     
     func testAlias() {
@@ -49,9 +49,9 @@ class TestAlias: XCTestCase {
             connection.connect() { error in
                 XCTAssertNil(error, "Error connecting to PostgreSQL server: \(error)")
                 
-                cleanUp(table: t.name, connection: connection) { result in
+                cleanUp(table: t.tableName, connection: connection) { result in
                     
-                    executeRawQuery("CREATE TABLE " +  t.name + " (a varchar(40), b integer)", connection: connection) { result in
+                    executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b integer)", connection: connection) { result in
                         XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                         XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                         
