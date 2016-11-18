@@ -21,7 +21,7 @@ import Foundation
 
 // MARK: PostgreSQLConnection
 
-/// An implementaion of `SwiftKuery.Connection` protocol for PostgreSQL.
+/// An implementation of `SwiftKuery.Connection` protocol for PostgreSQL.
 /// Please see [PostgreSQL manual](https://www.postgresql.org/docs/8.0/static/libpq-exec.html) for details.
 public class PostgreSQLConnection : Connection {
     
