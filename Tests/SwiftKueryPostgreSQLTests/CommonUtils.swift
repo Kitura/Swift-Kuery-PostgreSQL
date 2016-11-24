@@ -51,41 +51,41 @@ func read(fileName: String) -> String {
     }
 }
 
-func executeQuery(query: Query, connection: Connection, callback: @escaping (QueryResult)->()) {
+func executeQuery(query: Query, connection: Connection, callback: @escaping (QueryResult, [[Any?]]?)->()) {
     do {
         try print("=======\(connection.descriptionOf(query: query))=======")
     }
     catch {}
     connection.execute(query: query) { result in
-        printResult(result)
-        callback(result)
+        let rows = printResultAndGetRowsAsArray(result)
+        callback(result, rows)
     }
 }
 
-func executeQueryWithParameters(query: Query, connection: Connection, parameters: Any..., callback: @escaping (QueryResult)->()) {
+func executeQueryWithParameters(query: Query, connection: Connection, parameters: Any..., callback: @escaping (QueryResult, [[Any?]]?)->()) {
     do {
         try print("=======\(connection.descriptionOf(query: query))=======")
     }
     catch {}
     connection.execute(query: query, parameters: parameters) { result in
-        printResult(result)
-        callback(result)
+        let rows = printResultAndGetRowsAsArray(result)
+        callback(result, rows)
     }
 }
 
-func executeRawQueryWithParameters(_ raw: String, connection: Connection, parameters: Any..., callback: @escaping (QueryResult)->()) {
+func executeRawQueryWithParameters(_ raw: String, connection: Connection, parameters: Any..., callback: @escaping (QueryResult, [[Any?]]?)->()) {
     print("=======\(raw)=======")
     connection.execute(raw, parameters: parameters) { result in
-        printResult(result)
-        callback(result)
+        let rows = printResultAndGetRowsAsArray(result)
+        callback(result, rows)
     }
 }
 
-func executeRawQuery(_ raw: String, connection: Connection, callback: @escaping (QueryResult)->()) {
+func executeRawQuery(_ raw: String, connection: Connection, callback: @escaping (QueryResult, [[Any?]]?)->()) {
     print("=======\(raw)=======")
     connection.execute(raw) { result in
-        printResult(result)
-        callback(result)
+        let rows = printResultAndGetRowsAsArray(result)
+        callback(result, rows)
     }
 }
 
@@ -95,21 +95,26 @@ func cleanUp(table: String, connection: Connection, callback: @escaping (QueryRe
     }
 }
 
-func printResult(_ result: QueryResult) {
-    if let (titles, rows) = result.asRows {
+private func printResultAndGetRowsAsArray(_ result: QueryResult) -> [[Any?]]? {
+    var rows: [[Any?]]? = nil
+    if let resultSet = result.asResultSet {
+        let titles = resultSet.titles
         for title in titles {
             print(title.padding(toLength: 11, withPad: " ", startingAt: 0), terminator: "")
         }
         print()
-        for row in rows {
-            for value in row {
-                var valueToPrint = ""
-                if value != nil {
-                    valueToPrint = value as! String
+        rows = rowsAsArray(resultSet)
+        if let rows = rows {
+            for row in rows {
+                for value in row {
+                    var valueToPrint = ""
+                    if value != nil {
+                        valueToPrint = value as! String
+                    }
+                    print(valueToPrint.padding(toLength: 11, withPad: " ", startingAt: 0), terminator: "")
                 }
-                print(valueToPrint.padding(toLength: 11, withPad: " ", startingAt: 0), terminator: "")
+                print()
             }
-            print()
         }
     }
     else if let value = result.asValue  {
@@ -121,6 +126,15 @@ func printResult(_ result: QueryResult) {
     else if let queryError = result.asError {
         print("Error in query: ", queryError)
     }
+    return rows
+}
+
+func getNumberOfRows(_ result: ResultSet) -> Int {
+    return result.rows.map{ $0 as [Any?] }.count
+}
+
+func rowsAsArray(_ result: ResultSet) -> [[Any?]] {
+    return result.rows.map{ $0 as [Any?] }
 }
 
 func createConnection() -> PostgreSQLConnection {
@@ -131,6 +145,7 @@ func createConnection() -> PostgreSQLConnection {
     
     return PostgreSQLConnection(host: host, port: port, options: [.userName(username), .password(password)])
 }
+
 
 // Dummy class for test framework
 class CommonUtils { }

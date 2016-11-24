@@ -172,8 +172,8 @@ public class PostgreSQLConnection : Connection {
             onCompletion(.successNoData)
         }
         else if status == PGRES_TUPLES_OK {
-            let (titles, rows) = PostgreSQLConnection.getRows(queryResult: result)
-            onCompletion(.rows(titles: titles, rows: rows))
+            let resultFetcher = PostgreSQLConnection.createReslutFetcher(queryResult: result)
+            onCompletion(.resultSet(ResultSet(resultFetcher)))
         }
         else {
             onCompletion(.error(QueryError.databaseError("Query execution error:\n" + String(validatingUTF8: PQresultErrorMessage(result))! + "For query: " + query)))
@@ -181,7 +181,7 @@ public class PostgreSQLConnection : Connection {
         PQclear(result)
     }
     
-    private static func getRows(queryResult: OpaquePointer) -> ([String], [[Any?]]) {
+    private static func createReslutFetcher(queryResult: OpaquePointer) -> PostgreSQLResultFetcher {
         var result = [[Any?]]()
         let rows = PQntuples(queryResult)
         let columns = PQnfields(queryResult)
@@ -205,7 +205,7 @@ public class PostgreSQLConnection : Connection {
             result.append(row)
         }
         
-        return (columnNames, result)
+        return PostgreSQLResultFetcher(titles: columnNames, rows: result)
     }
     
     private static func convert(_ queryResult: OpaquePointer, row: Int32, column: Int32) -> Any {
