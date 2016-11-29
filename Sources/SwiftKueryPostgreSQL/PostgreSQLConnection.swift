@@ -172,7 +172,7 @@ public class PostgreSQLConnection : Connection {
             onCompletion(.successNoData)
         }
         else if status == PGRES_TUPLES_OK {
-            let resultFetcher = PostgreSQLConnection.createReslutFetcher(queryResult: result)
+            let resultFetcher = PostgreSQLConnection.createResultFetcher(queryResult: result)
             onCompletion(.resultSet(ResultSet(resultFetcher)))
         }
         else {
@@ -181,7 +181,7 @@ public class PostgreSQLConnection : Connection {
         PQclear(result)
     }
     
-    private static func createReslutFetcher(queryResult: OpaquePointer) -> PostgreSQLResultFetcher {
+    private static func createResultFetcher(queryResult: OpaquePointer) -> PostgreSQLResultFetcher {
         var result = [[Any?]]()
         let rows = PQntuples(queryResult)
         let columns = PQnfields(queryResult)
