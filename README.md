@@ -71,6 +71,7 @@ createdb school
 Now, let's create a couple tables we will need.
 
 We will use the interactive session so open up the client to the database we created:
+
 ```
 $ psql school
 psql (9.5.4)
@@ -80,15 +81,17 @@ school=#
 ```
 
 First, create the student table:
-```
+
+```sql
 CREATE TABLE student (
  studentId BIGSERIAL PRIMARY KEY,
  name varchar(100) NOT NULL CHECK (name <> '')
 );
 ```
 
-And now, create the grades table.
-```
+And now, create the grades table:
+
+```sql
 CREATE TABLE grades (
   key BIGSERIAL PRIMARY KEY,
   studentId integer NOT NULL,
@@ -98,15 +101,17 @@ CREATE TABLE grades (
 ```
 
 ### Populate the tables
+
 First the students table:
 
-```
+```sql
 INSERT INTO student VALUES (1, 'Tommy Watson');
 INSERT INTO student VALUES (2, 'Fred Flintstone');
 ```
 
 And then the grades table:
-```
+
+```sql
 INSERT INTO grades (studentId, course, grade) VALUES (1, 'How to build your first computer', 99);
 INSERT INTO grades (studentId, course, grade) VALUES (2, 'How to work at a rock quarry', 71);
 ```
@@ -116,9 +121,10 @@ Now we are set to connect to our database from Swift and use Swift-Kuery to quer
 
 #### Create simple Swift executable
 First create a directory for our project and then initialize it.
+
 ```
-mkdir swift-kuery-play
-cd swift-kuery-play
+$ mkdir swift-kuery-play
+$ cd swift-kuery-play
 $ swift package init --type executable
 Creating executable package: swift-kuery-play
 Creating Package.swift
@@ -131,7 +137,8 @@ $
 
 Now, add Swift-Kuery as a dependency for our project.
 Edit Package.swift to contain:
-```
+
+```swift
 import PackageDescription
 
 let package = Package(
@@ -146,7 +153,8 @@ let package = Package(
 ```
 
 Now, let's edit your main.swift file to contain:
-```
+
+```swift
 import SwiftKuery
 import SwiftKueryPostgreSQL
 import Kitura
@@ -229,12 +237,14 @@ Kitura.run()
 ```
 
 Now build the program and run it:
+
 ```
-swift build
-.build/debug/swift-kuery-play
+$ swift build
+$ .build/debug/swift-kuery-play
 ```
 
 Now open a web page to <a href="http://localhost:8090">http://localhost:8090</a> and you should see:
+
 ```
 course                             grade                              
 How to build your first computer   99                                 
@@ -244,15 +254,20 @@ How to work at a rock quarry       71
 Now we can change our query line and see different results.
 
 Change the line:
-```
+
+```swift
       let query = Select(grades.course, grades.grade, from: grades)
 ```
+
 to
-```
+
+```swift
       let query = Select(grades.course, grades.grade, from: grades)
         .where(grades.grade > 80)
 ```
+
 and we should only see grades greater than 80:
+
 ```
 course                             grade                              
 How to build your first computer   99                                 
