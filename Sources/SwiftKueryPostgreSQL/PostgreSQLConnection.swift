@@ -23,7 +23,7 @@ import Foundation
 
 /// An implementation of `SwiftKuery.Connection` protocol for PostgreSQL.
 /// Please see [PostgreSQL manual](https://www.postgresql.org/docs/8.0/static/libpq-exec.html) for details.
-public class PostgreSQLConnection : Connection {
+public class PostgreSQLConnection: Connection {
     
     private var connection: OpaquePointer?
     private var connectionParameters: String
@@ -55,7 +55,11 @@ public class PostgreSQLConnection : Connection {
             }
         }
         self.queryBuilder = QueryBuilder()
-        queryBuilder.updateSubstitutions([QueryBuilder.QuerySubstitutionNames.ucase : "UPPER", QueryBuilder.QuerySubstitutionNames.lcase : "LOWER", QueryBuilder.QuerySubstitutionNames.len : "LENGTH", QueryBuilder.QuerySubstitutionNames.numberedParameter : "$", QueryBuilder.QuerySubstitutionNames.namedParameter : ""])
+        queryBuilder.updateSubstitutions([QueryBuilder.QuerySubstitutionNames.ucase : "UPPER",
+                                          QueryBuilder.QuerySubstitutionNames.lcase : "LOWER",
+                                          QueryBuilder.QuerySubstitutionNames.len : "LENGTH",
+                                          QueryBuilder.QuerySubstitutionNames.numberedParameter : "$",
+                                          QueryBuilder.QuerySubstitutionNames.namedParameter : ""])
     }
     
     /// Return a String representation of the query.
@@ -69,7 +73,7 @@ public class PostgreSQLConnection : Connection {
     
     /// Establish a connection with the database.
     ///
-    /// - Parameter onCompletion: The function to be called once the connection is established.
+    /// - Parameter onCompletion: The function to be called when the connection is established.
     public func connect(onCompletion: (QueryError?) -> ()) {
         connection = PQconnectdb(connectionParameters)
         
@@ -91,7 +95,7 @@ public class PostgreSQLConnection : Connection {
     ///
     /// - Parameter query: The query to execute.
     /// - Parameter parameters: An array of the parameters.
-    /// - Parameter onCompletion: The function to be called once the execution of the query is completed.
+    /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(query: Query, parameters: [Any], onCompletion: @escaping ((QueryResult) -> ())) {
         do {
             let postgresQuery = try query.build(queryBuilder: queryBuilder)
@@ -108,7 +112,7 @@ public class PostgreSQLConnection : Connection {
     /// Execute a query.
     ///
     /// - Parameter query: The query to execute.
-    /// - Parameter onCompletion: The function to be called once the execution of the query is completed.
+    /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(query: Query, onCompletion: @escaping ((QueryResult) -> ())) {
         do {
             let postgresQuery = try query.build(queryBuilder: queryBuilder)
@@ -125,7 +129,7 @@ public class PostgreSQLConnection : Connection {
     /// Execute a raw query.
     ///
     /// - Parameter query: A String with the query to execute.
-    /// - Parameter onCompletion: The function to be called once the execution of the query is completed.
+    /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(_ raw: String, onCompletion: @escaping ((QueryResult) -> ())) {
         executeQuery(query: raw, onCompletion: onCompletion)
     }
@@ -134,7 +138,7 @@ public class PostgreSQLConnection : Connection {
     ///
     /// - Parameter query: A String with the query to execute.
     /// - Parameter parameters: An array of the parameters.
-    /// - Parameter onCompletion: The function to be called once the execution of the query is completed.
+    /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(_ raw: String, parameters: [Any], onCompletion: @escaping ((QueryResult) -> ())) {
         executeQueryWithParameters(query: raw, parameters: parameters, onCompletion: onCompletion)
     }
@@ -172,51 +176,12 @@ public class PostgreSQLConnection : Connection {
             onCompletion(.successNoData)
         }
         else if status == PGRES_TUPLES_OK {
-            let resultFetcher = PostgreSQLConnection.createResultFetcher(queryResult: result)
+            let resultFetcher = PostgreSQLResultFetcher(queryResult: result)
             onCompletion(.resultSet(ResultSet(resultFetcher)))
         }
         else {
             onCompletion(.error(QueryError.databaseError("Query execution error:\n" + String(validatingUTF8: PQresultErrorMessage(result))! + "For query: " + query)))
         }
         PQclear(result)
-    }
-    
-    private static func createResultFetcher(queryResult: OpaquePointer) -> PostgreSQLResultFetcher {
-        var result = [[Any?]]()
-        let rows = PQntuples(queryResult)
-        let columns = PQnfields(queryResult)
-        var columnNames = [String]()
-        
-        for column in 0 ..< columns {
-            columnNames.append(String(validatingUTF8: PQfname(queryResult, column))!)
-        }
-        
-        for rowIndex in 0 ..< rows {
-            var row = [Any?]()
-            
-            for column in 0 ..< columns {
-                if PQgetisnull(queryResult, rowIndex, column) == 1 {
-                    row.append(nil)
-                }
-                else {
-                    row.append(PostgreSQLConnection.convert(queryResult, row: rowIndex, column: column))
-                }
-            }
-            result.append(row)
-        }
-        
-        return PostgreSQLResultFetcher(titles: columnNames, rows: result)
-    }
-    
-    private static func convert(_ queryResult: OpaquePointer, row: Int32, column: Int32) -> Any {
-        let data = Data(bytes: PQgetvalue(queryResult, row, column),
-                        count: Int(PQgetlength(queryResult, row, column)))
-        
-        if PQfformat(queryResult, column) == 0 {
-            return String(data: data, encoding: String.Encoding.utf8) as Any
-        }
-        else {
-            return data
-        }
     }
 }

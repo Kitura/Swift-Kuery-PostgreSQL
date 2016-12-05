@@ -15,19 +15,45 @@
  */
 
 import SwiftKuery
+import CLibpq
+
+import Foundation
 
 // MARK: PostgreSQLResultFetcher
 
 /// An implementation of query result fetcher.
-public class PostgreSQLResultFetcher : ResultFetcher {
+public class PostgreSQLResultFetcher: ResultFetcher {
     
     private let titles: [String]
     private let rows: [[Any?]]
     private var index = -1
     
-    init(titles: [String], rows: [[Any?]]) {
-        self.titles = titles
-        self.rows = rows
+    init(queryResult: OpaquePointer) {
+        var result = [[Any?]]()
+        let rows = PQntuples(queryResult)
+        let columns = PQnfields(queryResult)
+        var columnNames = [String]()
+        
+        for column in 0 ..< columns {
+            columnNames.append(String(validatingUTF8: PQfname(queryResult, column))!)
+        }
+        
+        for rowIndex in 0 ..< rows {
+            var row = [Any?]()
+            
+            for column in 0 ..< columns {
+                if PQgetisnull(queryResult, rowIndex, column) == 1 {
+                    row.append(nil)
+                }
+                else {
+                    row.append(PostgreSQLResultFetcher.convert(queryResult, row: rowIndex, column: column))
+                }
+            }
+            result.append(row)
+        }
+        
+        titles = columnNames
+        self.rows = result
     }
     
     /// Fetch the next row of the query result. This function is blocking.
@@ -63,4 +89,15 @@ public class PostgreSQLResultFetcher : ResultFetcher {
         return titles
     }
     
+    private static func convert(_ queryResult: OpaquePointer, row: Int32, column: Int32) -> Any {
+        let data = Data(bytes: PQgetvalue(queryResult, row, column),
+                        count: Int(PQgetlength(queryResult, row, column)))
+        
+        if PQfformat(queryResult, column) == 0 {
+            return String(data: data, encoding: String.Encoding.utf8) as Any
+        }
+        else {
+            return data
+        }
+    }
 }
