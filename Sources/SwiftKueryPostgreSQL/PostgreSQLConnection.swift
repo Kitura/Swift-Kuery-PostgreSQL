@@ -144,8 +144,9 @@ public class PostgreSQLConnection: Connection {
     }
     
     private func executeQuery(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
-        let queryResult = PQexec(connection, query)
-        processQueryResult(queryResult, query: query, onCompletion: onCompletion)
+        PQsendQuery(connection, query)
+        PQsetSingleRowMode(connection)
+        processQueryResult(query: query, onCompletion: onCompletion)
     }
     
     private func executeQueryWithParameters(query: String, parameters: [Any], onCompletion: @escaping ((QueryResult) -> ())) {
@@ -159,29 +160,31 @@ public class PostgreSQLConnection: Connection {
             }
             parameterData.append(pointer)
         }
-        let queryResult: OpaquePointer? =  parameterData.withUnsafeBufferPointer { buffer in
-            return PQexecParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 0)
+        _ = parameterData.withUnsafeBufferPointer { buffer in
+            PQsendQueryParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 0)
         }
-        processQueryResult(queryResult, query: query, onCompletion: onCompletion)
+        PQsetSingleRowMode(connection)
+        processQueryResult(query: query, onCompletion: onCompletion)
     }
 
-    private func processQueryResult(_ queryResult: OpaquePointer?, query: String, onCompletion: @escaping ((QueryResult) -> ())) {
-        guard let result = queryResult else {
+    private func processQueryResult(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
+        guard let result = PQgetResult(connection) else {
             onCompletion(.error(QueryError.noResult("No result returned for query: \(query)")))
             return
         }
         
         let status = PQresultStatus(result)
         if status == PGRES_COMMAND_OK {
+            clearResult(connection: connection)
             onCompletion(.successNoData)
         }
-        else if status == PGRES_TUPLES_OK {
-            let resultFetcher = PostgreSQLResultFetcher(queryResult: result)
+        else if status == PGRES_TUPLES_OK || status == PGRES_SINGLE_TUPLE {
+            let resultFetcher = PostgreSQLResultFetcher(queryResult: result, connection: connection)
             onCompletion(.resultSet(ResultSet(resultFetcher)))
         }
         else {
+            clearResult(connection: connection)
             onCompletion(.error(QueryError.databaseError("Query execution error:\n" + String(validatingUTF8: PQresultErrorMessage(result))! + "For query: " + query)))
         }
-        PQclear(result)
     }
 }
