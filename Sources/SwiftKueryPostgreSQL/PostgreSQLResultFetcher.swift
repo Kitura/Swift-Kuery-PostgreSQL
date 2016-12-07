@@ -26,7 +26,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
     private let titles: [String]
     private var row: [Any?]?
     private var connection: OpaquePointer?
-    private var hasMoreRows = false    
+    private var hasMoreRows = true
     
     init(queryResult: OpaquePointer, connection: OpaquePointer?) {
         self.connection = connection
@@ -37,16 +37,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
             columnNames.append(String(validatingUTF8: PQfname(queryResult, column))!)
         }
         titles = columnNames
-
-        let status = PQresultStatus(queryResult)
-        if status == PGRES_TUPLES_OK {
-            // No rows.
-            clearResult(connection: connection)
-        }
-        else if status == PGRES_SINGLE_TUPLE {
-            hasMoreRows = true
-            row = buildRow(queryResult: queryResult)
-        }
+        row = buildRow(queryResult: queryResult)
     }
     
     /// Fetch the next row of the query result. This function is blocking.
@@ -63,7 +54,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
         }
         
         guard let queryResult = PQgetResult(connection) else {
-            // We are not supposed to get here, because we clear the result if get PGRES_TUPLES_OK.
+            // We are not supposed to get here, because we clear the result if we get PGRES_TUPLES_OK.
             hasMoreRows = false
             return nil
         }
@@ -76,7 +67,6 @@ public class PostgreSQLResultFetcher: ResultFetcher {
             return nil
         }
         if status != PGRES_SINGLE_TUPLE {
-            // Throw an error?
             clearResult(connection: connection)
             hasMoreRows = false
             return nil

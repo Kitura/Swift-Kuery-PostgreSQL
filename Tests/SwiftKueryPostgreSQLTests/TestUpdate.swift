@@ -91,9 +91,7 @@ class TestUpdate: XCTestCase {
                                             .where(t.a == "banana")
                                         executeQuery(query: s2, connection: connection) { result, rows in
                                             XCTAssertEqual(result.success, true, "SELECT failed")
-                                            XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
-                                            XCTAssertNotNil(rows, "SELECT returned no rows")
-                                            XCTAssertEqual(rows!.count, 0, "Result not empty")
+                                            XCTAssertNil(result.asResultSet, "SELECT should not return any rows")
                                             
                                             let d1 = Delete(from: t)
                                                 .where(t.b == "2")
@@ -114,10 +112,7 @@ class TestUpdate: XCTestCase {
                                                         
                                                         executeQuery(query: s1, connection: connection) { result, rows in
                                                             XCTAssertEqual(result.success, true, "SELECT failed")
-                                                            XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
-                                                            XCTAssertNotNil(rows, "SELECT returned no rows")
-
-                                                            XCTAssertEqual(rows!.count, 0, "Table not empty after DELETE all")
+                                                            XCTAssertNil(result.asResultSet, "SELECT should not return any rows")
                                                         }
                                                     }
                                                 }

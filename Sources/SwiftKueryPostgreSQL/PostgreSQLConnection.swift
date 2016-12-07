@@ -174,11 +174,13 @@ public class PostgreSQLConnection: Connection {
         }
         
         let status = PQresultStatus(result)
-        if status == PGRES_COMMAND_OK {
+        if status == PGRES_COMMAND_OK || status == PGRES_TUPLES_OK {
+            // Since we set the single row mode, PGRES_TUPLES_OK means the result is empty, i.e. there are 
+            // no rows to return.
             clearResult(connection: connection)
             onCompletion(.successNoData)
         }
-        else if status == PGRES_TUPLES_OK || status == PGRES_SINGLE_TUPLE {
+        else if status == PGRES_SINGLE_TUPLE {
             let resultFetcher = PostgreSQLResultFetcher(queryResult: result, connection: connection)
             onCompletion(.resultSet(ResultSet(resultFetcher)))
         }

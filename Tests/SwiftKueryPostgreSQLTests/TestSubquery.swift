@@ -111,9 +111,7 @@ class TestSubquery: XCTestCase {
                                                         .where((-7).in(Select(t.b, from: t).where(t.b == -1)))
                                                     executeQuery(query: s, connection: connection) { result, rows in
                                                         XCTAssertEqual(result.success, true, "SELECT failed")
-                                                        XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
-                                                        XCTAssertNotNil(rows, "SELECT returned no rows")
-                                                        XCTAssertEqual(rows!.count, 0, "SELECT returned wrong number of rows: \(rows!.count) instead of 0")
+                                                        XCTAssertNil(result.asResultSet, "SELECT should not return any rows")
                                                         
                                                         s = Select(from: t)
                                                             .group(by: t.a, t.b)
