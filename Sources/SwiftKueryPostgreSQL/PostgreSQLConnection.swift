@@ -189,4 +189,22 @@ public class PostgreSQLConnection: Connection {
             onCompletion(.error(QueryError.databaseError("Query execution error:\n" + String(validatingUTF8: PQresultErrorMessage(result))! + "For query: " + query)))
         }
     }
+    
+    /// Execute a query with parameters.
+    ///
+    /// - Parameter query: The query to execute.
+    /// - Parameter parameters: A dictionary of the parameters with parameter names as the keys.
+    /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
+    public func execute(query: Query, parameters: [String:Any], onCompletion: @escaping ((QueryResult) -> ())) {
+        onCompletion(.error(QueryError.unsupported("Named parameters are not supported in PostgreSQL")))
+    }
+    
+    /// Execute a raw query with parameters.
+    ///
+    /// - Parameter query: A String with the query to execute.
+    /// - Parameter parameters: A dictionary of the parameters with parameter names as the keys.
+    /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
+    public func execute(_ raw: String, parameters: [String:Any], onCompletion: @escaping ((QueryResult) -> ())) {
+        onCompletion(.error(QueryError.unsupported("Named parameters are not supported in PostgreSQL")))
+    }
 }
