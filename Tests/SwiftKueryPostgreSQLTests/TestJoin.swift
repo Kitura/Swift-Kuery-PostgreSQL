@@ -22,9 +22,11 @@ import SwiftKuery
 #if os(Linux)
 let table1Join = "table1JoinLinux"
 let table2Join = "table2JoinLinux"
+let tableUnion = "tableUnionLinux"
 #else
 let table1Join = "table1JoinOSX"
 let table2Join = "table2JoinOSX"
+let tableUnion = "tableUnionOSX"
 #endif
 
 class TestJoin: XCTestCase {
@@ -32,21 +34,29 @@ class TestJoin: XCTestCase {
     static var allTests: [(String, (TestJoin) -> () throws -> Void)] {
         return [
             ("testJoin", testJoin),
+            ("testUnion", testUnion),
         ]
     }
     
-    class MyTable1 : Table {
+    class MyTable1: Table {
         let a = Column("a")
         let b = Column("b")
         
         let tableName = table1Join
     }
     
-    class MyTable2 : Table {
+    class MyTable2: Table {
         let c = Column("c")
         let b = Column("b")
         
         let tableName = table2Join
+    }
+    
+    class MyTable3: Table {
+        let d = Column("d")
+        let b = Column("b")
+        
+        let tableName = tableUnion
     }
     
     func testJoin() {
@@ -59,9 +69,9 @@ class TestJoin: XCTestCase {
                 XCTAssertNil(error, "Error connecting to PostgreSQL server: \(error)")
                 
                 cleanUp(table: myTable1.tableName, connection: connection) { result in
-
+                    
                     cleanUp(table: myTable2.tableName, connection: connection) { result in
-
+                        
                         executeRawQuery("CREATE TABLE " +  myTable1.tableName + " (a varchar(40), b integer)", connection: connection) { result, rows in
                             
                             XCTAssertEqual(result.success, true, "CREATE TABLE failed")
@@ -140,8 +150,76 @@ class TestJoin: XCTestCase {
                                                             let resultSet = result.asResultSet!
                                                             XCTAssertEqual(rows!.count, 4, "SELECT returned wrong number of rows: \(rows!.count) instead of 4")
                                                             XCTAssertEqual(resultSet.titles.count, 3, "SELECT returned wrong number of columns: \(resultSet.titles.count) instead of 3")
-                                                            
                                                         }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            expectation.fulfill()
+        })
+    }
+    
+    func testUnion() {
+        let myTable1 = MyTable1()
+        let myTable2 = MyTable2()
+        let myTable3 = MyTable3()
+        
+        let connection = createConnection()
+        performTest(asyncTasks: { expectation in
+            connection.connect() { error in
+                XCTAssertNil(error, "Error connecting to PostgreSQL server: \(error)")
+                
+                cleanUp(table: myTable1.tableName, connection: connection) { result in
+                    
+                    cleanUp(table: myTable2.tableName, connection: connection) { result in
+                        
+                        cleanUp(table: myTable3.tableName, connection: connection) { result in
+                            
+                            executeRawQuery("CREATE TABLE " +  myTable1.tableName + " (a varchar(40), b integer)", connection: connection) { result, rows in
+                                
+                                XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                                XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                                
+                                executeRawQuery("CREATE TABLE " +  myTable2.tableName + " (c varchar(40), b integer)", connection: connection) { result, rows in
+                                    XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                                    
+                                    executeRawQuery("CREATE TABLE " +  myTable3.tableName + " (d varchar(40), b integer)", connection: connection) { result, rows in
+                                        XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                                        
+                                        let i1 = Insert(into: myTable1, rows: [["apple", 10], ["apricot", 3], ["banana", 17], ["apple", 17], ["banana", -7], ["banana", 27]])
+                                        executeQuery(query: i1, connection: connection) { result, rows in
+                                            XCTAssertEqual(result.success, true, "INSERT failed")
+                                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                            
+                                            let i2 = Insert(into: myTable2, rows: [["apple", 11], ["apricot", 3]])
+                                            executeQuery(query: i2, connection: connection) { result, rows in
+                                                XCTAssertEqual(result.success, true, "INSERT failed")
+                                                XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                                
+                                                let i3 = Insert(into: myTable3, rows: [["banana", 17], ["apple", 1], ["peach", -7]])
+                                                executeQuery(query: i3, connection: connection) { result, rows in
+                                                    XCTAssertEqual(result.success, true, "INSERT failed")
+                                                    XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                                    
+                                                    let s = Select(myTable1.a, from: myTable1)
+                                                        .union(Select(myTable2.c, from: myTable2))
+                                                        .unionAll(Select(myTable3.d, from: myTable3)
+                                                            .where(myTable3.b > 0))
+                                                    executeQuery(query: s, connection: connection) { result, rows in
+                                                        XCTAssertEqual(result.success, true, "SELECT failed")
+                                                        XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                                        let resultSet = result.asResultSet!
+                                                        XCTAssertEqual(rows!.count, 5, "SELECT returned wrong number of rows: \(rows!.count) instead of 5")
+                                                        XCTAssertEqual(resultSet.titles.count, 1, "SELECT returned wrong number of columns: \(resultSet.titles.count) instead of 1")
                                                     }
                                                 }
                                             }
