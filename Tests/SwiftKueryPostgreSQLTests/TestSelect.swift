@@ -145,7 +145,7 @@ class TestSelect: XCTestCase {
                                                     XCTAssertEqual(rows![0][0]! as! String, "banana", "Wrong value in row 0 column 0: \(rows![0][0]) instead of banana")
                                                     XCTAssertEqual(rows![1][0]! as! String, "banana", "Wrong value in row 1 column 0: \(rows![1][0]) instead of banana")
                                                     
-                                                    let s6 = Select(ucase(t.a).as("case"), t.b, from: t)
+                                                    let s6 = Select(ucase(t.a).as("upper case"), t.b, from: t)
                                                         .where(t.a.between("apra", and: "aprt"))
                                                     executeQuery(query: s6, connection: connection) { result, rows in
                                                         XCTAssertEqual(result.success, true, "SELECT failed")
@@ -153,7 +153,7 @@ class TestSelect: XCTestCase {
                                                         XCTAssertNotNil(rows, "SELECT returned no rows")
                                                         XCTAssertEqual(rows!.count, 1, "SELECT returned wrong number of rows: \(rows!.count) instead of 1")
                                                         let resultSet = result.asResultSet!
-                                                        XCTAssertEqual(resultSet.titles[0], "case", "Wrong column name: \(resultSet.titles[0]) instead of 'case'")
+                                                        XCTAssertEqual(resultSet.titles[0], "upper case", "Wrong column name: \(resultSet.titles[0]) instead of 'upper case'")
                                                         XCTAssertEqual(rows![0][0]! as! String, "APRICOT", "Wrong value in row 0 column 0: \(rows![0][0]) instead of APRICOT")
                                                         
                                                         let s7 = Select(from: t)
