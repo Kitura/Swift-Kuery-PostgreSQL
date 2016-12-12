@@ -39,6 +39,12 @@ let connection = PostgreSQLConnection(host: host, port: port, options: [Connecti
 
 For more information please see [PostgreSQL manual](https://www.postgresql.org/docs/8.0/static/libpq.html#LIBPQ-CONNECT).
 
+<br>
+Alternatively, call:
+```swift
+let connection = PostgreSQLConnection(url: URL(string: "Postgres://\(username):\(password)@\(host):\(port)")!))
+```
+
 To establish a connection call:
 
 ```swift

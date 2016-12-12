@@ -143,6 +143,9 @@ func createConnection() -> PostgreSQLConnection {
     let username = read(fileName: "username.txt")
     let password = read(fileName: "password.txt")
     
+    // Create connection with URL
+    //return PostgreSQLConnection(url: URL(string: "Postgres://\(username):\(password)@\(host):\(port)")!)
+    
     return PostgreSQLConnection(host: host, port: port, options: [.userName(username), .password(password)])
 }
 

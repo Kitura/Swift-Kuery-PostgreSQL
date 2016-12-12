@@ -26,7 +26,7 @@ import Foundation
 public class PostgreSQLConnection: Connection {
     
     private var connection: OpaquePointer?
-    private var connectionParameters: String
+    private var connectionParameters: String = ""
     
     /// The `QueryBuilder` with PostgreSQL specific substitutions.
     public var queryBuilder: QueryBuilder
@@ -36,7 +36,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter host: The host of the PostgreSQL server to connect to.
     /// - Parameter port: The port of the PostgreSQL server to connect to.
     /// - Parameter options: A set of `ConnectionOptions` to pass to the PostgreSQL server.
-    public required init(host: String, port: Int32, options: [ConnectionOptions]?) {
+    public init(host: String, port: Int32, options: [ConnectionOptions]?) {
         connectionParameters = "host = \(host) port = \(port)"
         if let options = options {
             for option in options {
@@ -54,12 +54,36 @@ public class PostgreSQLConnection: Connection {
                 }
             }
         }
-        self.queryBuilder = QueryBuilder()
+        queryBuilder = PostgreSQLConnection.createQuryBuilder()
+    }
+    
+    /// Initialize an instance of PostgreSQLConnection.
+    ///
+    /// - Parameter url: A URL of the following form: Postgres://userid:pwd@host:port/db.
+    public init(url: URL) {
+        if let scheme = url.scheme, scheme == "Postgres", let host = url.host, let port = url.port {
+            connectionParameters = "host = \(host) port = \(port)"
+            if let user = url.user {
+               connectionParameters += " user = \(user)"
+            }
+            if let password = url.password {
+                connectionParameters += " password = \(password)"
+            }
+            if !url.lastPathComponent.isEmpty {
+                connectionParameters += " dbname = \(url.lastPathComponent)"
+            }
+        }
+        queryBuilder = PostgreSQLConnection.createQuryBuilder()
+    }
+    
+    private static func createQuryBuilder() -> QueryBuilder {
+        let queryBuilder = QueryBuilder()
         queryBuilder.updateSubstitutions([QueryBuilder.QuerySubstitutionNames.ucase : "UPPER",
                                           QueryBuilder.QuerySubstitutionNames.lcase : "LOWER",
                                           QueryBuilder.QuerySubstitutionNames.len : "LENGTH",
                                           QueryBuilder.QuerySubstitutionNames.numberedParameter : "$",
                                           QueryBuilder.QuerySubstitutionNames.namedParameter : ""])
+        return queryBuilder
     }
     
     /// Return a String representation of the query.
@@ -75,6 +99,9 @@ public class PostgreSQLConnection: Connection {
     ///
     /// - Parameter onCompletion: The function to be called when the connection is established.
     public func connect(onCompletion: (QueryError?) -> ()) {
+        if connectionParameters == "" {
+            onCompletion(QueryError.connection("No connection parameters."))
+        }
         connection = PQconnectdb(connectionParameters)
         
         let error: String? = String(validatingUTF8: PQerrorMessage(connection))
