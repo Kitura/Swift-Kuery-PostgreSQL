@@ -85,7 +85,7 @@ class TestSelect: XCTestCase {
                                 XCTAssertEqual(rows!.count, 4, "SELECT returned wrong number of rows: \(rows!.count) instead of 4")
                                 
                                 let sd1 = Select.distinct(t.a, from: t)
-                                    .where(t.a.like("b%"))
+                                    .where(t.a.like("b%") && t.b.isNotNull())
                                 executeQuery(query: sd1, connection: connection) { result, rows in
                                     XCTAssertEqual(result.success, true, "SELECT failed")
                                     XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
@@ -156,36 +156,45 @@ class TestSelect: XCTestCase {
                                                         XCTAssertEqual(resultSet.titles[0], "upper case", "Wrong column name: \(resultSet.titles[0]) instead of 'upper case'")
                                                         XCTAssertEqual(rows![0][0]! as! String, "APRICOT", "Wrong value in row 0 column 0: \(rows![0][0]) instead of APRICOT")
                                                         
-                                                        let s7 = Select(from: t)
-                                                            .where(t.a.in("apple", "lalala"))
-                                                        executeQuery(query: s7, connection: connection) { result, rows in
+                                                        let s61 = Select(ucase(t.a).as("upper case"), t.b, from: t)
+                                                            .where(t.a.between("apra", and: "aprt").isNotNull())
+                                                        executeQuery(query: s61, connection: connection) { result, rows in
                                                             XCTAssertEqual(result.success, true, "SELECT failed")
                                                             XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
                                                             XCTAssertNotNil(rows, "SELECT returned no rows")
-                                                            XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
-                                                            XCTAssertEqual(rows![0][0]! as! String, "apple", "Wrong value in row 0 column 0: \(rows![0][0]) instead of apple")
+                                                            XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 6")
                                                             
-                                                            let s8 = Select(from: t)
-                                                                .where("a IN ('apple', 'lalala')")
-                                                            executeQuery(query: s8, connection: connection) { result, rows in
+                                                            let s7 = Select(from: t)
+                                                                .where(t.a.in("apple", "lalala"))
+                                                            executeQuery(query: s7, connection: connection) { result, rows in
                                                                 XCTAssertEqual(result.success, true, "SELECT failed")
                                                                 XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
                                                                 XCTAssertNotNil(rows, "SELECT returned no rows")
                                                                 XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
                                                                 XCTAssertEqual(rows![0][0]! as! String, "apple", "Wrong value in row 0 column 0: \(rows![0][0]) instead of apple")
                                                                 
-                                                                let s9 = "Select * from \(t.tableName) where a IN ('apple', 'lalala')"
-                                                                executeRawQuery(s9, connection: connection) { result, rows in
+                                                                let s8 = Select(from: t)
+                                                                    .where("a IN ('apple', 'lalala')")
+                                                                executeQuery(query: s8, connection: connection) { result, rows in
                                                                     XCTAssertEqual(result.success, true, "SELECT failed")
                                                                     XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
                                                                     XCTAssertNotNil(rows, "SELECT returned no rows")
                                                                     XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
                                                                     XCTAssertEqual(rows![0][0]! as! String, "apple", "Wrong value in row 0 column 0: \(rows![0][0]) instead of apple")
                                                                     
-                                                                    let drop = Raw(query: "DROP TABLE", table: t)
-                                                                    executeQuery(query: drop, connection: connection) { result, rows in
-                                                                        XCTAssertEqual(result.success, true, "DROP TABLE failed")
-                                                                        XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
+                                                                    let s9 = "Select * from \(t.tableName) where a IN ('apple', 'lalala')"
+                                                                    executeRawQuery(s9, connection: connection) { result, rows in
+                                                                        XCTAssertEqual(result.success, true, "SELECT failed")
+                                                                        XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                                                        XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                                        XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
+                                                                        XCTAssertEqual(rows![0][0]! as! String, "apple", "Wrong value in row 0 column 0: \(rows![0][0]) instead of apple")
+                                                                        
+                                                                        let drop = Raw(query: "DROP TABLE", table: t)
+                                                                        executeQuery(query: drop, connection: connection) { result, rows in
+                                                                            XCTAssertEqual(result.success, true, "DROP TABLE failed")
+                                                                            XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
+                                                                        }
                                                                     }
                                                                 }
                                                             }
