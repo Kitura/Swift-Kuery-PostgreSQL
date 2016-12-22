@@ -75,7 +75,7 @@ class TestInsert: XCTestCase {
                                     XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
                                     
                                     let i2 = Insert(into: t, valueTuples: (t.a, "apricot"), (t.b, "3"))
-                                        .returning()
+                                        .rawSuffix("RETURNING *")
                                     executeQuery(query: i2, connection: connection) { result, rows in
                                         XCTAssertEqual(result.success, true, "INSERT failed")
                                         XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
@@ -89,7 +89,7 @@ class TestInsert: XCTestCase {
                                         XCTAssertEqual(rows![0][1]! as! String, "3", "Wrong value in row 1 column 0: \(rows![0][1]) instead of 3")
                                         
                                         let i3 = Insert(into: t, columns: [t.a, t.b], values: ["banana", 17])
-                                            .returning(t.b)
+                                            .rawSuffix("RETURNING b")
                                         executeQuery(query: i3, connection: connection) { result, rows in
                                             XCTAssertEqual(result.success, true, "INSERT failed")
                                             XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
@@ -102,7 +102,7 @@ class TestInsert: XCTestCase {
                                             XCTAssertEqual(rows![0][0]! as! String, "17", "Wrong value in row 0 column 0: \(rows![0][0]) instead of 17")
                                             
                                             let i4 = Insert(into: t, rows: [["apple", 17], ["banana", -7], ["banana", 27]])
-                                                .returning(t.b)
+                                                .rawSuffix("RETURNING b")
                                             executeQuery(query: i4, connection: connection) { result, rows in
                                                 XCTAssertEqual(result.success, true, "INSERT failed")
                                                 XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
@@ -111,7 +111,7 @@ class TestInsert: XCTestCase {
                                                 XCTAssertEqual(rows!.count, 3, "INSERT returned wrong number of rows: \(rows!.count) instead of 3")
                                                 
                                                 let i5 = Insert(into: t, rows: [["apple", 5], ["banana", 10], ["banana", 3]])
-                                                    .returning(t.b, t.a)
+                                                    .rawSuffix("RETURNING b, a")
                                                 executeQuery(query: i5, connection: connection) { result, rows in
                                                     XCTAssertEqual(result.success, true, "INSERT failed")
                                                     XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
@@ -121,7 +121,7 @@ class TestInsert: XCTestCase {
                                                     XCTAssertEqual(resultSet.titles.count, 2, "Wrong number of columns: \(resultSet.titles.count) instead of 2")
                                                     
                                                     let i6 = Insert(into: t2, Select(from: t).where(t.a == "apple"))
-                                                        .returning()
+                                                        .rawSuffix("RETURNING *")
                                                     executeQuery(query: i6, connection: connection) { result, rows in
                                                         XCTAssertEqual(result.success, true, "INSERT failed")
                                                         XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")

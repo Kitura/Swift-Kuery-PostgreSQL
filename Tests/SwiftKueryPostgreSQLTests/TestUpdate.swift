@@ -75,7 +75,7 @@ class TestUpdate: XCTestCase {
                                     
                                     let u2 = Update(t, set: [(t.a, "peach"), (t.b, 2)])
                                         .where(t.a == "apple")
-                                        .returning(t.b)
+                                        .rawSuffix("RETURNING b")
                                     executeQuery(query: u2, connection: connection) { result, rows in
                                         XCTAssertEqual(result.success, true, "UPDATE failed")
                                         XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")

@@ -20,7 +20,7 @@ let package = Package(
     name: "SwiftKueryPostgreSQL",
     dependencies: [
         .Package(url: "https://github.com/IBM-Swift/CLibpq.git", majorVersion: 0, minor: 1),
-        .Package(url: "https://github.com/IBM-Swift/Swift-Kuery.git", majorVersion: 0, minor: 4),
+        .Package(url: "https://github.com/IBM-Swift/Swift-Kuery.git", majorVersion: 0, minor: 5),
     ],
     exclude: ["Configuration", "Scripts"]
 )

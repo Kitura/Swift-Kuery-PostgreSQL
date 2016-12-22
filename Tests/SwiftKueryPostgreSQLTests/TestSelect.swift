@@ -77,12 +77,13 @@ class TestSelect: XCTestCase {
                             XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
                             
                             let s1 = Select(from: t)
+                                .limit(to: 3)
                                 .offset(2)
                             executeQuery(query: s1, connection: connection) { result, rows in
                                 XCTAssertEqual(result.success, true, "SELECT failed")
                                 XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
                                 XCTAssertNotNil(rows, "SELECT returned no rows")
-                                XCTAssertEqual(rows!.count, 4, "SELECT returned wrong number of rows: \(rows!.count) instead of 4")
+                                XCTAssertEqual(rows!.count, 3, "SELECT returned wrong number of rows: \(rows!.count) instead of 3")
                                 
                                 let sd1 = Select.distinct(t.a, from: t)
                                     .where(t.a.like("b%") && t.b.isNotNull())
