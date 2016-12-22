@@ -104,10 +104,12 @@ public class PostgreSQLConnection: Connection {
         }
         connection = PQconnectdb(connectionParameters)
         
-        let error: String? = String(validatingUTF8: PQerrorMessage(connection))
-        var queryError: QueryError? = nil
-        if error != nil && !error!.isEmpty {
-            queryError = QueryError.connection(error!)
+        let queryError: QueryError?
+        if let error = String(validatingUTF8: PQerrorMessage(connection)), !error.isEmpty {
+            queryError = QueryError.connection(error)
+        }
+        else {
+            queryError = nil
         }
         onCompletion(queryError)
     }
