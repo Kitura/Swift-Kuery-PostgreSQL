@@ -279,7 +279,43 @@ course                             grade
 How to build your first computer   99                                 
 ```
 
+Another possibility is to use `QueryResult.asRows` that returns the result as an array of dictionaries where each dictionary represents a row of the result with the column title as the key.       
+ Change your `grades` function as following:
 
+```swift
+func grades(_ callback:@escaping (String)->Void) -> Void {
+  connection.connect() { error in
+    if let error = error {
+      callback("Error is \(error)")
+      return
+    }
+    else {
+      let query = Select(grades.course, grades.grade, from: grades)
+      connection.execute(query: query) { result in
+        if let rows = result.asRows {
+            var retString = ""
+            for row in rows {
+                for (title, value) in row {
+                    retString.append("\(title): \(value! as! String) ")
+                }
+                retString.append("\n")
+            }
+            callback("\(retString)")
+        }
+        else if let queryError = result.asError {
+          callback("Something went wrong \(queryError)")
+        }
+      }
+    }
+  }
+}
 
+```
+At <a href="http://localhost:8090">http://localhost:8090</a> you should see:
+
+```
+grade: 99 course: How to build your first computer
+grade: 71 course: How to work at a rock quarry  
+```
 ## License
 This library is licensed under Apache 2.0. Full license text is available in [LICENSE](LICENSE.txt).
