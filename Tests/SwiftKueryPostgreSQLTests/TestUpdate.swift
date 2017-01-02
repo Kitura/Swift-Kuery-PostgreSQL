@@ -95,9 +95,13 @@ class TestUpdate: XCTestCase {
                                             
                                             let d1 = Delete(from: t)
                                                 .where(t.b == "2")
+                                                .rawSuffix("RETURNING b")
                                             executeQuery(query: d1, connection: connection) { result, rows in
                                                 XCTAssertEqual(result.success, true, "DELETE failed")
                                                 XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
+                                                XCTAssertNotNil(result.asResultSet, "DELETE returned no rows")
+                                                XCTAssertNotNil(rows, "DELETE returned no rows")
+                                                XCTAssertEqual(rows!.count, 5, "DELETE returned wrong number of rows: \(rows!.count) instead of 5")
                                                 
                                                 executeQuery(query: s1, connection: connection) { result, rows in
                                                     XCTAssertEqual(result.success, true, "SELECT failed")
