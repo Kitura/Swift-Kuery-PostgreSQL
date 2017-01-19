@@ -75,7 +75,7 @@ class TestUpdate: XCTestCase {
                                     
                                     let u2 = Update(t, set: [(t.a, "peach"), (t.b, 2)])
                                         .where(t.a == "apple")
-                                        .rawSuffix("RETURNING b")
+                                        .suffix("RETURNING b")
                                     executeQuery(query: u2, connection: connection) { result, rows in
                                         XCTAssertEqual(result.success, true, "UPDATE failed")
                                         XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")
@@ -95,7 +95,7 @@ class TestUpdate: XCTestCase {
                                             
                                             let d1 = Delete(from: t)
                                                 .where(t.b == "2")
-                                                .rawSuffix("RETURNING b")
+                                                .suffix("RETURNING b")
                                             executeQuery(query: d1, connection: connection) { result, rows in
                                                 XCTAssertEqual(result.success, true, "DELETE failed")
                                                 XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
