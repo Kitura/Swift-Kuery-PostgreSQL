@@ -22,11 +22,15 @@ import SwiftKuery
 #if os(Linux)
 let tableWith = "tableWithLinux"
 let tableAuxiliary = "tableAuxiliaryLinux"
+let tableAuxiliary2 = "tableAuxiliary2Linux"
 let tableSelectWith = "tableSelectWithLinux"
+let tableSelectWith2 = "tableSelectWith2Linux"
 #else
 let tableWith = "tableWithOSX"
 let tableAuxiliary = "tableAuxiliaryOSX"
+let tableAuxiliary2 = "tableAuxiliary2OSX"
 let tableSelectWith = "tableSelectWithOSX"
+let tableSelectWith2 = "tableSelectWith2OSX"
 #endif
 
 class TestWith: XCTestCase {
@@ -51,15 +55,30 @@ class TestWith: XCTestCase {
         let tableName = tableSelectWith
     }
     
+    class MyTable3: Table {
+        let x = Column("x")
+        let y = Column("y")
+        
+        let tableName = tableSelectWith2
+    }
+    
     func testWith() {
         let t1 = MyTable1()
         let t2 = MyTable2()
+        let t3 = MyTable3()
         
         class WithTable: AuxiliaryTable {
             let tableName = tableAuxiliary
             
             let d = Column("d")
             let f = Column("f")
+        }
+        
+        class WithTable2: AuxiliaryTable {
+            let tableName = tableAuxiliary2
+            
+            let x = Column("x")
+            let y = Column("y")
         }
         
         let connection = createConnection()
@@ -92,12 +111,56 @@ class TestWith: XCTestCase {
                                         
                                         
                                         let withTable = WithTable(as: Select(t2.c.as("d"), t2.b.as("f"), from: t2))
-                                        let s = with(withTable, Select(withTable.d, t1.a, from: [t1, withTable]))
+                                        var s = with(withTable, Select(withTable.d, t1.a, from: [t1, withTable]))
                                         executeQuery(query: s, connection: connection) { result, rows in
                                             XCTAssertEqual(result.success, true, "SELECT failed")
                                             XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
                                             XCTAssertNotNil(rows, "SELECT returned no rows")
-                                            XCTAssertEqual(rows!.count, 30, "SELECT returned wrong number of rows: \(rows!.count) instead of 6")
+                                            XCTAssertEqual(rows!.count, 30, "SELECT returned wrong number of rows: \(rows!.count) instead of 30")
+                                            
+                                            s = with(withTable, Select(withTable.d, t1.a, from: t1)
+                                                .join(withTable)
+                                                .on(t1.a == withTable.d))
+                                            executeQuery(query: s, connection: connection) { result, rows in
+                                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                XCTAssertEqual(rows!.count, 8, "SELECT returned wrong number of rows: \(rows!.count) instead of 8")
+                                                
+                                                cleanUp(table: t3.tableName, connection: connection) { result in
+                                                    
+                                                    executeRawQuery("CREATE TABLE " +  t3.tableName + " (x varchar(40), y integer)", connection: connection) { result, rows in
+                                                        XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                                                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                                                        
+                                                        let i3 = Insert(into: t3, rows: [["apple", 10], ["apricot", 3], ["banana", 2]])
+                                                        executeQuery(query: i3, connection: connection) { result, rows in
+                                                            XCTAssertEqual(result.success, true, "INSERT failed")
+                                                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                                            
+                                                            let withTable2 = WithTable2(as: Select(t3.x, t3.y, from: t3))
+                                                            s = with([withTable, withTable2],
+                                                                     Select(t1.a, from: t1)
+                                                                        .join(withTable).on(withTable.d == t1.a)
+                                                                        .join(withTable2).on(withTable2.y == t1.b))
+                                                            executeQuery(query: s, connection: connection) { result, rows in
+                                                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                                XCTAssertEqual(rows!.count, 3, "SELECT returned wrong number of rows: \(rows!.count) instead of 3")
+                                                                
+                                                                let insertSelect = Select(withTable.d, from: withTable)
+                                                                let i = with(withTable,
+                                                                             Insert(into: t1, columns: [t1.a], insertSelect))
+                                                                executeQuery(query: i, connection: connection) { result, rows in
+                                                                    XCTAssertEqual(result.success, true, "INSERT failed")
+                                                                    XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")                                                                    
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
