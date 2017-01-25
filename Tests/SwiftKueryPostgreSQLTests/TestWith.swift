@@ -154,7 +154,41 @@ class TestWith: XCTestCase {
                                                                              Insert(into: t1, columns: [t1.a], insertSelect))
                                                                 executeQuery(query: i, connection: connection) { result, rows in
                                                                     XCTAssertEqual(result.success, true, "INSERT failed")
-                                                                    XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")                                                                    
+                                                                    XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                                                    
+                                                                    let u = with(withTable,
+                                                                                 Update(t1, set: [(t1.a, "peach"), (t1.b, 2)])
+                                                                                    .where(t1.a.in(Select(withTable.d, from: withTable))))
+                                                                        .suffix("RETURNING *")
+                                                                    executeQuery(query: u, connection: connection) { result, rows in
+                                                                        XCTAssertEqual(result.success, true, "UPDATE failed")
+                                                                        XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")
+                                                                        XCTAssertNotNil(result.asResultSet, "UPDATE returned no rows")
+                                                                        XCTAssertNotNil(rows, "UPDATE returned no rows")
+                                                                        XCTAssertEqual(rows!.count, 11, "UPDATE returned wrong number of rows: \(rows!.count) instead of 11")
+                                                                        XCTAssertEqual(rows![0][0]! as! String, "peach", "Wrong value in row 0 column 0: \(rows![0][0]) instead of peach")
+                                                                        
+                                                                        var d = with(withTable,
+                                                                                     Delete(from: t1)
+                                                                                        .where(t1.a.in(Select(withTable.d, from: withTable))))
+                                                                            .suffix("RETURNING *")
+                                                                        executeQuery(query: d, connection: connection) { result, rows in
+                                                                            XCTAssertEqual(result.success, true, "DELETE failed")
+                                                                            XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
+                                                                            XCTAssertNotNil(result.asResultSet, "DELETE returned no rows")
+                                                                            XCTAssertNotNil(rows, "DELETE returned no rows")
+                                                                            XCTAssertEqual(rows!.count, 11, "DELETE returned wrong number of rows: \(rows!.count) instead of 11")
+                                                                            
+                                                                            d = with(withTable,
+                                                                                         Delete(from: t1)
+                                                                                            .where(t1.a != withTable.d))
+                                                                                .suffix("RETURNING *")
+                                                                            executeQuery(query: d, connection: connection) { result, rows in
+                                                                                XCTAssertEqual(result.success, true, "DELETE failed")
+                                                                                XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
+                                                                            }
+                                                                        }
+                                                                    }
                                                                 }
                                                             }
                                                         }

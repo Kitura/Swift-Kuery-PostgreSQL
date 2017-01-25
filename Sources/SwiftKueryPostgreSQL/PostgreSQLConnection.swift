@@ -77,7 +77,7 @@ public class PostgreSQLConnection: Connection {
     }
     
     private static func createQuryBuilder() -> QueryBuilder {
-        let queryBuilder = QueryBuilder()
+        let queryBuilder = QueryBuilder(withDeleteRequiresUsing: true, withUpdateRequiresFrom: true)
         queryBuilder.updateSubstitutions([QueryBuilder.QuerySubstitutionNames.ucase : "UPPER",
                                           QueryBuilder.QuerySubstitutionNames.lcase : "LOWER",
                                           QueryBuilder.QuerySubstitutionNames.len : "LENGTH",
