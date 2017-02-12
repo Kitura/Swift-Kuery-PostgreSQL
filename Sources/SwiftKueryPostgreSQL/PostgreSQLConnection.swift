@@ -198,7 +198,7 @@ public class PostgreSQLConnection: Connection {
 
     private func processQueryResult(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
         guard let result = PQgetResult(connection) else {
-            let error = PQerrorMessage(connection)
+            let error = String(validatingUTF8: PQerrorMessage(connection))
             onCompletion(.error(QueryError.noResult("No result returned for query: \(query). Error: \(error).")))
             return
         }
