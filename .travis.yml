@@ -35,3 +35,4 @@ services:
 
 before_script:
   - export PGPASSWORD=kitura
+  - set PGPASSWORD=kitura
