@@ -32,9 +32,3 @@ script:
 
 services:
   - postgresql
-
-before_script:
-  - psql -c 'ALTER USER postgres WITH PASSWORD '\''kitura'\'';' -U postgres
-
-addons:
-  postgresql: "9.4"
