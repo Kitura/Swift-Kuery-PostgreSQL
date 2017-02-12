@@ -32,3 +32,6 @@ script:
 
 services:
   - postgresql
+
+before_install:
+  - pg_ctl -D /usr/local/var/postgres start
