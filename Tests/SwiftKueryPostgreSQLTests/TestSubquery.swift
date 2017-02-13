@@ -36,7 +36,7 @@ class TestSubquery: XCTestCase {
         let a = Column("a")
         let b = Column("b")
         
-        let tableName = "tableSubquery"
+        let tableName = tableSubquery
     }
     
     func testSubquery() {
