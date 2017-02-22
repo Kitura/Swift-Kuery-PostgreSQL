@@ -27,6 +27,7 @@ public class PostgreSQLConnection: Connection {
     
     private var connection: OpaquePointer?
     private var connectionParameters: String = ""
+    private var inTransaction = false
     
     /// The `QueryBuilder` with PostgreSQL specific substitutions.
     public var queryBuilder: QueryBuilder
@@ -236,5 +237,74 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(_ raw: String, parameters: [String:Any], onCompletion: @escaping ((QueryResult) -> ())) {
         onCompletion(.error(QueryError.unsupported("Named parameters are not supported in PostgreSQL")))
+    }
+    
+    /// Start a transaction.
+    ///
+    /// - Parameter onCompletion: The function to be called when the execution of start transaction command has completed.
+    public func startTransaction(onCompletion: @escaping ((QueryResult) -> ())) {
+        executeTransaction(command: "BEGIN", inTransaction: false, changeTransactionState: true, errorMessage: "Failed to rollback the transaction", onCompletion: onCompletion)
+    }
+    
+    /// Commit the current transaction.
+    ///
+    /// - Parameter onCompletion: The function to be called when the execution of commit transaction command has completed.
+    public func commit(onCompletion: @escaping ((QueryResult) -> ())) {
+        executeTransaction(command: "COMMIT", inTransaction: true, changeTransactionState: true, errorMessage: "Failed to rollback the transaction", onCompletion: onCompletion)
+    }
+
+    /// Rollback the current transaction.
+    ///
+    /// - Parameter onCompletion: The function to be called when the execution of rolback transaction command has completed.
+    public func rollback(onCompletion: @escaping ((QueryResult) -> ())) {
+        executeTransaction(command: "ROLLBACK", inTransaction: true, changeTransactionState: false, errorMessage: "Failed to rollback the transaction", onCompletion: onCompletion)
+    }
+
+    /// Create a savepoint.
+    ///
+    /// - Parameter savepoint: The name to  be given to the created savepoint.
+    /// - Parameter onCompletion: The function to be called when the execution of create savepoint command has completed.
+    public func create(savepoint: String, onCompletion: @escaping ((QueryResult) -> ())) {
+        executeTransaction(command: "SAVEPOINT \(savepoint)", inTransaction: true, changeTransactionState: false, errorMessage: "Failed to create the savepoint \(savepoint)", onCompletion: onCompletion)
+    }
+
+    /// Rollback the current transaction to the specified savepoint.
+    ///
+    /// - Parameter to savepoint: The name of the savepoint to rollback to.
+    /// - Parameter onCompletion: The function to be called when the execution of rolback transaction command has completed.
+    public func rollback(to savepoint: String, onCompletion: @escaping ((QueryResult) -> ())) {
+        executeTransaction(command: "ROLLBACK TO \(savepoint)", inTransaction: true, changeTransactionState: false, errorMessage: "Failed to rollback to the savepoint \(savepoint)", onCompletion: onCompletion)
+    }
+
+    /// Release a savepoint.
+    ///
+    /// - Parameter savepoint: The name of the savepoint to release.
+    /// - Parameter onCompletion: The function to be called when the execution of release savepoint command has completed.
+    public func release(savepoint: String, onCompletion: @escaping ((QueryResult) -> ())) {
+        executeTransaction(command: "RELEASE SAVEPOINT \(savepoint)", inTransaction: true, changeTransactionState: false, errorMessage: "Failed to release the savepoint \(savepoint)", onCompletion: onCompletion)
+    }
+    
+    private func executeTransaction(command: String, inTransaction: Bool, changeTransactionState: Bool, errorMessage: String, onCompletion: @escaping ((QueryResult) -> ())) {
+        guard self.inTransaction == inTransaction else {
+            let error = self.inTransaction ? "Transaction already exists" : "No transaction exists"
+            onCompletion(.error(QueryError.transactionError(error)))
+            return
+        }
+        
+        let result = PQexec(connection, command)
+        let status = PQresultStatus(result)
+        if status != PGRES_COMMAND_OK {
+            let error = String(validatingUTF8: PQerrorMessage(connection))
+            PQclear(result)
+            onCompletion(.error(QueryError.databaseError("\(errorMessage). Error: \(error).")))
+            return
+        }
+        
+        if changeTransactionState {
+            self.inTransaction = !self.inTransaction
+        }
+        
+        PQclear(result)
+        onCompletion(.successNoData)
     }
 }
