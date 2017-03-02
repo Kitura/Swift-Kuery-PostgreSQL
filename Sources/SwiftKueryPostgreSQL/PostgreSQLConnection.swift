@@ -126,7 +126,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter query: The query to execute.
     /// - Parameter parameters: An array of the parameters.
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
-    public func execute(query: Query, parameters: [Any], onCompletion: @escaping ((QueryResult) -> ())) {
+    public func execute(query: Query, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
         do {
             let postgresQuery = try query.build(queryBuilder: queryBuilder)
             executeQueryWithParameters(query: postgresQuery, parameters: parameters, onCompletion: onCompletion)
@@ -169,7 +169,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter query: A String with the query to execute.
     /// - Parameter parameters: An array of the parameters.
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
-    public func execute(_ raw: String, parameters: [Any], onCompletion: @escaping ((QueryResult) -> ())) {
+    public func execute(_ raw: String, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
         executeQueryWithParameters(query: raw, parameters: parameters, onCompletion: onCompletion)
     }
     
@@ -179,14 +179,17 @@ public class PostgreSQLConnection: Connection {
         processQueryResult(query: query, onCompletion: onCompletion)
     }
     
-    private func executeQueryWithParameters(query: String, parameters: [Any], onCompletion: @escaping ((QueryResult) -> ())) {
+    private func executeQueryWithParameters(query: String, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
         var parameterData = [UnsafePointer<Int8>?]()
         // At the moment we only create string parameters. Binary parameters should be added.
         for parameter in parameters {
-            let value = AnyCollection("\(parameter)".utf8CString)
-            let pointer = UnsafeMutablePointer<Int8>.allocate(capacity: Int(value.count))
-            for (index, byte) in value.enumerated() {
-                pointer[index] = byte
+            var pointer: UnsafeMutablePointer<Int8>?
+            if parameter != nil {
+                let value = AnyCollection("\(parameter!)".utf8CString)
+                pointer = UnsafeMutablePointer<Int8>.allocate(capacity: Int(value.count))
+                for (index, byte) in value.enumerated() {
+                    pointer![index] = byte
+                }
             }
             parameterData.append(pointer)
         }
@@ -226,7 +229,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter query: The query to execute.
     /// - Parameter parameters: A dictionary of the parameters with parameter names as the keys.
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
-    public func execute(query: Query, parameters: [String:Any], onCompletion: @escaping ((QueryResult) -> ())) {
+    public func execute(query: Query, parameters: [String:Any?], onCompletion: @escaping ((QueryResult) -> ())) {
         onCompletion(.error(QueryError.unsupported("Named parameters are not supported in PostgreSQL")))
     }
     
@@ -235,7 +238,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter query: A String with the query to execute.
     /// - Parameter parameters: A dictionary of the parameters with parameter names as the keys.
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
-    public func execute(_ raw: String, parameters: [String:Any], onCompletion: @escaping ((QueryResult) -> ())) {
+    public func execute(_ raw: String, parameters: [String:Any?], onCompletion: @escaping ((QueryResult) -> ())) {
         onCompletion(.error(QueryError.unsupported("Named parameters are not supported in PostgreSQL")))
     }
     

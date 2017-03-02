@@ -97,6 +97,11 @@ class TestParameters: XCTestCase {
                                                 XCTAssertEqual(rows!.count, 3, "SELECT returned wrong number of rows: \(rows!.count) instead of 3")
                                                 XCTAssertEqual(rows![2][0]! as! String, "banana", "Wrong value in row 0 column 0: \(rows![2][0]) instead of 'peach'")
                                                 XCTAssertEqual(rows![2][1]! as! String, "4", "Wrong value in row 0 column 0: \(rows![2][1]) instead of 4")
+                                                
+                                                let s2 = Select(from: t).where(t.a != Parameter())
+                                                executeQueryWithParameters(query: s2, connection: connection, parameters: nil) { result, rows in
+                                                    XCTAssertEqual(result.success, true, "SELECT failed")
+                                                }
                                             }
                                         }
                                     }
