@@ -183,15 +183,22 @@ public class PostgreSQLConnection: Connection {
         var parameterData = [UnsafePointer<Int8>?]()
         // At the moment we only create string parameters. Binary parameters should be added.
         for parameter in parameters {
-            var pointer: UnsafeMutablePointer<Int8>?
             if parameter != nil {
-                let value = AnyCollection("\(parameter!)".utf8CString)
-                pointer = UnsafeMutablePointer<Int8>.allocate(capacity: Int(value.count))
-                for (index, byte) in value.enumerated() {
-                    pointer![index] = byte
+                let parameterString = "\(parameter!)"
+                let count = parameterString.lengthOfBytes(using: .utf8)
+                let bufferLength = count+1 // Allow space for null terminator
+                var utf8: [CChar] = Array<CChar>(repeating: 0, count: bufferLength)
+                if !parameterString.getCString(&utf8, maxLength: bufferLength, encoding: .utf8) {
+                    onCompletion(.error(QueryError.databaseError("Failed to bind parameter")))
+                    return
                 }
+                let rawBytes = UnsafeRawPointer(UnsafeMutablePointer<Int8>(mutating: utf8))
+                var result = Data(bytes: rawBytes.bindMemory(to: Int8.self, capacity: count), count: count)
+                result.withUnsafeMutableBytes { ptr in parameterData.append(ptr) }
             }
-            parameterData.append(pointer)
+            else {
+                parameterData.append(nil)
+            }
         }
         _ = parameterData.withUnsafeBufferPointer { buffer in
             PQsendQueryParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 0)
