@@ -180,22 +180,30 @@ public class PostgreSQLConnection: Connection {
     }
     
     private func executeQueryWithParameters(query: String, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
+        var parameterPointers = [UnsafeMutablePointer<Int8>?]()
         var parameterData = [UnsafePointer<Int8>?]()
         // At the moment we only create string parameters. Binary parameters should be added.
         for parameter in parameters {
-            var pointer: UnsafeMutablePointer<Int8>?
-            if parameter != nil {
-                let value = AnyCollection("\(parameter!)".utf8CString)
-                pointer = UnsafeMutablePointer<Int8>.allocate(capacity: Int(value.count))
-                for (index, byte) in value.enumerated() {
-                    pointer![index] = byte
-                }
+            if let parameter = parameter {
+                let parameterString = String(describing: parameter)
+                let count = parameterString.lengthOfBytes(using: .utf8) + 1
+                parameterPointers.append(UnsafeMutablePointer<Int8>.allocate(capacity: Int(count)))
+                memcpy(parameterPointers[parameterPointers.count-1]!, UnsafeRawPointer(parameterString), count)
+                parameterData.append(parameterPointers.last!)
             }
-            parameterData.append(pointer)
+            else {
+                parameterData.append(nil)
+            }
         }
+
         _ = parameterData.withUnsafeBufferPointer { buffer in
             PQsendQueryParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 0)
         }
+        
+        for pointer in parameterPointers {
+            free(pointer)
+        }
+        
         PQsetSingleRowMode(connection)
         processQueryResult(query: query, onCompletion: onCompletion)
     }
