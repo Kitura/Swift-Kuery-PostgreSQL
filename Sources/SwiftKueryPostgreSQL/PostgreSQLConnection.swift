@@ -184,8 +184,8 @@ public class PostgreSQLConnection: Connection {
         var parameterData = [UnsafePointer<Int8>?]()
         // At the moment we only create string parameters. Binary parameters should be added.
         for parameter in parameters {
-            if parameter != nil {
-                let parameterString = "\(parameter!)"
+            if let parameter = parameter {
+                let parameterString = String(describing: parameter)
                 let count = parameterString.lengthOfBytes(using: .utf8) + 1
                 parameterPointers.append(UnsafeMutablePointer<Int8>.allocate(capacity: Int(count)))
                 memcpy(parameterPointers[parameterPointers.count-1]!, UnsafeRawPointer(parameterString), count)
