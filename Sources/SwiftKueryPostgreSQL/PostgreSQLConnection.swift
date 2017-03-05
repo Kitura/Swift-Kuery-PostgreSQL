@@ -180,21 +180,17 @@ public class PostgreSQLConnection: Connection {
     }
     
     private func executeQueryWithParameters(query: String, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
-        var parameterData = [UnsafePointer<CChar>?]()
-        var parameterBytes = [NSData]()
+        var parameterPointers = [UnsafeMutablePointer<Int8>?]()
+        var parameterData = [UnsafePointer<Int8>?]()
         // At the moment we only create string parameters. Binary parameters should be added.
         for parameter in parameters {
             if parameter != nil {
-                let parameterString = "\(parameter!)"
-                let count = parameterString.lengthOfBytes(using: .utf8)
-                let bufferLength = count+1 // Allow space for null terminator
-                var utf8 = Array<CChar>(repeating: 0, count: bufferLength)
-                if !parameterString.getCString(&utf8, maxLength: bufferLength, encoding: .utf8) {
-                    onCompletion(.error(QueryError.databaseError("Failed to bind parameter")))
-                    return
+                let value = AnyCollection("\(parameter!)".utf8CString)
+                parameterPointers.append(UnsafeMutablePointer<Int8>.allocate(capacity: Int(value.count)))
+                for (index, byte) in value.enumerated() {
+                    parameterPointers[parameterPointers.count-1]![index] = byte
                 }
-                parameterBytes.append(NSData(bytes: &utf8, length: count))
-                parameterData.append(parameterBytes.last!.bytes.assumingMemoryBound(to: CChar.self))
+                parameterData.append(parameterPointers.last!)
             }
             else {
                 parameterData.append(nil)
@@ -204,6 +200,11 @@ public class PostgreSQLConnection: Connection {
         _ = parameterData.withUnsafeBufferPointer { buffer in
             PQsendQueryParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 0)
         }
+        
+        for pointer in parameterPointers {
+            free(pointer)
+        }
+        
         PQsetSingleRowMode(connection)
         processQueryResult(query: query, onCompletion: onCompletion)
     }
