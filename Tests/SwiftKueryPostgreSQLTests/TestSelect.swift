@@ -1,5 +1,5 @@
 /**
- Copyright IBM Corporation 2016
+ Copyright IBM Corporation 2016, 2017
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -23,10 +23,12 @@ import SwiftKuery
 let tableSelect = "tableSelectLinux"
 let tableSelect2 = "tableSelect2Linux"
 let tableSelect3 = "tableSelect3Linux"
+let tableSelectDate = "tableSelectDateLinux"
 #else
 let tableSelect = "tableSelectOSX"
 let tableSelect2 = "tableSelect2OSX"
 let tableSelect3 = "tableSelect3OSX"
+let tableSelectDate = "tableSelectDateOSX"
 #endif
 
 class TestSelect: XCTestCase {
@@ -34,6 +36,7 @@ class TestSelect: XCTestCase {
     static var allTests: [(String, (TestSelect) -> () throws -> Void)] {
         return [
             ("testSelect", testSelect),
+            ("testSelectDate", testSelectDate),
             ("testSelectFromMany", testSelectFromMany),
         ]
     }
@@ -279,4 +282,81 @@ class TestSelect: XCTestCase {
             expectation.fulfill()
         })
     }
+    
+    class DateTable: Table {
+        let a = Column("a")
+        let date = Column("date")
+        let timestamp = Column("timestamp")
+        let time = Column("time")
+        
+        let tableName = tableSelectDate
+    }
+    
+    private func extractTime(from date: Date) -> String {
+        let hour = Calendar.current.component(.hour, from: date)
+        let minutes = Calendar.current.component(.minute, from: date)
+        let seconds = Calendar.current.component(.second, from: date)
+        return "\(hour):\(minutes):\(seconds)"
+    }
+    
+    func testSelectDate() {
+        let t = DateTable()
+        
+        let connection = createConnection()
+        performTest(asyncTasks: { expectation in
+            connection.connect() { error in
+                XCTAssertNil(error, "Error connecting to PostgreSQL server: \(error)")
+                
+                cleanUp(table: t.tableName, connection: connection) { result in
+                    
+                    executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), date date, timestamp timestamp with time zone, time time with time zone)", connection: connection) { result, rows in
+                        XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                        
+                        let i1 = Insert(into: t, values: "now", Date(), Date(), Date())
+                        executeQuery(query: i1, connection: connection) { result, rows in
+                            XCTAssertEqual(result.success, true, "INSERT failed")
+                            
+                            let s1 = Select(from: t)
+                                .where(t.date >= Date(timeIntervalSince1970: 50000)
+                                && t.time.between(self.extractTime(from: Date(timeIntervalSince1970: 0)),
+                                                  and: self.extractTime(from: Date(timeIntervalSinceNow: 1000))))
+                            executeQuery(query: s1, connection: connection) { result, rows in
+                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                XCTAssertEqual(rows!.count, 1, "SELECT returned wrong number of rows: \(rows!.count) instead of 1")
+                                
+                                let i2 = Insert(into: t, values: "then", Date(timeIntervalSince1970: 0), Date(timeIntervalSince1970: 0), Date(timeIntervalSince1970: 0))
+                                executeQuery(query: i2, connection: connection) { result, rows in
+                                    XCTAssertEqual(result.success, true, "INSERT failed")
+                                    
+                                    let s2 = Select(from: t)
+                                        .where(t.date.in(Date(timeIntervalSince1970: 0))
+                                            && t.timestamp != Date(timeIntervalSince1970: 100))
+                                    executeQuery(query: s2, connection: connection) { result, rows in
+                                        XCTAssertEqual(result.success, true, "SELECT failed")
+                                        XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                        XCTAssertNotNil(rows, "SELECT returned no rows")
+                                        XCTAssertEqual(rows!.count, 1, "SELECT returned wrong number of rows: \(rows!.count) instead of 1")
+
+                                        let s3 = Select(from: t)
+                                            .where(now() > t.date)
+                                        executeQuery(query: s3, connection: connection) { result, rows in
+                                            XCTAssertEqual(result.success, true, "SELECT failed")
+                                            XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                            XCTAssertNotNil(rows, "SELECT returned no rows")
+                                            XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            expectation.fulfill()
+        })
+    }
+    
 }

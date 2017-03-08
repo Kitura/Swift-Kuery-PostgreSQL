@@ -1,5 +1,5 @@
 /**
- * Copyright IBM Corporation 2016
+ * Copyright IBM Corporation 2016, 2017
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ let package = Package(
     name: "SwiftKueryPostgreSQL",
     dependencies: [
         .Package(url: "https://github.com/IBM-Swift/CLibpq.git", majorVersion: 0, minor: 1),
-        .Package(url: "https://github.com/IBM-Swift/Swift-Kuery.git", majorVersion: 0, minor: 7),
+        .Package(url: "https://github.com/IBM-Swift/Swift-Kuery.git", majorVersion: 0, minor: 8),
     ],
     exclude: ["Configuration", "Scripts"]
 )
