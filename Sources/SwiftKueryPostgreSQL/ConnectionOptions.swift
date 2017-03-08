@@ -28,4 +28,6 @@ public enum ConnectionOptions {
     case password(String)
     /// The maximum wait for connection in seconds. Zero or not specified means wait indefinitely.
     case connectionTimeout(Int)
+    /// SSL Mode
+    case sslMode(String)
 }

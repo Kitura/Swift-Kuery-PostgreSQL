@@ -52,6 +52,8 @@ public class PostgreSQLConnection: Connection {
                     connectionParameters += " password = \(value)"
                 case .connectionTimeout(let value):
                     connectionParameters += " connect_timeout = \(value)"
+                case .sslMode(let value):
+                    connectionParameters += " sslmode = \(value)"
                 }
             }
         }
