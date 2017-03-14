@@ -352,48 +352,49 @@ class TestTransaction: XCTestCase {
     func testErrors3() {
         let t = MyTable()
         
-        let connection = createConnection()
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
             
-            connection.connect() { error in
-                XCTAssertNil(error, "Error connecting to PostgreSQL server: \(error)")
+            guard let connection = pool.getConnection() else {
+                XCTFail("Failed to get connection")
+                return
+            }
+            
+            cleanUp(table: t.tableName, connection: connection) { result in
                 
-                cleanUp(table: t.tableName, connection: connection) { result in
+                connection.commit() { result in
+                    XCTAssertEqual(result.success, false, "Succeeded to commit savepoint without transaction")
                     
-                    connection.commit() { result in
-                        XCTAssertEqual(result.success, false, "Succeeded to commit savepoint without transaction")
+                    connection.create(savepoint: "spcreate") { result in
+                        XCTAssertEqual(result.success, false, "Succeeded to create savepoint without transaction")
                         
-                        connection.create(savepoint: "spcreate") { result in
-                            XCTAssertEqual(result.success, false, "Succeeded to create savepoint without transaction")
+                        connection.startTransaction() { result in
+                            XCTAssertEqual(result.success, true, "Failed to start transaction")
+                            XCTAssertNil(result.asError, "Error in start transaction: \(result.asError!)")
                             
-                            connection.startTransaction() { result in
-                                XCTAssertEqual(result.success, true, "Failed to start transaction")
-                                XCTAssertNil(result.asError, "Error in start transaction: \(result.asError!)")
+                            executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b integer)", connection: connection) { result, rows in
+                                XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                                XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                                 
-                                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b integer)", connection: connection) { result, rows in
-                                    XCTAssertEqual(result.success, true, "CREATE TABLE failed")
-                                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                                connection.create(savepoint: "spcreate") { result in
+                                    XCTAssertEqual(result.success, true, "Failed to create savepoint")
+                                    XCTAssertNil(result.asError, "Error in create savepoint: \(result.asError!)")
                                     
-                                    connection.create(savepoint: "spcreate") { result in
-                                        XCTAssertEqual(result.success, true, "Failed to create savepoint")
-                                        XCTAssertNil(result.asError, "Error in create savepoint: \(result.asError!)")
+                                    let i1 = Insert(into: t, rows: [["apple", 10], ["apricot", 3]])
+                                    executeQuery(query: i1, connection: connection) { result, rows in
+                                        XCTAssertEqual(result.success, true, "INSERT failed")
+                                        XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
                                         
-                                        let i1 = Insert(into: t, rows: [["apple", 10], ["apricot", 3]])
-                                        executeQuery(query: i1, connection: connection) { result, rows in
-                                            XCTAssertEqual(result.success, true, "INSERT failed")
-                                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                        connection.release(savepoint: "spcreate") { result in
+                                            XCTAssertEqual(result.success, true, "Failed to release savepoint")
+                                            XCTAssertNil(result.asError, "Error in release savepoint: \(result.asError!)")
                                             
-                                            connection.release(savepoint: "spcreate") { result in
-                                                XCTAssertEqual(result.success, true, "Failed to release savepoint")
-                                                XCTAssertNil(result.asError, "Error in release savepoint: \(result.asError!)")
+                                            connection.rollback(to: "spcreate") { result in
+                                                XCTAssertEqual(result.success, false, "Rolled back to released savepoint")
                                                 
-                                                connection.rollback(to: "spcreate") { result in
-                                                    XCTAssertEqual(result.success, false, "Rolled back to released savepoint")
-
-                                                    connection.commit() { result in
-                                                        XCTAssertEqual(result.success, true, "Failed to commit transaction")
-                                                        XCTAssertNil(result.asError, "Error in commit transaction: \(result.asError!)")
-                                                    }
+                                                connection.commit() { result in
+                                                    XCTAssertEqual(result.success, true, "Failed to commit transaction")
+                                                    XCTAssertNil(result.asError, "Error in commit transaction: \(result.asError!)")
                                                 }
                                             }
                                         }
@@ -407,6 +408,6 @@ class TestTransaction: XCTestCase {
             expectation.fulfill()
         })
     }
-
+    
 }
 

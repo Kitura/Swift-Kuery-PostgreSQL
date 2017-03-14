@@ -29,52 +29,71 @@ public class PostgreSQLConnection: Connection {
     private var connectionParameters: String = ""
     private var inTransaction = false
     
+    /// An indication whether there is a connection to the database.
+    public var isConnected: Bool {
+        return connection != nil
+    }
+    
     /// The `QueryBuilder` with PostgreSQL specific substitutions.
     public var queryBuilder: QueryBuilder
+    
+    init(connectionParameters: String) {
+        self.connectionParameters = connectionParameters
+        queryBuilder = PostgreSQLConnection.createQuryBuilder()
+    }
     
     /// Initialize an instance of PostgreSQLConnection.
     ///
     /// - Parameter host: The host of the PostgreSQL server to connect to.
     /// - Parameter port: The port of the PostgreSQL server to connect to.
     /// - Parameter options: A set of `ConnectionOptions` to pass to the PostgreSQL server.
-    public init(host: String, port: Int32, options: [ConnectionOptions]?) {
-        connectionParameters = "host = \(host) port = \(port)"
-        if let options = options {
-            for option in options {
-                switch option {
-                case .options(let value):
-                    connectionParameters += " options = \(value)"
-                case .databaseName(let value):
-                    connectionParameters += " dbname = \(value)"
-                case .userName(let value):
-                    connectionParameters += " user = \(value)"
-                case .password(let value):
-                    connectionParameters += " password = \(value)"
-                case .connectionTimeout(let value):
-                    connectionParameters += " connect_timeout = \(value)"
-                }
-            }
-        }
-        queryBuilder = PostgreSQLConnection.createQuryBuilder()
+    public convenience init(host: String, port: Int32, options: [ConnectionOptions]?) {
+        self.init(connectionParameters: PostgreSQLConnection.extractConnectionParameters(host: host, port: port, options: options))
     }
     
     /// Initialize an instance of PostgreSQLConnection.
     ///
     /// - Parameter url: A URL of the following form: Postgres://userid:pwd@host:port/db.
-    public init(url: URL) {
-        if let scheme = url.scheme, scheme == "Postgres", let host = url.host, let port = url.port {
-            connectionParameters = "host = \(host) port = \(port)"
-            if let user = url.user {
-               connectionParameters += " user = \(user)"
-            }
-            if let password = url.password {
-                connectionParameters += " password = \(password)"
-            }
-            if !url.lastPathComponent.isEmpty {
-                connectionParameters += " dbname = \(url.lastPathComponent)"
+    public convenience init(url: URL) {
+        self.init(connectionParameters: PostgreSQLConnection.extractConnectionParameters(url: url))
+    }
+
+    private static func extractConnectionParameters(host: String, port: Int32, options: [ConnectionOptions]?) -> String {
+        var result = "host = \(host) port = \(port)"
+        if let options = options {
+            for option in options {
+                switch option {
+                case .options(let value):
+                    result += " options = \(value)"
+                case .databaseName(let value):
+                    result += " dbname = \(value)"
+                case .userName(let value):
+                    result += " user = \(value)"
+                case .password(let value):
+                    result += " password = \(value)"
+                case .connectionTimeout(let value):
+                    result += " connect_timeout = \(value)"
+                }
             }
         }
-        queryBuilder = PostgreSQLConnection.createQuryBuilder()
+        return result
+    }
+    
+    private static func extractConnectionParameters(url: URL) -> String {
+        var result = ""
+        if let scheme = url.scheme, scheme == "Postgres", let host = url.host, let port = url.port {
+            result = "host = \(host) port = \(port)"
+            if let user = url.user {
+                result += " user = \(user)"
+            }
+            if let password = url.password {
+                result += " password = \(password)"
+            }
+            if !url.lastPathComponent.isEmpty {
+                result += " dbname = \(url.lastPathComponent)"
+            }
+        }
+        return result
     }
     
     private static func createQuryBuilder() -> QueryBuilder {
@@ -85,6 +104,46 @@ public class PostgreSQLConnection: Connection {
                                           QueryBuilder.QuerySubstitutionNames.numberedParameter : "$",
                                           QueryBuilder.QuerySubstitutionNames.namedParameter : ""])
         return queryBuilder
+    }
+
+    private static func createPool(_ connectionParameters: String, options: ConnectionPoolOptions) -> ConnectionPool {
+        let connectionGenerator: () -> Connection? = {
+            let connection = PostgreSQLConnection(connectionParameters: connectionParameters)
+            connection.connection = PQconnectdb(connectionParameters)
+            
+            if let error = String(validatingUTF8: PQerrorMessage(connection.connection)), !error.isEmpty {
+                return nil
+            }
+            else {
+                return connection
+            }
+        }
+        
+        let connectionReleaser: (_ connection: Connection) -> () = { connection in
+            connection.closeConnection()
+        }
+        
+        return ConnectionPool(options: options, connectionGenerator: connectionGenerator, connectionReleaser: connectionReleaser)
+    }
+    
+    /// Create a connection pool for PostgreSQLConnection's.
+    ///
+    /// - Parameter url: A URL of the PostgreSQL server of the following form: Postgres://userid:pwd@host:port/db.
+    /// - Returns: The `ConnectionPool` of `PostgreSQLConnection`.
+    public static func createPool(url: URL, poolOptions: ConnectionPoolOptions) -> ConnectionPool {
+        let connectionParameters = extractConnectionParameters(url: url)
+        return createPool(connectionParameters, options: poolOptions)
+    }
+
+    /// Create a connection pool for PostgreSQLConnection's.
+    ///
+    /// - Parameter host: The host of the PostgreSQL server to connect to.
+    /// - Parameter port: The port of the PostgreSQL server to connect to.
+    /// - Parameter options: A set of `ConnectionOptions` to pass to the PostgreSQL server.
+    /// - Returns: The `ConnectionPool` of `PostgreSQLConnection`.
+    public static func createPool(host: String, port: Int32, options: [ConnectionOptions]?, poolOptions: ConnectionPoolOptions) -> ConnectionPool {
+        let connectionParameters = extractConnectionParameters(host: host, port: port, options: options)
+        return createPool(connectionParameters, options: poolOptions)
     }
     
     /// Return a String representation of the query.
@@ -108,6 +167,7 @@ public class PostgreSQLConnection: Connection {
         let queryError: QueryError?
         if let error = String(validatingUTF8: PQerrorMessage(connection)), !error.isEmpty {
             queryError = QueryError.connection(error)
+            connection = nil
         }
         else {
             queryError = nil
@@ -174,12 +234,22 @@ public class PostgreSQLConnection: Connection {
     }
     
     private func executeQuery(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
+        guard let connection = connection else {
+            onCompletion(.error(QueryError.connection("Connection is disconnected")))
+            return
+        }
+        
         PQsendQuery(connection, query)
         PQsetSingleRowMode(connection)
         processQueryResult(query: query, onCompletion: onCompletion)
     }
     
     private func executeQueryWithParameters(query: String, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
+        guard let connection = connection else {
+            onCompletion(.error(QueryError.connection("Connection is disconnected")))
+            return
+        }
+        
         var parameterPointers = [UnsafeMutablePointer<Int8>?]()
         var parameterData = [UnsafePointer<Int8>?]()
         // At the moment we only create string parameters. Binary parameters should be added.
@@ -195,7 +265,7 @@ public class PostgreSQLConnection: Connection {
                 parameterData.append(nil)
             }
         }
-
+        
         _ = parameterData.withUnsafeBufferPointer { buffer in
             PQsendQueryParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 0)
         }
@@ -207,7 +277,7 @@ public class PostgreSQLConnection: Connection {
         PQsetSingleRowMode(connection)
         processQueryResult(query: query, onCompletion: onCompletion)
     }
-
+    
     private func processQueryResult(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
         guard let result = PQgetResult(connection) else {
             let error = String(validatingUTF8: PQerrorMessage(connection))
@@ -217,7 +287,7 @@ public class PostgreSQLConnection: Connection {
         
         let status = PQresultStatus(result)
         if status == PGRES_COMMAND_OK || status == PGRES_TUPLES_OK {
-            // Since we set the single row mode, PGRES_TUPLES_OK means the result is empty, i.e. there are 
+            // Since we set the single row mode, PGRES_TUPLES_OK means the result is empty, i.e. there are
             // no rows to return.
             clearResult(connection: connection)
             onCompletion(.successNoData)
@@ -263,14 +333,14 @@ public class PostgreSQLConnection: Connection {
     public func commit(onCompletion: @escaping ((QueryResult) -> ())) {
         executeTransaction(command: "COMMIT", inTransaction: true, changeTransactionState: true, errorMessage: "Failed to rollback the transaction", onCompletion: onCompletion)
     }
-
+    
     /// Rollback the current transaction.
     ///
     /// - Parameter onCompletion: The function to be called when the execution of rolback transaction command has completed.
     public func rollback(onCompletion: @escaping ((QueryResult) -> ())) {
         executeTransaction(command: "ROLLBACK", inTransaction: true, changeTransactionState: true, errorMessage: "Failed to rollback the transaction", onCompletion: onCompletion)
     }
-
+    
     /// Create a savepoint.
     ///
     /// - Parameter savepoint: The name to  be given to the created savepoint.
@@ -278,7 +348,7 @@ public class PostgreSQLConnection: Connection {
     public func create(savepoint: String, onCompletion: @escaping ((QueryResult) -> ())) {
         executeTransaction(command: "SAVEPOINT \(savepoint)", inTransaction: true, changeTransactionState: false, errorMessage: "Failed to create the savepoint \(savepoint)", onCompletion: onCompletion)
     }
-
+    
     /// Rollback the current transaction to the specified savepoint.
     ///
     /// - Parameter to savepoint: The name of the savepoint to rollback to.
@@ -286,7 +356,7 @@ public class PostgreSQLConnection: Connection {
     public func rollback(to savepoint: String, onCompletion: @escaping ((QueryResult) -> ())) {
         executeTransaction(command: "ROLLBACK TO \(savepoint)", inTransaction: true, changeTransactionState: false, errorMessage: "Failed to rollback to the savepoint \(savepoint)", onCompletion: onCompletion)
     }
-
+    
     /// Release a savepoint.
     ///
     /// - Parameter savepoint: The name of the savepoint to release.
@@ -296,6 +366,11 @@ public class PostgreSQLConnection: Connection {
     }
     
     private func executeTransaction(command: String, inTransaction: Bool, changeTransactionState: Bool, errorMessage: String, onCompletion: @escaping ((QueryResult) -> ())) {
+        guard let connection = connection else {
+            onCompletion(.error(QueryError.connection("Connection is disconnected")))
+            return
+        }
+        
         guard self.inTransaction == inTransaction else {
             let error = self.inTransaction ? "Transaction already exists" : "No transaction exists"
             onCompletion(.error(QueryError.transactionError(error)))

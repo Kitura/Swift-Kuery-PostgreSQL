@@ -150,5 +150,21 @@ func createConnection() -> PostgreSQLConnection {
 }
 
 
-// Dummy class for test framework
-class CommonUtils { }
+class CommonUtils {
+    private var pool: ConnectionPool?
+    static let sharedInstance = CommonUtils()
+    private init() {}
+
+    func getConnectionPool() -> ConnectionPool {
+        if let pool = pool {
+            return pool
+        }
+        let host = read(fileName: "host.txt")
+        let port = Int32(read(fileName: "port.txt"))!
+        let username = read(fileName: "username.txt")
+        let password = read(fileName: "password.txt")
+        
+        pool = PostgreSQLConnection.createPool(host: host, port: port, options: [.userName(username), .password(password)], poolOptions: ConnectionPoolOptions(initialCapacity: 0, maxCapacity: 1, timeout: 10000))
+        return pool!
+    }
+}

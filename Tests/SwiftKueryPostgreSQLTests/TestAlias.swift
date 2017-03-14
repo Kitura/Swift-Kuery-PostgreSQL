@@ -1,5 +1,5 @@
 /**
- Copyright IBM Corporation 2016
+ Copyright IBM Corporation 2016, 2017
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -43,51 +43,51 @@ class TestAlias: XCTestCase {
     func testAlias() {
         let t = MyTable()
         
-        let connection = createConnection()
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
             
-            connection.connect() { error in
-                XCTAssertNil(error, "Error connecting to PostgreSQL server: \(error)")
+            guard let connection = pool.getConnection() else {
+                XCTFail("Failed to get connection")
+                return
+            }
+            cleanUp(table: t.tableName, connection: connection) { result in
                 
-                cleanUp(table: t.tableName, connection: connection) { result in
+                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b integer)", connection: connection) { result, rows in
+                    XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                     
-                    executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b integer)", connection: connection) { result, rows in
-                        XCTAssertEqual(result.success, true, "CREATE TABLE failed")
-                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                    let i1 = Insert(into: t, rows: [["apple", 10], ["apricot", 3], ["banana", 17], ["apple", 17], ["banana", -7], ["banana", 27]])
+                    executeQuery(query: i1, connection: connection) { result, rows in
+                        XCTAssertEqual(result.success, true, "INSERT failed")
+                        XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
                         
-                        let i1 = Insert(into: t, rows: [["apple", 10], ["apricot", 3], ["banana", 17], ["apple", 17], ["banana", -7], ["banana", 27]])
-                        executeQuery(query: i1, connection: connection) { result, rows in
-                            XCTAssertEqual(result.success, true, "INSERT failed")
-                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                        let s1 = Select(t.a.as("\"fruit name\""), t.b.as("number"), from: t)
+                        executeQuery(query: s1, connection: connection) { result, rows in
+                            XCTAssertEqual(result.success, true, "SELECT failed")
+                            XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                            XCTAssertNotNil(rows, "SELECT returned no rows")
+                            let resultSet = result.asResultSet!
+                            XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 6")
+                            XCTAssertEqual(resultSet.titles[1], "number", "Wrong column name: \(resultSet.titles[1]) instead of 'number'")
+                            XCTAssertEqual(resultSet.titles[0], "fruit name", "Wrong column name: \(resultSet.titles[0]) instead of 'fruit name'")
                             
-                            let s1 = Select(t.a.as("\"fruit name\""), t.b.as("number"), from: t)
-                            executeQuery(query: s1, connection: connection) { result, rows in
+                            let s2 = Select(from: t.as("new"))
+                            executeQuery(query: s2, connection: connection) { result, rows in
                                 XCTAssertEqual(result.success, true, "SELECT failed")
-                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
                                 XCTAssertNotNil(rows, "SELECT returned no rows")
                                 let resultSet = result.asResultSet!
                                 XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 6")
-                                XCTAssertEqual(resultSet.titles[1], "number", "Wrong column name: \(resultSet.titles[1]) instead of 'number'")
-                                XCTAssertEqual(resultSet.titles[0], "fruit name", "Wrong column name: \(resultSet.titles[0]) instead of 'fruit name'")
+                                XCTAssertEqual(resultSet.titles[0], "a", "Wrong column name: \(resultSet.titles[0]) instead of 'a'")
+                                XCTAssertEqual(resultSet.titles[1], "b", "Wrong column name: \(resultSet.titles[1]) instead of 'b'")
                                 
-                                let s2 = Select(from: t.as("new"))
-                                executeQuery(query: s2, connection: connection) { result, rows in
+                                let t2 = t.as("\"t 2\"")
+                                let s3 = Select(t2.a, from: t2)
+                                executeQuery(query: s3, connection: connection) { result, rows in
                                     XCTAssertEqual(result.success, true, "SELECT failed")
                                     XCTAssertNotNil(rows, "SELECT returned no rows")
                                     let resultSet = result.asResultSet!
                                     XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 6")
                                     XCTAssertEqual(resultSet.titles[0], "a", "Wrong column name: \(resultSet.titles[0]) instead of 'a'")
-                                    XCTAssertEqual(resultSet.titles[1], "b", "Wrong column name: \(resultSet.titles[1]) instead of 'b'")
-                                    
-                                    let t2 = t.as("\"t 2\"")
-                                    let s3 = Select(t2.a, from: t2)
-                                    executeQuery(query: s3, connection: connection) { result, rows in
-                                        XCTAssertEqual(result.success, true, "SELECT failed")
-                                        XCTAssertNotNil(rows, "SELECT returned no rows")
-                                        let resultSet = result.asResultSet!
-                                        XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 6")
-                                        XCTAssertEqual(resultSet.titles[0], "a", "Wrong column name: \(resultSet.titles[0]) instead of 'a'")
-                                    }
                                 }
                             }
                         }
