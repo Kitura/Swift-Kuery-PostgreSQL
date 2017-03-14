@@ -70,7 +70,8 @@
 
 <p>PostgreSQL plugin for Swift-Kuery framework</p>
 
-<p><img src="https://img.shields.io/badge/os-Mac%20OS%20X-green.svg?style=flat" alt="Mac OS X">
+<p><a href="https://travis-ci.org/IBM-Swift/Swift-Kuery-PostgreSQL"><img src="https://travis-ci.org/IBM-Swift/Kitura.svg?branch=master" alt="Build Status - Master"></a>
+<img src="https://img.shields.io/badge/os-Mac%20OS%20X-green.svg?style=flat" alt="Mac OS X">
 <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux">
 <img src="https://img.shields.io/badge/license-Apache2-blue.svg?style=flat" alt="Apache 2"></p>
 <a href='#summary' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='summary'>Summary</h2>
@@ -101,6 +102,12 @@
    * <em>connectionTimeout</em> - maximum wait for connection in seconds. Zero or not specified means wait indefinitely.</p>
 
 <p>For more information please see <a href="https://www.postgresql.org/docs/8.0/static/libpq.html#LIBPQ-CONNECT">PostgreSQL manual</a>.</p>
+
+<p><br>
+Alternatively, call:
+<code>swift
+let connection = PostgreSQLConnection(url: URL(string: &quot;Postgres://\(username):\(password)@\(host):\(port)&quot;)!))
+</code></p>
 
 <p>To establish a connection call:</p>
 <pre class="highlight swift"><code><span class="kt">PostgreSQLConnection</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="nv">onCompletion</span><span class="p">:</span> <span class="p">(</span><span class="kt">QueryError</span><span class="p">?)</span> <span class="o">-&gt;</span> <span class="p">())</span>
@@ -302,6 +309,42 @@ How to work at a rock quarry       71
 <pre class="highlight plaintext"><code>course                             grade                              
 How to build your first computer   99                                 
 </code></pre>
+
+<p>Another possibility is to use <code>QueryResult.asRows</code> that returns the result as an array of dictionaries where each dictionary represents a row of the result with the column title as the key.<br>
+ Change your <code>grades</code> function as following:</p>
+<pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">grades</span><span class="p">(</span><span class="n">_</span> <span class="nv">callback</span><span class="p">:</span><span class="kd">@escaping</span> <span class="p">(</span><span class="kt">String</span><span class="p">)</span><span class="o">-&gt;</span><span class="kt">Void</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span> <span class="p">{</span>
+  <span class="n">connection</span><span class="o">.</span><span class="nf">connect</span><span class="p">()</span> <span class="p">{</span> <span class="n">error</span> <span class="k">in</span>
+    <span class="k">if</span> <span class="k">let</span> <span class="nv">error</span> <span class="o">=</span> <span class="n">error</span> <span class="p">{</span>
+      <span class="nf">callback</span><span class="p">(</span><span class="s">"Error is </span><span class="se">\(</span><span class="n">error</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+      <span class="k">return</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="p">{</span>
+      <span class="k">let</span> <span class="nv">query</span> <span class="o">=</span> <span class="kt">Select</span><span class="p">(</span><span class="n">grades</span><span class="o">.</span><span class="n">course</span><span class="p">,</span> <span class="n">grades</span><span class="o">.</span><span class="n">grade</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="n">grades</span><span class="p">)</span>
+      <span class="n">connection</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">query</span><span class="p">:</span> <span class="n">query</span><span class="p">)</span> <span class="p">{</span> <span class="n">result</span> <span class="k">in</span>
+        <span class="k">if</span> <span class="k">let</span> <span class="nv">rows</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">asRows</span> <span class="p">{</span>
+            <span class="k">var</span> <span class="nv">retString</span> <span class="o">=</span> <span class="s">""</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="k">in</span> <span class="n">rows</span> <span class="p">{</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">in</span> <span class="n">row</span> <span class="p">{</span>
+                    <span class="n">retString</span><span class="o">.</span><span class="nf">append</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="n">title</span><span class="se">)</span><span class="s">: </span><span class="se">\(</span><span class="n">value</span><span class="o">!</span> <span class="k">as!</span> <span class="kt">String</span><span class="se">)</span><span class="s"> "</span><span class="p">)</span>
+                <span class="p">}</span>
+                <span class="n">retString</span><span class="o">.</span><span class="nf">append</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+            <span class="p">}</span>
+            <span class="nf">callback</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="n">retString</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="k">let</span> <span class="nv">queryError</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">asError</span> <span class="p">{</span>
+          <span class="nf">callback</span><span class="p">(</span><span class="s">"Something went wrong </span><span class="se">\(</span><span class="n">queryError</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+</code></pre>
+
+<p>At <a href="http://localhost:8090"><a href="http://localhost:8090">http://localhost:8090</a></a> you should see:</p>
+<pre class="highlight plaintext"><code>grade: 99 course: How to build your first computer
+grade: 71 course: How to work at a rock quarry  
+</code></pre>
 <a href='#license' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='license'>License</h2>
 
 <p>This library is licensed under Apache 2.0. Full license text is available in <a href="LICENSE.txt">LICENSE</a>.</p>
@@ -313,7 +356,7 @@ How to build your first computer   99
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2016 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2016-12-12)</p>
+      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2017-03-14)</p>
       <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.0</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
