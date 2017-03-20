@@ -86,8 +86,8 @@ class TestUpdate: XCTestCase {
                                     let resultSet = result.asResultSet!
                                     XCTAssertEqual(rows!.count, 2, "UPDATE returned wrong number of rows: \(rows!.count) instead of 2")
                                     XCTAssertEqual(resultSet.titles[0], "b", "Wrong column name: \(resultSet.titles[0]) instead of b")
-                                    XCTAssertEqual(rows![0][0]! as! String, "2", "Wrong value in row 0 column 0: \(rows![0][0]) instead of 2")
-                                    XCTAssertEqual(rows![1][0]! as! String, "2", "Wrong value in row 1 column 0: \(rows![1][0]) instead of 2")
+                                    XCTAssertEqual(rows![0][0]! as! Int32, 2, "Wrong value in row 0 column 0: \(rows![0][0]) instead of 2")
+                                    XCTAssertEqual(rows![1][0]! as! Int32, 2, "Wrong value in row 1 column 0: \(rows![1][0]) instead of 2")
                                     
                                     let s2 = Select(t.a, t.b, from: t)
                                         .where(t.a == "banana")

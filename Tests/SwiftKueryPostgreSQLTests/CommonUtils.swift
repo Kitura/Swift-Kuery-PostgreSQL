@@ -99,8 +99,9 @@ private func printResultAndGetRowsAsArray(_ result: QueryResult) -> [[Any?]]? {
     var rows: [[Any?]]? = nil
     if let resultSet = result.asResultSet {
         let titles = resultSet.titles
+        let length = titles.count > 6 ? 18 : 30
         for title in titles {
-            print(title.padding(toLength: 25, withPad: " ", startingAt: 0), terminator: "")
+            print(title.padding(toLength: length, withPad: " ", startingAt: 0), terminator: "")
         }
         print()
         rows = rowsAsArray(resultSet)
@@ -108,10 +109,10 @@ private func printResultAndGetRowsAsArray(_ result: QueryResult) -> [[Any?]]? {
             for row in rows {
                 for value in row {
                     var valueToPrint = ""
-                    if value != nil {
-                        valueToPrint = value as! String
+                    if let value = value {
+                        valueToPrint = String(describing: value)
                     }
-                    print(valueToPrint.padding(toLength: 25, withPad: " ", startingAt: 0), terminator: "")
+                    print(valueToPrint.padding(toLength: length, withPad: " ", startingAt: 0), terminator: "")
                 }
                 print()
             }
@@ -146,7 +147,7 @@ func createConnection() -> PostgreSQLConnection {
     // Create connection with URL
     //return PostgreSQLConnection(url: URL(string: "Postgres://\(username):\(password)@\(host):\(port)")!)
     
-    return PostgreSQLConnection(host: host, port: port, options: [.userName(username), .password(password)])
+    return PostgreSQLConnection(host: host, port: port, options: [.userName(username), .password(password)], resultsInBinaryFormat: true)
 }
 
 
@@ -155,7 +156,7 @@ class CommonUtils {
     static let sharedInstance = CommonUtils()
     private init() {}
 
-    func getConnectionPool() -> ConnectionPool {
+    func getConnectionPool(resultsInBinaryFormat: Bool = true) -> ConnectionPool {
         if let pool = pool {
             return pool
         }
@@ -164,7 +165,18 @@ class CommonUtils {
         let username = read(fileName: "username.txt")
         let password = read(fileName: "password.txt")
         
-        pool = PostgreSQLConnection.createPool(host: host, port: port, options: [.userName(username), .password(password)], poolOptions: ConnectionPoolOptions(initialCapacity: 0, maxCapacity: 1, timeout: 10000))
+        pool = PostgreSQLConnection.createPool(host: host, port: port, options: [.userName(username), .password(password)], resultsInBinaryFormat: resultsInBinaryFormat, poolOptions: ConnectionPoolOptions(initialCapacity: 0, maxCapacity: 1, timeout: 10000))
         return pool!
     }
+    
+    func getNewConnectionPool(resultsInBinaryFormat: Bool = true) -> ConnectionPool {
+        let host = read(fileName: "host.txt")
+        let port = Int32(read(fileName: "port.txt"))!
+        let username = read(fileName: "username.txt")
+        let password = read(fileName: "password.txt")
+        
+        pool = PostgreSQLConnection.createPool(host: host, port: port, options: [.userName(username), .password(password)], resultsInBinaryFormat: resultsInBinaryFormat, poolOptions: ConnectionPoolOptions(initialCapacity: 0, maxCapacity: 1, timeout: 10000))
+        return pool!
+    }
+
 }

@@ -28,6 +28,7 @@ public class PostgreSQLConnection: Connection {
     private var connection: OpaquePointer?
     private var connectionParameters: String = ""
     private var inTransaction = false
+    private var resultFormat: Int32
     
     /// An indication whether there is a connection to the database.
     public var isConnected: Bool {
@@ -37,9 +38,10 @@ public class PostgreSQLConnection: Connection {
     /// The `QueryBuilder` with PostgreSQL specific substitutions.
     public var queryBuilder: QueryBuilder
     
-    init(connectionParameters: String) {
+    init(connectionParameters: String, resultsInBinaryFormat: Bool) {
         self.connectionParameters = connectionParameters
         queryBuilder = PostgreSQLConnection.createQuryBuilder()
+        resultFormat = resultsInBinaryFormat ? 1 : 0
     }
     
     /// Initialize an instance of PostgreSQLConnection.
@@ -47,15 +49,19 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter host: The host of the PostgreSQL server to connect to.
     /// - Parameter port: The port of the PostgreSQL server to connect to.
     /// - Parameter options: A set of `ConnectionOptions` to pass to the PostgreSQL server.
-    public convenience init(host: String, port: Int32, options: [ConnectionOptions]?) {
-        self.init(connectionParameters: PostgreSQLConnection.extractConnectionParameters(host: host, port: port, options: options))
+    /// - Parameter resultsInBinaryFormat: An indication whether to obtain query results in binary format,
+    ///                                    if false the results will be obtained in text format.
+    public convenience init(host: String, port: Int32, options: [ConnectionOptions]?, resultsInBinaryFormat: Bool = false) {
+        self.init(connectionParameters: PostgreSQLConnection.extractConnectionParameters(host: host, port: port, options: options), resultsInBinaryFormat: resultsInBinaryFormat)
     }
     
     /// Initialize an instance of PostgreSQLConnection.
     ///
     /// - Parameter url: A URL of the following form: Postgres://userid:pwd@host:port/db.
-    public convenience init(url: URL) {
-        self.init(connectionParameters: PostgreSQLConnection.extractConnectionParameters(url: url))
+    /// - Parameter resultsInBinaryFormat: An indication whether to obtain query results in binary format,
+    ///                                    if false the results will be obtained in text format.
+    public convenience init(url: URL, resultsInBinaryFormat: Bool = false) {
+        self.init(connectionParameters: PostgreSQLConnection.extractConnectionParameters(url: url), resultsInBinaryFormat: resultsInBinaryFormat)
     }
 
     private static func extractConnectionParameters(host: String, port: Int32, options: [ConnectionOptions]?) -> String {
@@ -106,9 +112,9 @@ public class PostgreSQLConnection: Connection {
         return queryBuilder
     }
 
-    private static func createPool(_ connectionParameters: String, options: ConnectionPoolOptions) -> ConnectionPool {
+    private static func createPool(_ connectionParameters: String, resultsInBinaryFormat: Bool = false, options: ConnectionPoolOptions) -> ConnectionPool {
         let connectionGenerator: () -> Connection? = {
-            let connection = PostgreSQLConnection(connectionParameters: connectionParameters)
+            let connection = PostgreSQLConnection(connectionParameters: connectionParameters, resultsInBinaryFormat: resultsInBinaryFormat)
             connection.connection = PQconnectdb(connectionParameters)
             
             if let error = String(validatingUTF8: PQerrorMessage(connection.connection)), !error.isEmpty {
@@ -129,10 +135,13 @@ public class PostgreSQLConnection: Connection {
     /// Create a connection pool for PostgreSQLConnection's.
     ///
     /// - Parameter url: A URL of the PostgreSQL server of the following form: Postgres://userid:pwd@host:port/db.
+    /// - Parameter resultsInBinaryFormat: An indication whether to obtain query results in binary format,
+    ///                                    if false the results will be obtained in text format.
+    /// - Parameter poolOptions: A set of `ConnectionPoolOptions` to configure the created pool.
     /// - Returns: The `ConnectionPool` of `PostgreSQLConnection`.
-    public static func createPool(url: URL, poolOptions: ConnectionPoolOptions) -> ConnectionPool {
+    public static func createPool(url: URL, resultsInBinaryFormat: Bool = false, poolOptions: ConnectionPoolOptions) -> ConnectionPool {
         let connectionParameters = extractConnectionParameters(url: url)
-        return createPool(connectionParameters, options: poolOptions)
+        return createPool(connectionParameters, resultsInBinaryFormat: resultsInBinaryFormat, options: poolOptions)
     }
 
     /// Create a connection pool for PostgreSQLConnection's.
@@ -140,10 +149,13 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter host: The host of the PostgreSQL server to connect to.
     /// - Parameter port: The port of the PostgreSQL server to connect to.
     /// - Parameter options: A set of `ConnectionOptions` to pass to the PostgreSQL server.
+    /// - Parameter resultsInBinaryFormat: An indication whether to obtain query results in binary format,
+    ///                                    if false the results will be obtained in text format.
+    /// - Parameter poolOptions: A set of `ConnectionPoolOptions` to configure the created pool.
     /// - Returns: The `ConnectionPool` of `PostgreSQLConnection`.
-    public static func createPool(host: String, port: Int32, options: [ConnectionOptions]?, poolOptions: ConnectionPoolOptions) -> ConnectionPool {
+    public static func createPool(host: String, port: Int32, options: [ConnectionOptions]?, resultsInBinaryFormat: Bool = false, poolOptions: ConnectionPoolOptions) -> ConnectionPool {
         let connectionParameters = extractConnectionParameters(host: host, port: port, options: options)
-        return createPool(connectionParameters, options: poolOptions)
+        return createPool(connectionParameters, resultsInBinaryFormat: resultsInBinaryFormat, options: poolOptions)
     }
     
     /// Return a String representation of the query.
@@ -189,7 +201,7 @@ public class PostgreSQLConnection: Connection {
     public func execute(query: Query, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
         do {
             let postgresQuery = try query.build(queryBuilder: queryBuilder)
-            executeQueryWithParameters(query: postgresQuery, parameters: parameters, onCompletion: onCompletion)
+            execute(query: postgresQuery, with: parameters, onCompletion: onCompletion)
         }
         catch QueryError.syntaxError(let error) {
             onCompletion(.error(QueryError.syntaxError(error)))
@@ -206,7 +218,7 @@ public class PostgreSQLConnection: Connection {
     public func execute(query: Query, onCompletion: @escaping ((QueryResult) -> ())) {
         do {
             let postgresQuery = try query.build(queryBuilder: queryBuilder)
-            executeQuery(query: postgresQuery, onCompletion: onCompletion)
+            execute(query: postgresQuery, with: [Any?](), onCompletion: onCompletion)
         }
         catch QueryError.syntaxError(let error) {
             onCompletion(.error(QueryError.syntaxError(error)))
@@ -221,7 +233,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter query: A String with the query to execute.
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(_ raw: String, onCompletion: @escaping ((QueryResult) -> ())) {
-        executeQuery(query: raw, onCompletion: onCompletion)
+        execute(query: raw, with: [Any?](), onCompletion: onCompletion)
     }
     
     /// Execute a raw query with parameters.
@@ -230,21 +242,10 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter parameters: An array of the parameters.
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(_ raw: String, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
-        executeQueryWithParameters(query: raw, parameters: parameters, onCompletion: onCompletion)
+        execute(query: raw, with: parameters, onCompletion: onCompletion)
     }
     
-    private func executeQuery(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
-        guard let connection = connection else {
-            onCompletion(.error(QueryError.connection("Connection is disconnected")))
-            return
-        }
-        
-        PQsendQuery(connection, query)
-        PQsetSingleRowMode(connection)
-        processQueryResult(query: query, onCompletion: onCompletion)
-    }
-    
-    private func executeQueryWithParameters(query: String, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
+    private func execute(query: String, with parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
         guard let connection = connection else {
             onCompletion(.error(QueryError.connection("Connection is disconnected")))
             return
@@ -267,7 +268,7 @@ public class PostgreSQLConnection: Connection {
         }
         
         _ = parameterData.withUnsafeBufferPointer { buffer in
-            PQsendQueryParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 0)
+            PQsendQueryParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, resultFormat)
         }
         
         for pointer in parameterPointers {
