@@ -120,8 +120,8 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 return valueAsText
             }
     
-            let dateFormatter = DateFormatter()
-            dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+//            let dateFormatter = DateFormatter()
+//            dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
 
             switch type {
             case .int2:
@@ -141,25 +141,25 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 let boolAsText = valueAsText == "t" ? "true" : (valueAsText == "f" ? "false" : valueAsText)
                 return Bool(boolAsText) ?? valueAsText
                 
-            case .date:
-                dateFormatter.dateFormat = "yyyy-MM-dd"
-                return dateFormatter.date(from: valueAsText) ?? valueAsText
-
-            case .time:
-                dateFormatter.dateFormat = "hh:mm:ss"
-                return dateFormatter.date(from: valueAsText) ?? valueAsText
-
-            case .timetz:
-                dateFormatter.dateFormat = "hh:mm:ssZ"
-                return dateFormatter.date(from: valueAsText) ?? valueAsText
-
-            case .timestamp:
-                dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ss"
-                return dateFormatter.date(from: valueAsText) ?? valueAsText
-
-            case .timestamptz:
-                dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ssZ"
-                return dateFormatter.date(from: valueAsText) ?? valueAsText
+//            case .date:
+//                dateFormatter.dateFormat = "yyyy-MM-dd"
+//                return dateFormatter.date(from: valueAsText) ?? valueAsText
+//
+//            case .time:
+//                dateFormatter.dateFormat = "hh:mm:ss"
+//                return dateFormatter.date(from: valueAsText) ?? valueAsText
+//
+//            case .timetz:
+//                dateFormatter.dateFormat = "hh:mm:ssZ"
+//                return dateFormatter.date(from: valueAsText) ?? valueAsText
+//
+//            case .timestamp:
+//                dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ss"
+//                return dateFormatter.date(from: valueAsText) ?? valueAsText
+//
+//            case .timestamptz:
+//                dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ssZ"
+//                return dateFormatter.date(from: valueAsText) ?? valueAsText
                 
             default:
                 return valueAsText
