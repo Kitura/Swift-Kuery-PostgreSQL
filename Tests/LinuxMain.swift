@@ -9,6 +9,7 @@ XCTMain([
      testCase(TestSelect.allTests),
      testCase(TestSubquery.allTests),
      testCase(TestTransaction.allTests),
+     testCase(TestTypes.allTests),
      testCase(TestUpdate.allTests),
      testCase(TestWith.allTests),
 ])
