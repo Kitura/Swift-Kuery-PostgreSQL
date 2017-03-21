@@ -28,7 +28,7 @@ let tableDate = "tableDateLinux"
 let tableString = "tableStringLinux"
 let tableTextResultNumeric = "tableTextResultNumericLinux"
 let tableTextResultBool = "tableTextResultBoolLinux"
-let tableTextResultDate = "tableTextResultDateLinux"
+//let tableTextResultDate = "tableTextResultDateLinux"
 let tableTextResultString = "tableTextResultStringLinux"
 #else
 let tableNumeric = "tableNumericOSX"
@@ -37,7 +37,7 @@ let tableDate = "tableDateOSX"
 let tableString = "tableStringOSX"
 let tableTextResultNumeric = "tableTextResultNumericOSX"
 let tableTextResultBool = "tableTextResultBoolOSX"
-let tableTextResultDate = "tableTextResultDateOSX"
+//let tableTextResultDate = "tableTextResultDateOSX"
 let tableTextResultString = "tableTextResultStringOSX"
 #endif
 
@@ -50,7 +50,7 @@ class TestTypes: XCTestCase {
             ("testNumericTypes", testNumericTypes),
             ("testStringTypes", testStringTypes),
             ("testTextResultBoolTypes", testTextResultBoolTypes),
-            ("testTextResultDateTypes", testTextResultDateTypes),
+//            ("testTextResultDateTypes", testTextResultDateTypes),
             ("testTextResultNumericTypes", testTextResultNumericTypes),
             ("testTextResultStringTypes", testTextResultStringTypes),
         ]
@@ -481,127 +481,127 @@ class TestTypes: XCTestCase {
         })
     }
     
-    class DateTableTextResult: Table {
-        let a = Column("a")
-        let b = Column("b")
-        let c = Column("c")
-        let d = Column("d")
-        let e = Column("e")
-        let f = Column("f")
-        
-        let tableName = tableTextResultDate
-    }
-    
-    
-    func testTextResultDateTypes() {
-        let t = DateTableTextResult()
-        
-        let pool = CommonUtils.sharedInstance.getConnectionPool(resultsInBinaryFormat: false)
-        performTest(asyncTasks: { expectation in
-            
-            guard let connection = pool.getConnection() else {
-                XCTFail("Failed to get connection")
-                return
-            }
-            
-            cleanUp(table: t.tableName, connection: connection) { result in
-                
-                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b date, c time, d time with time zone, e timestamp, f timestamp with time zone)", connection: connection) { result, rows in
-                    XCTAssertEqual(result.success, true, "CREATE TABLE failed")
-                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
-                    
-                    let now = Date()
-                    
-                    let thenString = "2017-03-19 11:15:15 +0800"
-                    let dateFormatter = DateFormatter()
-                    dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ss Z"
-                    dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
-                    let then: Date = dateFormatter.date(from: thenString)!
-                    
-                    let thenStringWithoutTimeZone = "2017-03-19 11:15:15"
-                    dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ss"
-                    let thenWithoutTimeZone: Date = dateFormatter.date(from: thenStringWithoutTimeZone)!
-                    
-                    var i = Insert(into: t, values: "now", now, now, now, now, now)
-                    executeQuery(query: i, connection: connection) { result, rows in
-                        XCTAssertEqual(result.success, true, "INSERT failed")
-                        
-                        i = Insert(into: t, values: "then", thenString, thenString, thenString, thenString, thenString)
-                        executeQuery(query: i, connection: connection) { result, rows in
-                            XCTAssertEqual(result.success, true, "INSERT failed")
-                            
-                            let s1 = Select(from: t)
-                            executeQuery(query: s1, connection: connection) { result, rows in
-                                XCTAssertEqual(result.success, true, "SELECT failed")
-                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
-                                XCTAssertNotNil(rows, "SELECT returned no rows")
-                                XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
-                                
-                                XCTAssertEqual(rows![0][0]! as! String, "now", "Wrong value in row 0 column 0")
-                                
-                                var date = rows![0][1]! as! String
-                                let nowDate = self.extractDate(from: now)
-                                XCTAssertEqual(date, nowDate, "Wrong value in row 0 column 1")
-                                
-                                var time = rows![0][2]! as! String
-                                var nowTime = self.extractTime(from: now)
-                                XCTAssertEqual(time, nowTime, "Wrong value in row 0 column 2")
-                                
-                                nowTime = self.extractTime(from: now, withTimeZone: true)
-                                time = rows![0][3]! as! String + "00" // Postgres represents time zone with 2 digits
-                                nowTime = nowTime.replacingOccurrences(of: " ", with: "") // Postgres time doesn't have spaces
-                                XCTAssertEqual(time, nowTime, "Wrong value in row 0 column 3")
-                                
-                                var timestamp = rows![0][4]! as! String
-                                let nowWithoutTimeZone = String(now.description.characters.dropLast(6))
-                                XCTAssertEqual(timestamp, nowWithoutTimeZone, "Wrong value in row 0 column 4")
-                                
-                                timestamp = rows![0][5]! as! String
-                                dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ssZ"
-                                var timestampDate: Date = dateFormatter.date(from: timestamp)!
-
-                                XCTAssertEqual(timestampDate.description, now.description, "Wrong value in row 0 column 5")
-                                
-                                
-                                XCTAssertEqual(rows![1][0]! as! String, "then", "Wrong value in row 1 column 0")
-                                
-                                date = rows![1][1]! as! String
-                                let thenDate = self.extractDate(from: then)
-                                XCTAssertEqual(date, thenDate, "Wrong value in row 1 column 1")
-                                
-                                time = rows![1][2]! as! String
-                                var thenTime = self.extractTime(from: thenWithoutTimeZone)
-                                XCTAssertEqual(time, thenTime, "Wrong value in row 1 column 2")
-                                
-                                time = rows![1][3]! as! String
-                                dateFormatter.dateFormat = "hh:mm:ssZ"
-                                let timeWithZone: Date = dateFormatter.date(from: time)!
-                                time = self.extractTime(from: timeWithZone, withTimeZone: true)
-                                thenTime = self.extractTime(from: then, withTimeZone: true)
-                                XCTAssertEqual(time, thenTime, "Wrong value in row 1 column 3")
-                                
-                                timestamp = rows![1][4]! as! String
-                                XCTAssertEqual(timestamp, thenStringWithoutTimeZone, "Wrong value in row 1 column 4")
-                                
-                                timestamp = rows![1][5]! as! String
-                                dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ssZ"
-                                timestampDate = dateFormatter.date(from: timestamp)!
-                                XCTAssertEqual(timestampDate.description, then.description, "Wrong value in row 1 column 5")
-                                
-                                let drop = Raw(query: "DROP TABLE", table: t)
-                                executeQuery(query: drop, connection: connection) { result, rows in
-                                    XCTAssertEqual(result.success, true, "DROP TABLE failed")
-                                    XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            expectation.fulfill()
-        })
-    }
-    
+//    class DateTableTextResult: Table {
+//        let a = Column("a")
+//        let b = Column("b")
+//        let c = Column("c")
+//        let d = Column("d")
+//        let e = Column("e")
+//        let f = Column("f")
+//        
+//        let tableName = tableTextResultDate
+//    }
+//    
+//    
+//    func testTextResultDateTypes() {
+//        let t = DateTableTextResult()
+//        
+//        let pool = CommonUtils.sharedInstance.getConnectionPool(resultsInBinaryFormat: false)
+//        performTest(asyncTasks: { expectation in
+//            
+//            guard let connection = pool.getConnection() else {
+//                XCTFail("Failed to get connection")
+//                return
+//            }
+//            
+//            cleanUp(table: t.tableName, connection: connection) { result in
+//                
+//                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b date, c time, d time with time zone, e timestamp, f timestamp with time zone)", connection: connection) { result, rows in
+//                    XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+//                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+//                    
+//                    let now = Date()
+//                    
+//                    let thenString = "2017-03-19 11:15:15 +0800"
+//                    let dateFormatter = DateFormatter()
+//                    dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ss Z"
+//                    dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+//                    let then: Date = dateFormatter.date(from: thenString)!
+//                    
+//                    let thenStringWithoutTimeZone = "2017-03-19 11:15:15"
+//                    dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ss"
+//                    let thenWithoutTimeZone: Date = dateFormatter.date(from: thenStringWithoutTimeZone)!
+//                    
+//                    var i = Insert(into: t, values: "now", now, now, now, now, now)
+//                    executeQuery(query: i, connection: connection) { result, rows in
+//                        XCTAssertEqual(result.success, true, "INSERT failed")
+//                        
+//                        i = Insert(into: t, values: "then", thenString, thenString, thenString, thenString, thenString)
+//                        executeQuery(query: i, connection: connection) { result, rows in
+//                            XCTAssertEqual(result.success, true, "INSERT failed")
+//                            
+//                            let s1 = Select(from: t)
+//                            executeQuery(query: s1, connection: connection) { result, rows in
+//                                XCTAssertEqual(result.success, true, "SELECT failed")
+//                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+//                                XCTAssertNotNil(rows, "SELECT returned no rows")
+//                                XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
+//                                
+//                                XCTAssertEqual(rows![0][0]! as! String, "now", "Wrong value in row 0 column 0")
+//                                
+//                                var date = rows![0][1]! as! String
+//                                let nowDate = self.extractDate(from: now)
+//                                XCTAssertEqual(date, nowDate, "Wrong value in row 0 column 1")
+//                                
+//                                var time = rows![0][2]! as! String
+//                                var nowTime = self.extractTime(from: now)
+//                                XCTAssertEqual(time, nowTime, "Wrong value in row 0 column 2")
+//                                
+//                                nowTime = self.extractTime(from: now, withTimeZone: true)
+//                                time = rows![0][3]! as! String + "00" // Postgres represents time zone with 2 digits
+//                                nowTime = nowTime.replacingOccurrences(of: " ", with: "") // Postgres time doesn't have spaces
+//                                XCTAssertEqual(time, nowTime, "Wrong value in row 0 column 3")
+//                                
+//                                var timestamp = rows![0][4]! as! String
+//                                let nowWithoutTimeZone = String(now.description.characters.dropLast(6))
+//                                XCTAssertEqual(timestamp, nowWithoutTimeZone, "Wrong value in row 0 column 4")
+//                                
+//                                timestamp = rows![0][5]! as! String
+//                                dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ssZ"
+//                                var timestampDate: Date = dateFormatter.date(from: timestamp)!
+//
+//                                XCTAssertEqual(timestampDate.description, now.description, "Wrong value in row 0 column 5")
+//                                
+//                                
+//                                XCTAssertEqual(rows![1][0]! as! String, "then", "Wrong value in row 1 column 0")
+//                                
+//                                date = rows![1][1]! as! String
+//                                let thenDate = self.extractDate(from: then)
+//                                XCTAssertEqual(date, thenDate, "Wrong value in row 1 column 1")
+//                                
+//                                time = rows![1][2]! as! String
+//                                var thenTime = self.extractTime(from: thenWithoutTimeZone)
+//                                XCTAssertEqual(time, thenTime, "Wrong value in row 1 column 2")
+//                                
+//                                time = rows![1][3]! as! String
+//                                dateFormatter.dateFormat = "hh:mm:ssZ"
+//                                let timeWithZone: Date = dateFormatter.date(from: time)!
+//                                time = self.extractTime(from: timeWithZone, withTimeZone: true)
+//                                thenTime = self.extractTime(from: then, withTimeZone: true)
+//                                XCTAssertEqual(time, thenTime, "Wrong value in row 1 column 3")
+//                                
+//                                timestamp = rows![1][4]! as! String
+//                                XCTAssertEqual(timestamp, thenStringWithoutTimeZone, "Wrong value in row 1 column 4")
+//                                
+//                                timestamp = rows![1][5]! as! String
+//                                dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ssZ"
+//                                timestampDate = dateFormatter.date(from: timestamp)!
+//                                XCTAssertEqual(timestampDate.description, then.description, "Wrong value in row 1 column 5")
+//                                
+//                                let drop = Raw(query: "DROP TABLE", table: t)
+//                                executeQuery(query: drop, connection: connection) { result, rows in
+//                                    XCTAssertEqual(result.success, true, "DROP TABLE failed")
+//                                    XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            expectation.fulfill()
+//        })
+//    }
+//    
 //    func testTextResultDateTypes() {
 //        let t = DateTableTextResult()
 //        
