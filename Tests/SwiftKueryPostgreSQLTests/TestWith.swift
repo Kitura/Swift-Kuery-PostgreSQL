@@ -169,7 +169,7 @@ class TestWith: XCTestCase {
                                                                     XCTAssertNotNil(result.asResultSet, "UPDATE returned no rows")
                                                                     XCTAssertNotNil(rows, "UPDATE returned no rows")
                                                                     XCTAssertEqual(rows!.count, 11, "UPDATE returned wrong number of rows: \(rows!.count) instead of 11")
-                                                                    XCTAssertEqual(rows![0][0]! as! String, "peach", "Wrong value in row 0 column 0: \(rows![0][0]) instead of peach")
+                                                                    XCTAssertEqual(rows![0][0]! as! String, "peach", "Wrong value in row 0 column 0")
                                                                     
                                                                     var d = with(withTable,
                                                                                  Delete(from: t1)

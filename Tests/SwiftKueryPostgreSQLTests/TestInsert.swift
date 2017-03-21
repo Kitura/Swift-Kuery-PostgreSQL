@@ -87,8 +87,8 @@ class TestInsert: XCTestCase {
                                     XCTAssertEqual(rows!.count, 1, "INSERT returned wrong number of rows: \(rows!.count) instead of 1")
                                     XCTAssertEqual(resultSet.titles[0], "a", "Wrong column name: \(resultSet.titles[0]) instead of a")
                                     XCTAssertEqual(resultSet.titles[1], "b", "Wrong column name: \(resultSet.titles[1]) instead of b")
-                                    XCTAssertEqual(rows![0][0]! as! String, "apricot", "Wrong value in row 0 column 0: \(rows![0][0]) instead of apricot")
-                                    XCTAssertEqual(rows![0][1]! as! String, "3", "Wrong value in row 1 column 0: \(rows![0][1]) instead of 3")
+                                    XCTAssertEqual(rows![0][0]! as! String, "apricot", "Wrong value in row 0 column 0")
+                                    XCTAssertEqual(rows![0][1]! as! String, "3", "Wrong value in row 1 column 0")
                                     
                                     let i3 = Insert(into: t, columns: [t.a, t.b], values: ["banana", 17])
                                         .suffix("RETURNING b")
@@ -101,7 +101,7 @@ class TestInsert: XCTestCase {
                                         XCTAssertEqual(rows!.count, 1, "INSERT returned wrong number of rows: \(rows!.count) instead of 1")
                                         XCTAssertEqual(resultSet.titles[0], "b", "Wrong column name: \(resultSet.titles[0]) instead of b")
                                         XCTAssertEqual(resultSet.titles.count, 1, "Wrong number of columns: \(resultSet.titles.count) instead of 1")
-                                        XCTAssertEqual(rows![0][0]! as! String, "17", "Wrong value in row 0 column 0: \(rows![0][0]) instead of 17")
+                                        XCTAssertEqual(rows![0][0]! as! String, "17", "Wrong value in row 0 column 0")
                                         
                                         let i4 = Insert(into: t, rows: [["apple", 17], ["banana", -7], ["banana", 27]])
                                             .suffix("RETURNING b")

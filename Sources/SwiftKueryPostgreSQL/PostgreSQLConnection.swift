@@ -280,8 +280,11 @@ public class PostgreSQLConnection: Connection {
     
     private func processQueryResult(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
         guard let result = PQgetResult(connection) else {
-            let error = String(validatingUTF8: PQerrorMessage(connection))
-            onCompletion(.error(QueryError.noResult("No result returned for query: \(query). Error: \(error).")))
+            var errorMessage = "No result returned for query: \(query)."
+            if let error = String(validatingUTF8: PQerrorMessage(connection)) {
+                errorMessage += " Error: \(error)."
+            }
+            onCompletion(.error(QueryError.noResult(errorMessage)))
             return
         }
         
@@ -380,9 +383,12 @@ public class PostgreSQLConnection: Connection {
         let result = PQexec(connection, command)
         let status = PQresultStatus(result)
         if status != PGRES_COMMAND_OK {
-            let error = String(validatingUTF8: PQerrorMessage(connection))
+            var message = errorMessage
+            if let error = String(validatingUTF8: PQerrorMessage(connection)) {
+                message += " Error: \(error)."
+            }
             PQclear(result)
-            onCompletion(.error(QueryError.databaseError("\(errorMessage). Error: \(error).")))
+            onCompletion(.error(QueryError.databaseError(message)))
             return
         }
         
