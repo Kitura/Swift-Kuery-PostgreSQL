@@ -178,6 +178,25 @@ class TestParameters: XCTestCase {
                                     let s2 = Select(from: t).where(t.a != Parameter("nil"))
                                     executeQueryWithNamedParameters(query: s2, connection: connection, parameters: ["nil":nil]) { result, rows in
                                         XCTAssertEqual(result.success, true, "SELECT failed")
+                                        
+                                        let i2 = Insert(into: t, rows: [[Parameter("one"), 1], [Parameter("one"), 2], [Parameter("one"), Parameter("two")]])
+                                        executeQueryWithNamedParameters(query: i2, connection: connection, parameters: ["one":"qiwi", "two": 3]) { result, rows in
+                                            XCTAssertEqual(result.success, true, "INSERT failed")
+                                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                            
+                                            executeQuery(query: s1, connection: connection) { result, rows in
+                                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 3")
+                                                XCTAssertEqual(rows![0][0]! as! String, "apple", "Wrong value in row 0 column 0")
+                                                XCTAssertEqual(rows![1][0]! as! String, "apricot", "Wrong value in row 1 column 0")
+                                                XCTAssertEqual(rows![2][0]! as! String, "peach", "Wrong value in row 2 column 0")
+                                                XCTAssertEqual(rows![3][0]! as! String, "qiwi", "Wrong value in row 3 column 0")
+                                                XCTAssertEqual(rows![4][0]! as! String, "qiwi", "Wrong value in row 4 column 0")
+                                                XCTAssertEqual(rows![5][0]! as! String, "qiwi", "Wrong value in row 5 column 0")
+                                            }
+                                        }
                                     }
                                 }
                             }
