@@ -21,19 +21,22 @@ import SwiftKuery
 
 #if os(Linux)
 let tableParameters = "tableParametersLinux"
+let tableNamedParameters = "tableNamedParametersLinux"
 #else
 let tableParameters = "tableParametersOSX"
+let tableNamedParameters = "tableNamedParametersOSX"
 #endif
 
 class TestParameters: XCTestCase {
     
     static var allTests: [(String, (TestParameters) -> () throws -> Void)] {
         return [
+            ("testNamedParameters", testNamedParameters),
             ("testParameters", testParameters),
         ]
     }
     
-    class MyTable : Table {
+    class MyTable: Table {
         let a = Column("a")
         let b = Column("b")
         
@@ -104,6 +107,94 @@ class TestParameters: XCTestCase {
                                             let s2 = Select(from: t).where(t.a != Parameter())
                                             executeQueryWithParameters(query: s2, connection: connection, parameters: nil) { result, rows in
                                                 XCTAssertEqual(result.success, true, "SELECT failed")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            expectation.fulfill()
+        })
+    }
+    
+    class NamedParametersTable: Table {
+        let a = Column("a")
+        let b = Column("b")
+        
+        let tableName = tableNamedParameters
+    }
+    
+    func testNamedParameters() {
+        let t = NamedParametersTable()
+        
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
+        performTest(asyncTasks: { expectation in
+            
+            guard let connection = pool.getConnection() else {
+                XCTFail("Failed to get connection")
+                return
+            }
+            
+            cleanUp(table: t.tableName, connection: connection) { result in
+                
+                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b integer)", connection: connection) { result, rows in
+                    XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                    
+                    let i1 = Insert(into: t, rows: [[Parameter("one"), 10], ["apricot", Parameter("two")], [Parameter("three"), Parameter("four")]])
+                    executeQueryWithNamedParameters(query: i1, connection: connection, parameters: ["one":"apple", "three":"banana", "two": 3, "four":-8]) { result, rows in
+                        XCTAssertEqual(result.success, true, "INSERT failed")
+                        XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                        
+                        let s1 = Select(from: t)
+                        executeQuery(query: s1, connection: connection) { result, rows in
+                            XCTAssertEqual(result.success, true, "SELECT failed")
+                            XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                            XCTAssertNotNil(rows, "SELECT returned no rows")
+                            XCTAssertEqual(rows!.count, 3, "SELECT returned wrong number of rows: \(rows!.count) instead of 3")
+                            XCTAssertEqual(rows![0][0]! as! String, "apple", "Wrong value in row 0 column 0")
+                            XCTAssertEqual(rows![1][0]! as! String, "apricot", "Wrong value in row 1 column 0")
+                            XCTAssertEqual(rows![2][0]! as! String, "banana", "Wrong value in row 2 column 0")
+                            XCTAssertEqual(rows![0][1]! as! String, "10", "Wrong value in row 0 column 1")
+                            XCTAssertEqual(rows![1][1]! as! String, "3", "Wrong value in row 1 column 1")
+                            XCTAssertEqual(rows![2][1]! as! String, "-8", "Wrong value in row 2 column 1")
+                            
+                            let u1 = Update(t, set: [(t.a, Parameter("param")), (t.b, 2)], where: t.a == "banana")
+                            executeQueryWithNamedParameters(query: u1, connection: connection, parameters: ["param":"peach"]) { result, rows in
+                                XCTAssertEqual(result.success, true, "UPDATE failed")
+                                XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")
+                                
+                                executeQuery(query: s1, connection: connection) { result, rows in
+                                    XCTAssertEqual(result.success, true, "SELECT failed")
+                                    XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                    XCTAssertNotNil(rows, "SELECT returned no rows")
+                                    XCTAssertEqual(rows!.count, 3, "SELECT returned wrong number of rows: \(rows!.count) instead of 3")
+                                    XCTAssertEqual(rows![2][0]! as! String, "peach", "Wrong value in row 2 column 0")
+                                    XCTAssertEqual(rows![2][1]! as! String, "2", "Wrong value in row 2 column 1")
+                                    
+                                    let s2 = Select(from: t).where(t.a != Parameter("nil"))
+                                    executeQueryWithNamedParameters(query: s2, connection: connection, parameters: ["nil":nil]) { result, rows in
+                                        XCTAssertEqual(result.success, true, "SELECT failed")
+                                        
+                                        let i2 = Insert(into: t, rows: [[Parameter("one"), 1], [Parameter("one"), 2], [Parameter("one"), Parameter("two")]])
+                                        executeQueryWithNamedParameters(query: i2, connection: connection, parameters: ["one":"qiwi", "two": 3]) { result, rows in
+                                            XCTAssertEqual(result.success, true, "INSERT failed")
+                                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                            
+                                            executeQuery(query: s1, connection: connection) { result, rows in
+                                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 3")
+                                                XCTAssertEqual(rows![0][0]! as! String, "apple", "Wrong value in row 0 column 0")
+                                                XCTAssertEqual(rows![1][0]! as! String, "apricot", "Wrong value in row 1 column 0")
+                                                XCTAssertEqual(rows![2][0]! as! String, "peach", "Wrong value in row 2 column 0")
+                                                XCTAssertEqual(rows![3][0]! as! String, "qiwi", "Wrong value in row 3 column 0")
+                                                XCTAssertEqual(rows![4][0]! as! String, "qiwi", "Wrong value in row 4 column 0")
+                                                XCTAssertEqual(rows![5][0]! as! String, "qiwi", "Wrong value in row 5 column 0")
                                             }
                                         }
                                     }
