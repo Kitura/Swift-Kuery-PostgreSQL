@@ -236,8 +236,8 @@ router.get("/") {
   }
 }
 
-// Use port 8090 unless overridden by environment variable
-let port = Int(ProcessInfo.processInfo.environment["PORT"] ?? "8090") ?? 8090
+// Use port 8080 unless overridden by environment variable
+let port = Int(ProcessInfo.processInfo.environment["PORT"] ?? "8080") ?? 8080
 
 Kitura.addHTTPServer(onPort: port, with: router)
 Kitura.run()
@@ -250,7 +250,7 @@ $ swift build
 $ .build/debug/swift-kuery-play
 ```
 
-Now open a web page to <a href="http://localhost:8090">http://localhost:8090</a> and you should see:
+Now open a web page to <a href="http://localhost:8080">http://localhost:8080</a> and you should see:
 
 ```
 course                             grade                              
@@ -312,7 +312,7 @@ func grades(_ callback:@escaping (String)->Void) -> Void {
 }
 
 ```
-At <a href="http://localhost:8090">http://localhost:8090</a> you should see:
+At <a href="http://localhost:8080">http://localhost:8080</a> you should see:
 
 ```
 grade: 99 course: How to build your first computer
