@@ -159,7 +159,7 @@ func createConnection() -> PostgreSQLConnection {
     // Create connection with URL
     //return PostgreSQLConnection(url: URL(string: "Postgres://\(username):\(password)@\(host):\(port)")!)
     
-    return PostgreSQLConnection(host: host, port: port, options: [.userName(username), .password(password)], resultsInBinaryFormat: true)
+    return PostgreSQLConnection(host: host, port: port, options: [.userName(username), .password(password)])
 }
 
 
@@ -168,7 +168,7 @@ class CommonUtils {
     static let sharedInstance = CommonUtils()
     private init() {}
 
-    func getConnectionPool(resultsInBinaryFormat: Bool = true) -> ConnectionPool {
+    func getConnectionPool() -> ConnectionPool {
         if let pool = pool {
             return pool
         }
@@ -177,7 +177,7 @@ class CommonUtils {
         let username = read(fileName: "username.txt")
         let password = read(fileName: "password.txt")
         
-        pool = PostgreSQLConnection.createPool(host: host, port: port, options: [.userName(username), .password(password)], resultsInBinaryFormat: resultsInBinaryFormat, poolOptions: ConnectionPoolOptions(initialCapacity: 0, maxCapacity: 1, timeout: 10000))
+        pool = PostgreSQLConnection.createPool(host: host, port: port, options: [.userName(username), .password(password)], poolOptions: ConnectionPoolOptions(initialCapacity: 0, maxCapacity: 1, timeout: 10000))
         return pool!
     }
     
@@ -187,7 +187,7 @@ class CommonUtils {
         let username = read(fileName: "username.txt")
         let password = read(fileName: "password.txt")
         
-        pool = PostgreSQLConnection.createPool(host: host, port: port, options: [.userName(username), .password(password)], resultsInBinaryFormat: resultsInBinaryFormat, poolOptions: ConnectionPoolOptions(initialCapacity: 0, maxCapacity: 1, timeout: 10000))
+        pool = PostgreSQLConnection.createPool(host: host, port: port, options: [.userName(username), .password(password)], poolOptions: ConnectionPoolOptions(initialCapacity: 0, maxCapacity: 1, timeout: 10000))
         return pool!
     }
 

@@ -28,7 +28,6 @@ public class PostgreSQLConnection: Connection {
     private var connection: OpaquePointer?
     private var connectionParameters: String = ""
     private var inTransaction = false
-    private var resultFormat: Int32
     
     /// An indication whether there is a connection to the database.
     public var isConnected: Bool {
@@ -38,10 +37,9 @@ public class PostgreSQLConnection: Connection {
     /// The `QueryBuilder` with PostgreSQL specific substitutions.
     public var queryBuilder: QueryBuilder
     
-    init(connectionParameters: String, resultsInBinaryFormat: Bool) {
+    init(connectionParameters: String) {
         self.connectionParameters = connectionParameters
         queryBuilder = PostgreSQLConnection.createQuryBuilder()
-        resultFormat = resultsInBinaryFormat ? 1 : 0
     }
     
     /// Initialize an instance of PostgreSQLConnection.
@@ -49,19 +47,15 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter host: The host of the PostgreSQL server to connect to.
     /// - Parameter port: The port of the PostgreSQL server to connect to.
     /// - Parameter options: A set of `ConnectionOptions` to pass to the PostgreSQL server.
-    /// - Parameter resultsInBinaryFormat: An indication whether to obtain query results in binary format,
-    ///                                    if false the results will be obtained in text format.
-    public convenience init(host: String, port: Int32, options: [ConnectionOptions]?, resultsInBinaryFormat: Bool = false) {
-        self.init(connectionParameters: PostgreSQLConnection.extractConnectionParameters(host: host, port: port, options: options), resultsInBinaryFormat: resultsInBinaryFormat)
+    public convenience init(host: String, port: Int32, options: [ConnectionOptions]?) {
+        self.init(connectionParameters: PostgreSQLConnection.extractConnectionParameters(host: host, port: port, options: options))
     }
     
     /// Initialize an instance of PostgreSQLConnection.
     ///
     /// - Parameter url: A URL of the following form: Postgres://userid:pwd@host:port/db.
-    /// - Parameter resultsInBinaryFormat: An indication whether to obtain query results in binary format,
-    ///                                    if false the results will be obtained in text format.
-    public convenience init(url: URL, resultsInBinaryFormat: Bool = false) {
-        self.init(connectionParameters: PostgreSQLConnection.extractConnectionParameters(url: url), resultsInBinaryFormat: resultsInBinaryFormat)
+    public convenience init(url: URL) {
+        self.init(connectionParameters: PostgreSQLConnection.extractConnectionParameters(url: url))
     }
 
     private static func extractConnectionParameters(host: String, port: Int32, options: [ConnectionOptions]?) -> String {
@@ -112,9 +106,9 @@ public class PostgreSQLConnection: Connection {
         return queryBuilder
     }
 
-    private static func createPool(_ connectionParameters: String, resultsInBinaryFormat: Bool = false, options: ConnectionPoolOptions) -> ConnectionPool {
+    private static func createPool(_ connectionParameters: String, options: ConnectionPoolOptions) -> ConnectionPool {
         let connectionGenerator: () -> Connection? = {
-            let connection = PostgreSQLConnection(connectionParameters: connectionParameters, resultsInBinaryFormat: resultsInBinaryFormat)
+            let connection = PostgreSQLConnection(connectionParameters: connectionParameters)
             connection.connection = PQconnectdb(connectionParameters)
             
             if let error = String(validatingUTF8: PQerrorMessage(connection.connection)), !error.isEmpty {
@@ -135,13 +129,11 @@ public class PostgreSQLConnection: Connection {
     /// Create a connection pool for PostgreSQLConnection's.
     ///
     /// - Parameter url: A URL of the PostgreSQL server of the following form: Postgres://userid:pwd@host:port/db.
-    /// - Parameter resultsInBinaryFormat: An indication whether to obtain query results in binary format,
-    ///                                    if false the results will be obtained in text format.
     /// - Parameter poolOptions: A set of `ConnectionPoolOptions` to configure the created pool.
     /// - Returns: The `ConnectionPool` of `PostgreSQLConnection`.
-    public static func createPool(url: URL, resultsInBinaryFormat: Bool = false, poolOptions: ConnectionPoolOptions) -> ConnectionPool {
+    public static func createPool(url: URL, poolOptions: ConnectionPoolOptions) -> ConnectionPool {
         let connectionParameters = extractConnectionParameters(url: url)
-        return createPool(connectionParameters, resultsInBinaryFormat: resultsInBinaryFormat, options: poolOptions)
+        return createPool(connectionParameters, options: poolOptions)
     }
 
     /// Create a connection pool for PostgreSQLConnection's.
@@ -149,13 +141,11 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter host: The host of the PostgreSQL server to connect to.
     /// - Parameter port: The port of the PostgreSQL server to connect to.
     /// - Parameter options: A set of `ConnectionOptions` to pass to the PostgreSQL server.
-    /// - Parameter resultsInBinaryFormat: An indication whether to obtain query results in binary format,
-    ///                                    if false the results will be obtained in text format.
     /// - Parameter poolOptions: A set of `ConnectionPoolOptions` to configure the created pool.
     /// - Returns: The `ConnectionPool` of `PostgreSQLConnection`.
-    public static func createPool(host: String, port: Int32, options: [ConnectionOptions]?, resultsInBinaryFormat: Bool = false, poolOptions: ConnectionPoolOptions) -> ConnectionPool {
+    public static func createPool(host: String, port: Int32, options: [ConnectionOptions]?, poolOptions: ConnectionPoolOptions) -> ConnectionPool {
         let connectionParameters = extractConnectionParameters(host: host, port: port, options: options)
-        return createPool(connectionParameters, resultsInBinaryFormat: resultsInBinaryFormat, options: poolOptions)
+        return createPool(connectionParameters, options: poolOptions)
     }
     
     /// Return a String representation of the query.
@@ -268,7 +258,7 @@ public class PostgreSQLConnection: Connection {
         }
         
         _ = parameterData.withUnsafeBufferPointer { buffer in
-            PQsendQueryParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, resultFormat)
+            PQsendQueryParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
         }
         
         for pointer in parameterPointers {

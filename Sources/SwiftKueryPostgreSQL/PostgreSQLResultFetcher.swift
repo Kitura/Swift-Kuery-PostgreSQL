@@ -114,56 +114,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
         let type = PostgreSQLType(rawValue: PQftype(queryResult, column))
         
         if PQfformat(queryResult, column) == 0 {
-            let valueAsText = String(data: data, encoding: String.Encoding.utf8)!
-            
-            guard let type = type else {
-                return valueAsText
-            }
-    
-//            let dateFormatter = DateFormatter()
-//            dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
-
-            switch type {
-            case .int2:
-                return Int16(valueAsText) ?? valueAsText
-            case .int4:
-                return Int32(valueAsText) ?? valueAsText
-            case .int8:
-                return Int64(valueAsText) ?? valueAsText
-            case .float4:
-                return Float(valueAsText) ?? valueAsText
-            case .float8:
-                return Double(valueAsText) ?? valueAsText
-            case .numeric:
-                return Double(valueAsText) ?? valueAsText // Is Double enough here?
-                
-            case .bool:
-                let boolAsText = valueAsText == "t" ? "true" : (valueAsText == "f" ? "false" : valueAsText)
-                return Bool(boolAsText) ?? valueAsText
-                
-//            case .date:
-//                dateFormatter.dateFormat = "yyyy-MM-dd"
-//                return dateFormatter.date(from: valueAsText) ?? valueAsText
-//
-//            case .time:
-//                dateFormatter.dateFormat = "hh:mm:ss"
-//                return dateFormatter.date(from: valueAsText) ?? valueAsText
-//
-//            case .timetz:
-//                dateFormatter.dateFormat = "hh:mm:ssZ"
-//                return dateFormatter.date(from: valueAsText) ?? valueAsText
-//
-//            case .timestamp:
-//                dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ss"
-//                return dateFormatter.date(from: valueAsText) ?? valueAsText
-//
-//            case .timestamptz:
-//                dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ssZ"
-//                return dateFormatter.date(from: valueAsText) ?? valueAsText
-                
-            default:
-                return valueAsText
-            }
+            return String(data: data, encoding: String.Encoding.utf8)!
         }
         else {
             guard let type = type, let value = value else {
