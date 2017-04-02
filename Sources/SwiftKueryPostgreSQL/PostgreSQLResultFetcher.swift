@@ -114,7 +114,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
         let type = PostgreSQLType(rawValue: PQftype(queryResult, column))
         
         if PQfformat(queryResult, column) == 0 {
-            return String(data: data, encoding: String.Encoding.utf8)!
+            return String(data: data, encoding: String.Encoding.utf8) ?? ""
         }
         else {
             guard let type = type, let value = value else {
@@ -134,7 +134,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 return String(cString: value)
                 
             case .int2:
-                return PostgreSQLResultFetcher.int16(from: value)
+                return PostgreSQLResultFetcher.int16NetworkToHost(from: value)
                 
             case .int4:
                 return Int32(bigEndian: value.withMemoryRebound(to: Int32.self, capacity: 1) { $0.pointee })
@@ -150,24 +150,24 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 
             case .numeric:
                 // Numeric is a sequence of Int16's: number of digits, weight, sign, display scale, numeric digits
-                let sign = PostgreSQLResultFetcher.int16(from: value.advanced(by: 4))
+                let sign = PostgreSQLResultFetcher.int16NetworkToHost(from: value.advanced(by: 4))
                 if sign == -16384 { // 0xC000
                     return "NaN"
                 }
                 
-                let numberOfDigits = PostgreSQLResultFetcher.int16(from: value)
+                let numberOfDigits = PostgreSQLResultFetcher.int16NetworkToHost(from: value)
                 if numberOfDigits <= 0  {
                     return "0"
                 }
                 
                 var result: String = ""
-                let weight = PostgreSQLResultFetcher.int16(from: value.advanced(by: 2))
+                let weight = PostgreSQLResultFetcher.int16NetworkToHost(from: value.advanced(by: 2))
                 var currentDigitData = value.advanced(by: 8)
                 var currentDigitNumber: Int16 = 0
                 
                 if weight >= 0 {
                     for i in 0 ... weight {
-                        let digitsAsInt16 = PostgreSQLResultFetcher.int16(from: currentDigitData)
+                        let digitsAsInt16 = PostgreSQLResultFetcher.int16NetworkToHost(from: currentDigitData)
                         if i == 0 {
                             result += String(digitsAsInt16)
                         }
@@ -179,12 +179,12 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                     }
                 }
                 
-                let displayScale = Int(PostgreSQLResultFetcher.int16(from: value.advanced(by: 6)))
+                let displayScale = Int(PostgreSQLResultFetcher.int16NetworkToHost(from: value.advanced(by: 6)))
                 if displayScale > 0 {
                     var fraction = ""
                     
                     for i in currentDigitNumber ..< numberOfDigits {
-                        let digitsAsInt16 = PostgreSQLResultFetcher.int16(from: currentDigitData)
+                        let digitsAsInt16 = PostgreSQLResultFetcher.int16NetworkToHost(from: currentDigitData)
                         let digitsAsString = String(format: "%04d", digitsAsInt16)
                         fraction += digitsAsString
                         currentDigitData = currentDigitData.advanced(by: 2)
@@ -236,7 +236,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
         }
     }
     
-    private static func int16(from pointer: UnsafeMutablePointer<Int8>) -> Int16 {
+    private static func int16NetworkToHost(from pointer: UnsafeMutablePointer<Int8>) -> Int16 {
         return Int16(bigEndian: pointer.withMemoryRebound(to: Int16.self, capacity: 1) { $0.pointee })
     }
     
@@ -247,13 +247,8 @@ public class PostgreSQLResultFetcher: ResultFetcher {
 
 extension String {
     func leftPadding(toLength: Int, withPad: String = "0") -> String {
-        
-        print("toLength " , toLength)
-        print("self.characters.count " , self.characters.count)
         guard toLength > self.characters.count else { return self }
-        
         let padding = String(repeating: withPad, count: toLength - self.characters.count)
-        print("padding ", padding.characters.count)
         return padding + self
     }
 }
