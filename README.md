@@ -152,9 +152,9 @@ let package = Package(
     name: "swift-kuery-play",
 
 	dependencies: [
-		.Package(url: "https://github.com/IBM-Swift/HeliumLogger.git",       majorVersion: 1, minor: 1),
-		.Package(url: "https://github.com/IBM-Swift/Kitura.git",             majorVersion: 1, minor: 2),
-		.Package(url: "https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL", majorVersion: 0, minor: 2)
+		.Package(url: "https://github.com/IBM-Swift/HeliumLogger.git",       majorVersion: 1, minor: 7),
+		.Package(url: "https://github.com/IBM-Swift/Kitura.git",             majorVersion: 1, minor: 7),
+		.Package(url: "https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL", majorVersion: 0, minor: 10)
 	]
 )
 ```
@@ -203,14 +203,15 @@ func grades(_ callback:@escaping (String)->Void) -> Void {
 
           for title in resultSet.titles {
             // The column names of the result.
-            retString.append("\(title.padding(toLength: 35, withPad: " ", startingAt: 0)))")
+            retString.append("\(title.padding(toLength: 35, withPad: " ", startingAt: 0))")
           }
           retString.append("\n")
 
           for row in resultSet.rows {
             for value in row {
-              if let value = value as? String {
-                retString.append("\(value.padding(toLength: 35, withPad: " ", startingAt: 0))")
+              if let value = value {
+                 let valueString = String(describing: value)
+                 retString.append("\(valueString.padding(toLength: 35, withPad: " ", startingAt: 0))")
               }
             }
             retString.append("\n")
