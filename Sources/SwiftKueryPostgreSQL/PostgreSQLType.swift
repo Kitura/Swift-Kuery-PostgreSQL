@@ -16,7 +16,7 @@
 
 // MARK: PostgreSQLTypes
 
-// A list of supported OID.
+// The list of OIDs for the various PostgreSQL types supported by Swift-Kuery-PostgreSQL.
 enum PostgreSQLType: UInt32 {
     case int2 = 21
     case int4 = 23
