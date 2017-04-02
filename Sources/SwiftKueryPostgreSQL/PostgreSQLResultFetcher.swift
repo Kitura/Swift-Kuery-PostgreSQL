@@ -22,7 +22,7 @@ import Foundation
 // MARK: PostgreSQLResultFetcher
 
 /// An implementation of query result fetcher.
-public class PostgreSQLResultFetcher: ResultFetcher {    
+public class PostgreSQLResultFetcher: ResultFetcher {
     private let titles: [String]
     private var row: [Any?]?
     private var connection: OpaquePointer?
@@ -105,7 +105,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
     public func fetchTitles() -> [String] {
         return titles
     }
-       
+    
     private static func convert(_ queryResult: OpaquePointer, row: Int32, column: Int32) -> Any {
         let value = PQgetvalue(queryResult, row, column)
         let count = Int(PQgetlength(queryResult, row, column))
@@ -134,21 +134,85 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 return String(cString: value)
                 
             case .int2:
-                return Int16(bigEndian: value.withMemoryRebound(to: Int16.self, capacity: 1) { $0.pointee })
-            
+                return PostgreSQLResultFetcher.int16(from: value)
+                
             case .int4:
                 return Int32(bigEndian: value.withMemoryRebound(to: Int32.self, capacity: 1) { $0.pointee })
-
+                
             case .int8:
                 return Int64(bigEndian: value.withMemoryRebound(to: Int64.self, capacity: 1) { $0.pointee })
-               
+                
             case .float4:
                 return Float32(bitPattern: UInt32(bigEndian: data.withUnsafeBytes { $0.pointee } ))
-
+                
             case .float8:
                 return Float64(bitPattern: UInt64(bigEndian: data.withUnsafeBytes { $0.pointee } ))
                 
-//            case .numeric:
+            case .numeric:
+                // Numeric is a sequence of Int16's: number of digits, weight, sign, display scale, numeric digits
+                let sign = PostgreSQLResultFetcher.int16(from: value.advanced(by: 4))
+                if sign == -16384 { // 0xC000
+                    return "NaN"
+                }
+                
+                let numberOfDigits = PostgreSQLResultFetcher.int16(from: value)
+                if numberOfDigits <= 0  {
+                    return "0"
+                }
+                
+                var result: String = ""
+                let weight = PostgreSQLResultFetcher.int16(from: value.advanced(by: 2))
+                var currentDigitData = value.advanced(by: 8)
+                var currentDigitNumber: Int16 = 0
+                
+                if weight >= 0 {
+                    for i in 0 ... weight {
+                        let digitsAsInt16 = PostgreSQLResultFetcher.int16(from: currentDigitData)
+                        if i == 0 {
+                            result += String(digitsAsInt16)
+                        }
+                        else {
+                            result +=  String(format: "%04d", digitsAsInt16)
+                        }
+                        currentDigitData = currentDigitData.advanced(by: 2)
+                        currentDigitNumber = i + 1
+                    }
+                }
+                
+                let displayScale = Int(PostgreSQLResultFetcher.int16(from: value.advanced(by: 6)))
+                if displayScale > 0 {
+                    var fraction = ""
+                    
+                    for i in currentDigitNumber ..< numberOfDigits {
+                        let digitsAsInt16 = PostgreSQLResultFetcher.int16(from: currentDigitData)
+                        let digitsAsString = String(format: "%04d", digitsAsInt16)
+                        fraction += digitsAsString
+                        currentDigitData = currentDigitData.advanced(by: 2)
+                        currentDigitNumber = i
+                    }
+
+                    if weight < 0 && fraction.characters.count < displayScale { // 0.x number, add zeroes
+                        fraction = fraction.leftPadding(toLength: displayScale)
+                    }
+                    
+                    while fraction.hasSuffix("0") {
+                        fraction = String(fraction.characters.dropLast())
+                    }
+
+                    if result.isEmpty {
+                        result = "0"
+                    }
+                    
+                    if !fraction.isEmpty {
+                        result += "." + fraction
+                    }
+                }
+                
+                if sign == 0x4000 {
+                    result = "-" + result
+                }
+                
+                return result
                 
             case .date:
                 let days = Int32(bigEndian: value.withMemoryRebound(to: Int32.self, capacity: 1) { $0.pointee })
@@ -165,17 +229,32 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 let microseconds = Int64(bigEndian: value.withMemoryRebound(to: Int64.self, capacity: 1) { $0.pointee })
                 let timeInterval = TimeInterval(microseconds / 1000000)
                 return Date(timeIntervalSince1970: timeInterval + timeIntervalBetween1970AndPostgresReferenceDate)
-
+                
             case .bool:
                 return Bool(value.withMemoryRebound(to: Bool.self, capacity: 1) { $0.pointee })
-            
-            default:
-                return data
             }
         }
     }
     
+    private static func int16(from pointer: UnsafeMutablePointer<Int8>) -> Int16 {
+        return Int16(bigEndian: pointer.withMemoryRebound(to: Int16.self, capacity: 1) { $0.pointee })
+    }
+    
     private static let secondsInDay: Int32 = 24 * 60 * 60
-    // Reference date in Postgres is 2000-01-01, while in Swift it is 2001-01-01. There were 366 days in the year 2000. 
+    // Reference date in Postgres is 2000-01-01, while in Swift it is 2001-01-01. There were 366 days in the year 2000.
     private static let timeIntervalBetween1970AndPostgresReferenceDate = Date.timeIntervalBetween1970AndReferenceDate - TimeInterval(366 * secondsInDay)
 }
+
+extension String {
+    func leftPadding(toLength: Int, withPad: String = "0") -> String {
+        
+        print("toLength " , toLength)
+        print("self.characters.count " , self.characters.count)
+        guard toLength > self.characters.count else { return self }
+        
+        let padding = String(repeating: withPad, count: toLength - self.characters.count)
+        print("padding ", padding.characters.count)
+        return padding + self
+    }
+}
+

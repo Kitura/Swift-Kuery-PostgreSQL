@@ -23,11 +23,13 @@ import Foundation
 
 #if os(Linux)
 let tableNumeric = "tableNumericLinux"
+let tableNumericTypes = "tableNumericTypesLinux"
 let tableBool = "tableBoolLinux"
 let tableDate = "tableDateLinux"
 let tableString = "tableStringLinux"
 #else
 let tableNumeric = "tableNumericOSX"
+let tableNumericTypes = "tableNumericTypesOSX"
 let tableBool = "tableBoolOSX"
 let tableDate = "tableDateOSX"
 let tableString = "tableStringOSX"
@@ -39,12 +41,13 @@ class TestTypes: XCTestCase {
         return [
             ("testBoolTypes", testBoolTypes),
             ("testDateTypes", testDateTypes),
+            ("testNumeric", testNumeric),
             ("testNumericTypes", testNumericTypes),
             ("testStringTypes", testStringTypes),
         ]
     }
     
-    class NumericTable: Table {
+    class NumericTypesTable: Table {
         let a = Column("a")
         let b = Column("b")
         let c = Column("c")
@@ -57,11 +60,11 @@ class TestTypes: XCTestCase {
         let j = Column("j")
         let k = Column("k")
         
-        let tableName = tableNumeric
+        let tableName = tableNumericTypes
     }
     
     func testNumericTypes() {
-        let t = NumericTable()
+        let t = NumericTypesTable()
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
@@ -73,11 +76,11 @@ class TestTypes: XCTestCase {
             
             cleanUp(table: t.tableName, connection: connection) { result in
                 
-                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b smallint, c integer, d bigint, e decimal(7,2), f numeric(8,3), g real, h double precision, i smallserial, j serial, k bigserial)", connection: connection) { result, rows in
+                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b smallint, c integer, d bigint, e decimal(7,2), f numeric, g real, h double precision, i smallserial, j serial, k bigserial)", connection: connection) { result, rows in
                     XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                     XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                     
-                    let i1 = Insert(into: t, values: "apple", 10, -2147483648, -21474836480, "nan", 123.6789, 12345.1234567, 12345.1234567)
+                    let i1 = Insert(into: t, values: "apple", 10, -2147483648, -21474836480, "nan", "4.000678", 12345.1234567, 12345.1234567)
                     executeQuery(query: i1, connection: connection) { result, rows in
                         XCTAssertEqual(result.success, true, "INSERT failed")
                         XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
@@ -91,8 +94,8 @@ class TestTypes: XCTestCase {
                             XCTAssertEqual(rows![0][1]! as! Int16, 10, "Wrong value in row 0 column 1")
                             XCTAssertEqual(rows![0][2]! as! Int32, -2147483648, "Wrong value in row 0 column 2")
                             XCTAssertEqual(rows![0][3]! as! Int64, -21474836480, "Wrong value in row 0 column 3")
-//                            XCTAssertTrue((rows![0][4]! as! Double).isNaN, "Wrong value in row 0 column 4")
-//                            XCTAssertEqual(rows![0][5]! as! Double, Double(123.6789), "Wrong value in row 0 column 5")
+                            XCTAssertEqual(rows![0][4]! as! String, "NaN", "Wrong value in row 0 column 4")
+                            XCTAssertEqual(rows![0][5]! as! String, "4.000678", "Wrong value in row 0 column 5")
                             XCTAssertEqual(rows![0][6]! as! Float, Float(12345.1234567), "Wrong value in row 0 column 6")
                             XCTAssertEqual(rows![0][7]! as! Double, 12345.1234567, "Wrong value in row 0 column 7")
                             XCTAssertEqual(rows![0][8]! as! Int16, 1, "Wrong value in row 0 column 8")
@@ -103,6 +106,132 @@ class TestTypes: XCTestCase {
                             executeQuery(query: drop, connection: connection) { result, rows in
                                 XCTAssertEqual(result.success, true, "DROP TABLE failed")
                                 XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
+                            }
+                        }
+                    }
+                }
+            }
+            expectation.fulfill()
+        })
+    }
+    
+    class NumericTable: Table {
+        let a = Column("a")
+        let b = Column("b")
+        let c = Column("c")
+        let d = Column("d")
+        let e = Column("e")
+        
+        let tableName = tableNumeric
+    }
+    
+    func testNumeric() {
+        let t = NumericTable()
+        
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
+        performTest(asyncTasks: { expectation in
+            
+            guard let connection = pool.getConnection() else {
+                XCTFail("Failed to get connection")
+                return
+            }
+            
+            cleanUp(table: t.tableName, connection: connection) { result in
+                
+                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b decimal(7,2), c numeric, d decimal, e numeric(12,4))", connection: connection) { result, rows in
+                    XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                    
+                    var i = Insert(into: t, values: "apple", "12345.1234567", "12345.1234567", "0.001", "0.00001")
+                    executeQuery(query: i, connection: connection) { result, rows in
+                        XCTAssertEqual(result.success, true, "INSERT failed")
+                        XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                        
+                        let s = Select(from: t)
+                        executeQuery(query: s, connection: connection) { result, rows in
+                            XCTAssertEqual(result.success, true, "SELECT failed")
+                            XCTAssertNil(result.asError, "Error in SELECT: \(result.asError!)")
+                            XCTAssertNotNil(rows, "SELECT returned no rows")
+                            XCTAssertEqual(rows![0][0]! as! String, "apple", "Wrong value in row 0 column 0")
+                            XCTAssertEqual(rows![0][1]! as! String, "12345.12", "Wrong value in row 0 column 1")
+                            XCTAssertEqual(rows![0][2]! as! String, "12345.1234567", "Wrong value in row 0 column 2")
+                            XCTAssertEqual(rows![0][3]! as! String, "0.001", "Wrong value in row 0 column 3")
+                            XCTAssertEqual(rows![0][4]! as! String, "0", "Wrong value in row 0 column 4")
+                            
+                            i = Insert(into: t, values: "banana", "12345", "123451234567", "0.01", "0.01")
+                            executeQuery(query: i, connection: connection) { result, rows in
+                                XCTAssertEqual(result.success, true, "INSERT failed")
+                                XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                
+                                executeQuery(query: s, connection: connection) { result, rows in
+                                    XCTAssertEqual(result.success, true, "SELECT failed")
+                                    XCTAssertNil(result.asError, "Error in SELECT: \(result.asError!)")
+                                    XCTAssertNotNil(rows, "SELECT returned no rows")
+                                    XCTAssertEqual(rows![1][0]! as! String, "banana", "Wrong value in row 0 column 0")
+                                    XCTAssertEqual(rows![1][1]! as! String, "12345", "Wrong value in row 0 column 1")
+                                    XCTAssertEqual(rows![1][2]! as! String, "123451234567", "Wrong value in row 0 column 2")
+                                    XCTAssertEqual(rows![1][3]! as! String, "0.01", "Wrong value in row 0 column 3")
+                                    XCTAssertEqual(rows![1][4]! as! String, "0.01", "Wrong value in row 0 column 4")
+                                    
+                                    i = Insert(into: t, values: "clementine", "123", "12", "1", "4561")
+                                    executeQuery(query: i, connection: connection) { result, rows in
+                                        XCTAssertEqual(result.success, true, "INSERT failed")
+                                        XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                        
+                                        executeQuery(query: s, connection: connection) { result, rows in
+                                            XCTAssertEqual(result.success, true, "SELECT failed")
+                                            XCTAssertNil(result.asError, "Error in SELECT: \(result.asError!)")
+                                            XCTAssertNotNil(rows, "SELECT returned no rows")
+                                            XCTAssertEqual(rows![2][0]! as! String, "clementine", "Wrong value in row 0 column 0")
+                                            XCTAssertEqual(rows![2][1]! as! String, "123", "Wrong value in row 0 column 1")
+                                            XCTAssertEqual(rows![2][2]! as! String, "12", "Wrong value in row 0 column 2")
+                                            XCTAssertEqual(rows![2][3]! as! String, "1", "Wrong value in row 0 column 3")
+                                            XCTAssertEqual(rows![2][4]! as! String, "4561", "Wrong value in row 0 column 4")
+
+                                            i = Insert(into: t, values: "date", "-123", "-41.010", "-0.21", "-1234560")
+                                            executeQuery(query: i, connection: connection) { result, rows in
+                                                XCTAssertEqual(result.success, true, "INSERT failed")
+                                                XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                                
+                                                executeQuery(query: s, connection: connection) { result, rows in
+                                                    XCTAssertEqual(result.success, true, "SELECT failed")
+                                                    XCTAssertNil(result.asError, "Error in SELECT: \(result.asError!)")
+                                                    XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                    XCTAssertEqual(rows![3][0]! as! String, "date", "Wrong value in row 0 column 0")
+                                                    XCTAssertEqual(rows![3][1]! as! String, "-123", "Wrong value in row 0 column 1")
+                                                    XCTAssertEqual(rows![3][2]! as! String, "-41.01", "Wrong value in row 0 column 2")
+                                                    XCTAssertEqual(rows![3][3]! as! String, "-0.21", "Wrong value in row 0 column 3")
+                                                    XCTAssertEqual(rows![3][4]! as! String, "-1234560", "Wrong value in row 0 column 4")
+
+                                                    let longNumber = "12345678901234567890123456789012345678901234567890123456789012345678901234567890.123456789012345678901234567890123456789012345678901234567890123456789012345678901"
+                                                    let negativeLongNumber = "-" + longNumber
+                                                    i = Insert(into: t, values: "fig", "-123.003000", longNumber, negativeLongNumber, "0000")
+                                                    executeQuery(query: i, connection: connection) { result, rows in
+                                                        XCTAssertEqual(result.success, true, "INSERT failed")
+                                                        XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                                        
+                                                        executeQuery(query: s, connection: connection) { result, rows in
+                                                            XCTAssertEqual(result.success, true, "SELECT failed")
+                                                            XCTAssertNil(result.asError, "Error in SELECT: \(result.asError!)")
+                                                            XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                            XCTAssertEqual(rows![4][0]! as! String, "fig", "Wrong value in row 0 column 0")
+                                                            XCTAssertEqual(rows![4][1]! as! String, "-123", "Wrong value in row 0 column 1")
+                                                            XCTAssertEqual(rows![4][2]! as! String, longNumber, "Wrong value in row 0 column 2")
+                                                            XCTAssertEqual(rows![4][3]! as! String, negativeLongNumber, "Wrong value in row 0 column 3")
+                                                            XCTAssertEqual(rows![4][4]! as! String, "0", "Wrong value in row 0 column 4")
+                                                            
+                                                            let drop = Raw(query: "DROP TABLE", table: t)
+                                                            executeQuery(query: drop, connection: connection) { result, rows in
+                                                                XCTAssertEqual(result.success, true, "DROP TABLE failed")
+                                                                XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -222,7 +351,7 @@ class TestTypes: XCTestCase {
                     dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ss"
                     let thenWithoutTimeZone: Date = dateFormatter.date(from: "2017-03-19 11:15:15")!
                     
-                   var i = Insert(into: t, values: "now", now, now, now, now, now)
+                    var i = Insert(into: t, values: "now", now, now, now, now, now)
                     executeQuery(query: i, connection: connection) { result, rows in
                         XCTAssertEqual(result.success, true, "INSERT failed")
                         
