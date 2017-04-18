@@ -17,6 +17,9 @@
 import CLibpq
 
 func clearResult(_ lastResult: OpaquePointer?, connection: OpaquePointer?) {
+    guard let lastResult = lastResult, let connection = connection else {
+        return
+    }
     PQclear(lastResult)
     var result = PQgetResult(connection)
     while result != nil {
