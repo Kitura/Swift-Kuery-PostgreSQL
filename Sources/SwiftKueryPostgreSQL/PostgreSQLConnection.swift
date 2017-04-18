@@ -283,7 +283,7 @@ public class PostgreSQLConnection: Connection {
         if status == PGRES_COMMAND_OK || status == PGRES_TUPLES_OK {
             // Since we set the single row mode, PGRES_TUPLES_OK means the result is empty, i.e. there are
             // no rows to return.
-            clearResult(connection: connection)
+            clearResult(result, connection: connection)
             onCompletion(.successNoData)
         }
         else if status == PGRES_SINGLE_TUPLE {
@@ -291,7 +291,7 @@ public class PostgreSQLConnection: Connection {
             onCompletion(.resultSet(ResultSet(resultFetcher)))
         }
         else {
-            clearResult(connection: connection)
+            clearResult(result, connection: connection)
             onCompletion(.error(QueryError.databaseError("Query execution error:\n" + String(validatingUTF8: PQresultErrorMessage(result))! + "For query: " + query)))
         }
     }

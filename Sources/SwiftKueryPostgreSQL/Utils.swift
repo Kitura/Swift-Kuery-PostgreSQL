@@ -16,10 +16,11 @@
 
 import CLibpq
 
-func clearResult(connection: OpaquePointer?) {
-    var  result = PQgetResult(connection)
+func clearResult(_ lastResult: OpaquePointer, connection: OpaquePointer?) {
+    PQclear(lastResult)
+    var result = PQgetResult(connection)
     while result != nil {
         result = PQgetResult(connection)
+        PQclear(result)
     }
-    PQclear(result)
 }

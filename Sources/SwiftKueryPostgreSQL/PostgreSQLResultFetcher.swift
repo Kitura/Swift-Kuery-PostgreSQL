@@ -61,13 +61,13 @@ public class PostgreSQLResultFetcher: ResultFetcher {
         
         let status = PQresultStatus(queryResult)
         if status == PGRES_TUPLES_OK {
-            // The last row.
-            clearResult(connection: connection)
+            // The end of the query results.
+            clearResult(queryResult, connection: connection)
             hasMoreRows = false
             return nil
         }
         if status != PGRES_SINGLE_TUPLE {
-            clearResult(connection: connection)
+            clearResult(queryResult, connection: connection)
             hasMoreRows = false
             return nil
         }
