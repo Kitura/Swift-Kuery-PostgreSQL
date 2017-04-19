@@ -291,8 +291,9 @@ public class PostgreSQLConnection: Connection {
             onCompletion(.resultSet(ResultSet(resultFetcher)))
         }
         else {
+            let errorMessage = String(validatingUTF8: PQresultErrorMessage(result)) ?? "Unknown"
             clearResult(result, connection: connection)
-            onCompletion(.error(QueryError.databaseError("Query execution error:\n" + String(validatingUTF8: PQresultErrorMessage(result))! + "For query: " + query)))
+            onCompletion(.error(QueryError.databaseError("Query execution error:\n" + errorMessage + " For query: " + query)))
         }
     }
     
