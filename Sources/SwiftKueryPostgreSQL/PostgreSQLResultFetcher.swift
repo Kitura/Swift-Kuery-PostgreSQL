@@ -232,6 +232,10 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 
             case .bool:
                 return Bool(value.withMemoryRebound(to: Bool.self, capacity: 1) { $0.pointee })
+                
+            case .uuid:
+                let uuid = UUID(uuid: uuid_t(value.withMemoryRebound(to: uuid_t.self, capacity: 1) { $0.pointee }))
+                return uuid.uuidString
             }
         }
     }
