@@ -32,6 +32,10 @@ enum PostgreSQLType: UInt32 {
     case text = 25
     case bpchar = 1042
     case varchar = 1043
+    case json = 114
+    case xml = 142
+    
+    case jsonb = 3802
     
     case numeric = 1700
     
