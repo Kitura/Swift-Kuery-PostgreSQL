@@ -35,8 +35,6 @@ enum PostgreSQLType: UInt32 {
     case json = 114
     case xml = 142
     
-    case jsonb = 3802
-    
     case numeric = 1700
     
     case date = 1082

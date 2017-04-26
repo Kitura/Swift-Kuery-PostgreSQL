@@ -137,9 +137,6 @@ public class PostgreSQLResultFetcher: ResultFetcher {
             case .xml:
                 return String(cString: value)
                 
-            case .jsonb:
-                return String(cString: value.advanced(by: 1))
-                
             case .int2:
                 return PostgreSQLResultFetcher.int16NetworkToHost(from: value)
                 
