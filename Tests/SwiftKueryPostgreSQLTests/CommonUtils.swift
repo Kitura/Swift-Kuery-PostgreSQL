@@ -111,7 +111,7 @@ private func printResultAndGetRowsAsArray(_ result: QueryResult) -> [[Any?]]? {
     var rows: [[Any?]]? = nil
     if let resultSet = result.asResultSet {
         let titles = resultSet.titles
-        let length = titles.count > 6 ? 18 : 30
+        let length = titles.count > 6 ? 18 : 36
         for title in titles {
             print(title.padding(toLength: length, withPad: " ", startingAt: 0), terminator: "")
         }
