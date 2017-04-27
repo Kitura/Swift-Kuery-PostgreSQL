@@ -131,6 +131,10 @@ public class PostgreSQLResultFetcher: ResultFetcher {
             case .text:
                 fallthrough
             case .bpchar:
+                fallthrough
+            case .json:
+                fallthrough
+            case .xml:
                 return String(cString: value)
                 
             case .int2:

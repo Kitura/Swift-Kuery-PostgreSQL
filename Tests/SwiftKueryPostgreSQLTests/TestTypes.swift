@@ -477,6 +477,8 @@ class TestTypes: XCTestCase {
         let e = Column("e")
         let f = Column("f")
         let g = Column("g")
+        let h = Column("h")
+        let i = Column("i")
         
         let tableName = tableString
     }
@@ -494,11 +496,14 @@ class TestTypes: XCTestCase {
             
             cleanUp(table: t.tableName, connection: connection) { result in
                 
-                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(4), b character varying(4), c character(5), d char(5), e text, f \"char\", g name)", connection: connection) { result, rows in
+                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(4), b character varying(4), c character(5), d char(5), e text, f \"char\", g name, h json, i xml)", connection: connection) { result, rows in
                     XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                     XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                     
-                    let i1 = Insert(into: t, values: "qiwi", "qiwi", "apple", "apple", "apple and banana", "a", "mandarin")
+                    let json = "{\"id\": 1, \"name\": \"A green door\", \"price\": 12.50, \"tags\": [\"home\", \"green\"]}"
+                    let xml = "<card xmlns=\"http://businesscard.org\"> <name>John Doe</name> <title>CEO, Widget Inc.</title> <email>john.doe@widget.com</email> <phone>(202) 456-1414</phone> <logo url=\"widget.gif\"/> </card>"
+                    
+                    let i1 = Insert(into: t, values: "qiwi", "qiwi", "apple", "apple", "apple and banana", "a", "mandarin", json, xml)
                     executeQuery(query: i1, connection: connection) { result, rows in
                         XCTAssertEqual(result.success, true, "INSERT failed")
                         XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
@@ -509,7 +514,7 @@ class TestTypes: XCTestCase {
                             XCTAssertNil(result.asError, "Error in SELECT: \(result.asError!)")
                             XCTAssertNotNil(rows, "SELECT returned no rows")
                             XCTAssertEqual(rows!.count, 1, "SELECT returned wrong number of rows")
-                            XCTAssertEqual(rows![0].count, 7, "SELECT returned wrong number of columns")
+                            XCTAssertEqual(rows![0].count, 9, "SELECT returned wrong number of columns")
                             
                             XCTAssertEqual(rows![0][0]! as! String, "qiwi", "Wrong value in row 0 column 0")
                             XCTAssertEqual(rows![0][1]! as! String, "qiwi", "Wrong value in row 0 column 1")
@@ -518,6 +523,8 @@ class TestTypes: XCTestCase {
                             XCTAssertEqual(rows![0][4]! as! String, "apple and banana", "Wrong value in row 0 column 4")
                             XCTAssertEqual(rows![0][5]! as! String, "a", "Wrong value in row 0 column 5")
                             XCTAssertEqual(rows![0][6]! as! String, "mandarin", "Wrong value in row 0 column 6")
+                            XCTAssertEqual(rows![0][7]! as! String, json, "Wrong value in row 0 column 7")
+                            XCTAssertEqual(rows![0][8]! as! String, xml, "Wrong value in row 0 column 8")
                             
                             let drop = Raw(query: "DROP TABLE", table: t)
                             executeQuery(query: drop, connection: connection) { result, rows in
