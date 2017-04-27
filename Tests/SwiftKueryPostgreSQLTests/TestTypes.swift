@@ -27,12 +27,14 @@ let tableNumberTypes = "tableNumberTypesLinux"
 let tableBool = "tableBoolLinux"
 let tableDate = "tableDateLinux"
 let tableString = "tableStringLinux"
+let tableUUID = "tableUUIDLinux"
 #else
 let tableNumeric = "tableNumericOSX"
 let tableNumberTypes = "tableNumberTypesOSX"
 let tableBool = "tableBoolOSX"
 let tableDate = "tableDateOSX"
 let tableString = "tableStringOSX"
+let tableUUID = "tableUUIDOSX"
 #endif
 
 class TestTypes: XCTestCase {
@@ -44,6 +46,7 @@ class TestTypes: XCTestCase {
             ("testNumberTypes", testNumberTypes),
             ("testNumeric", testNumeric),
             ("testStringTypes", testStringTypes),
+            ("testUUID", testUUID),            
         ]
     }
     
@@ -527,6 +530,61 @@ class TestTypes: XCTestCase {
                             executeQuery(query: drop, connection: connection) { result, rows in
                                 XCTAssertEqual(result.success, true, "DROP TABLE failed")
                                 XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
+                            }
+                        }
+                    }
+                }
+            }
+            expectation.fulfill()
+        })
+    }
+    
+    class UUIDTable: Table {
+        let a = Column("a")
+        let b = Column("b")
+        
+        let tableName = tableUUID
+    }
+    
+    func testUUID() {
+        let t = UUIDTable()
+        
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
+        performTest(asyncTasks: { expectation in
+            
+            guard let connection = pool.getConnection() else {
+                XCTFail("Failed to get connection")
+                return
+            }
+            
+            cleanUp(table: t.tableName, connection: connection) { result in
+                
+                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b uuid)", connection: connection) { result, rows in
+                    XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                    
+                    let uuid1 = UUID().uuidString
+                    let uuid2 = UUID().uuidString
+                    
+                    let i1 = Insert(into: t, values: "apple", uuid1)
+                    executeQuery(query: i1, connection: connection) { result, rows in
+                        XCTAssertEqual(result.success, true, "INSERT failed")
+                        XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                        
+                        let i2 = Insert(into: t, values: "banana", Parameter())
+                        executeQueryWithParameters(query: i2, connection: connection, parameters: uuid2) { result, rows in
+                            XCTAssertEqual(result.success, true, "INSERT failed")
+                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                            
+                            let s1 = Select(from: t)
+                            executeQuery(query: s1, connection: connection) { result, rows in
+                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                XCTAssertNil(result.asError, "Error in SELECT: \(result.asError!)")
+                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                XCTAssertEqual(rows!.count, 2, "INSERT returned wrong number of rows: \(rows!.count) instead of 2")
+                                
+                                XCTAssertEqual(rows![0][1]! as! String, uuid1, "Wrong value in row 0 column 1")
+                                XCTAssertEqual(rows![1][1]! as! String, uuid2, "Wrong value in row 1 column 1")
                             }
                         }
                     }
