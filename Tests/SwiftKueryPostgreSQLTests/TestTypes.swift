@@ -354,25 +354,6 @@ class TestTypes: XCTestCase {
         let tableName = tableDate
     }
     
-    private func extractTime(from date: Date, withTimeZone: Bool = false) -> String {
-        let dateFormatter = DateFormatter()
-        if withTimeZone {
-            dateFormatter.dateFormat = "hh:mm:ss Z"
-        }
-        else {
-            dateFormatter.dateFormat = "hh:mm:ss"
-        }
-        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
-        return dateFormatter.string(from: date)
-    }
-    
-    private func extractDate(from date: Date) -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
-        return dateFormatter.string(from: date)
-    }
-    
     func testDateTypes() {
         let t = DateTable()
         
@@ -419,14 +400,14 @@ class TestTypes: XCTestCase {
                                 
                                 XCTAssertEqual(rows![0][0]! as! String, "now", "Wrong value in row 0 column 0")
                                 
-                                var date = self.extractDate(from: rows![0][1]! as! Date)
-                                let nowDate = self.extractDate(from: now)
+                                var date = extractDate(from: rows![0][1]! as! Date)
+                                let nowDate = extractDate(from: now)
                                 XCTAssertEqual(date, nowDate, "Wrong value in row 0 column 1")
                                 
-                                var time = self.extractTime(from: rows![0][2]! as! Date)
-                                let nowTime = self.extractTime(from: now)
+                                var time = extractTime(from: rows![0][2]! as! Date)
+                                let nowTime = extractTime(from: now)
                                 XCTAssertEqual(time, nowTime, "Wrong value in row 0 column 2")
-                                time = self.extractTime(from: rows![0][3]! as! Date)
+                                time = extractTime(from: rows![0][3]! as! Date)
                                 XCTAssertEqual(time, nowTime, "Wrong value in row 0 column 3")
                                 
                                 var timestamp = rows![0][4]! as! Date
@@ -438,14 +419,14 @@ class TestTypes: XCTestCase {
                                 
                                 XCTAssertEqual(rows![1][0]! as! String, "then", "Wrong value in row 1 column 0")
                                 
-                                date = self.extractDate(from: rows![1][1]! as! Date)
-                                let thenDate = self.extractDate(from: then)
+                                date = extractDate(from: rows![1][1]! as! Date)
+                                let thenDate = extractDate(from: then)
                                 XCTAssertEqual(date, thenDate, "Wrong value in row 1 column 1")
                                 
-                                time = self.extractTime(from: rows![1][2]! as! Date)
-                                let thenTime = self.extractTime(from: thenWithoutTimeZone)
+                                time = extractTime(from: rows![1][2]! as! Date)
+                                let thenTime = extractTime(from: thenWithoutTimeZone)
                                 XCTAssertEqual(time, thenTime, "Wrong value in row 1 column 2")
-                                time = self.extractTime(from: rows![1][3]! as! Date)
+                                time = extractTime(from: rows![1][3]! as! Date)
                                 XCTAssertEqual(time, thenTime, "Wrong value in row 1 column 3")
                                 
                                 timestamp = rows![1][4]! as! Date

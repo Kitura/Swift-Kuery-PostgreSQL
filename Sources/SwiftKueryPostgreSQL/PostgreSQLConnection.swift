@@ -96,13 +96,29 @@ public class PostgreSQLConnection: Connection {
         return result
     }
     
+    
+    static func createAutoIncrement(_ type: String) -> String {
+        switch type {
+        case "smallint":
+            return "smallserial"
+        case "integer":
+            return "serial"
+        case "bigint":
+            return "bigserial"
+        default:
+            return ""
+        }
+    }
+    
     private static func createQuryBuilder() -> QueryBuilder {
-        let queryBuilder = QueryBuilder(withDeleteRequiresUsing: true, withUpdateRequiresFrom: true)
+        let queryBuilder = QueryBuilder(withDeleteRequiresUsing: true, withUpdateRequiresFrom: true, createAutoIncrement: createAutoIncrement)
         queryBuilder.updateSubstitutions([QueryBuilder.QuerySubstitutionNames.ucase : "UPPER",
                                           QueryBuilder.QuerySubstitutionNames.lcase : "LOWER",
                                           QueryBuilder.QuerySubstitutionNames.len : "LENGTH",
                                           QueryBuilder.QuerySubstitutionNames.numberedParameter : "$",
-                                          QueryBuilder.QuerySubstitutionNames.namedParameter : ""])
+                                          QueryBuilder.QuerySubstitutionNames.namedParameter : "",
+                                          QueryBuilder.QuerySubstitutionNames.double : "double precision"
+            ])
         return queryBuilder
     }
 

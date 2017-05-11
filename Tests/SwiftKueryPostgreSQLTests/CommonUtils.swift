@@ -162,6 +162,26 @@ func createConnection() -> PostgreSQLConnection {
     return PostgreSQLConnection(host: host, port: port, options: [.userName(username), .password(password)])
 }
 
+func extractTime(from date: Date, withTimeZone: Bool = false) -> String {
+    let dateFormatter = DateFormatter()
+    if withTimeZone {
+        dateFormatter.dateFormat = "hh:mm:ss Z"
+    }
+    else {
+        dateFormatter.dateFormat = "hh:mm:ss"
+    }
+    dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+    return dateFormatter.string(from: date)
+}
+
+func extractDate(from date: Date) -> String {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "yyyy-MM-dd"
+    dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+    return dateFormatter.string(from: date)
+}
+
+
 
 class CommonUtils {
     private var pool: ConnectionPool?
