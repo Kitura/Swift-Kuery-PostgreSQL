@@ -39,7 +39,7 @@ class TestSchema: XCTestCase {
     
     class MyTable: Table {
         let a = Column("a", String.self, primaryKey: true, defaultValue: "qiwi", collate: "en_US")
-        let b = Column("b", Int.self, autoIncrement: true)
+        let b = Column("b", Int32.self, autoIncrement: true)
         let c = Column("c", Double.self, defaultValue: 4.95, check: "c > 0")
         
         let tableName = "MyTable" + tableNameSuffix
@@ -47,9 +47,9 @@ class TestSchema: XCTestCase {
     
     class MyNewTable: Table {
         let a = Column("a", String.self, primaryKey: true, defaultValue: "qiwi")
-        let b = Column("b", Int.self, autoIncrement: true)
+        let b = Column("b", Int32.self, autoIncrement: true)
         let c = Column("c", Double.self, defaultValue: 4.95)
-        let d = Column("d", Int.self, defaultValue: 123)
+        let d = Column("d", Int32.self, defaultValue: 123)
         
         let tableName = "MyNewTable" + tableNameSuffix
     }
@@ -156,7 +156,7 @@ class TestSchema: XCTestCase {
     
     class Table1: Table {
         let a = Column("a", String.self, primaryKey: true, defaultValue: "qiwi")
-        let b = Column("b", Int.self, primaryKey: true)
+        let b = Column("b", Int32.self, primaryKey: true)
         let c = Column("c", Double.self, defaultValue: 4.95)
         
         let tableName = "Table1" + tableNameSuffix
@@ -164,18 +164,18 @@ class TestSchema: XCTestCase {
     
     class Table2: Table {
         let a = Column("a", String.self, primaryKey: true, defaultValue: "qiwi")
-        let b = Column("b", Int.self)
+        let b = Column("b", Int32.self)
         let c = Column("c", Double.self, defaultValue: 4.95)
-        let d = Column("d", Int.self, defaultValue: 123)
+        let d = Column("d", Int32.self, defaultValue: 123)
         
         let tableName = "Table2" + tableNameSuffix
     }
     
     class Table3: Table {
         let a = Column("a", String.self, defaultValue: "qiwi")
-        let b = Column("b", Int.self)
+        let b = Column("b", Int32.self)
         let c = Column("c", Double.self, defaultValue: 4.95)
-        let d = Column("d", Int.self, defaultValue: 123)
+        let d = Column("d", Int32.self, defaultValue: 123)
         
         let tableName = "Table3" + tableNameSuffix
     }
@@ -221,7 +221,7 @@ class TestSchema: XCTestCase {
     
     class Table4: Table {
         let a = Column("a", String.self)
-        let b = Column("b", Int.self)
+        let b = Column("b", Int32.self)
         let c = Column("c", Double.self)
         
         let tableName = "Table4" + tableNameSuffix
@@ -229,7 +229,7 @@ class TestSchema: XCTestCase {
     
     class Table5: Table {
         let e = Column("e", String.self, primaryKey: true)
-        let f = Column("f", Int.self)
+        let f = Column("f", Int32.self)
         
         let tableName = "Table5" + tableNameSuffix
     }
