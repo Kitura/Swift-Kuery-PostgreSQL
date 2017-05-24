@@ -22,9 +22,11 @@ import SwiftKuery
 #if os(Linux)
 let tableParameters = "tableParametersLinux"
 let tableNamedParameters = "tableNamedParametersLinux"
+let tablePreparedStatements = "tablePreparedStatementsLinux"
 #else
 let tableParameters = "tableParametersOSX"
 let tableNamedParameters = "tableNamedParametersOSX"
+let tablePreparedStatements = "tablePreparedStatementsOSX"
 #endif
 
 class TestParameters: XCTestCase {
@@ -33,6 +35,7 @@ class TestParameters: XCTestCase {
         return [
             ("testNamedParameters", testNamedParameters),
             ("testParameters", testParameters),
+            ("testPreparedStatements", testPreparedStatements),
         ]
     }
     
@@ -207,4 +210,74 @@ class TestParameters: XCTestCase {
             expectation.fulfill()
         })
     }
+    
+    class PreparedTable: Table {
+        let a = Column("a")
+        let b = Column("b")
+        
+        let tableName = tablePreparedStatements
+    }
+    
+    func testPreparedStatements() {
+        let t = PreparedTable()
+        
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
+        performTest(asyncTasks: { expectation in
+            
+            guard let connection = pool.getConnection() else {
+                XCTFail("Failed to get connection")
+                return
+            }
+            
+            cleanUp(table: t.tableName, connection: connection) { result in
+                
+                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b integer)", connection: connection) { result, rows in
+                    XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                    
+                    do {
+                        let i1 = Insert(into: t, rows: [[Parameter(), 10], ["banana", Parameter()], [Parameter(), Parameter()]])
+                        let preparedInsert = try connection.prepareStatement(i1)
+                        
+                        let s1 = Select(from: t).where(t.a == Parameter())
+                        let preparedSelect = try connection.prepareStatement(s1)
+                        
+                        let s2 = "SELECT * FROM " + t.tableName
+                        let preparedSelect2 = try connection.prepareStatement(s2)
+                        
+                        connection.execute(preparedStatement: preparedInsert, parameters: ["apple", 3, "banana", -8]) { result in
+                            XCTAssertEqual(result.success, true, "INSERT failed")
+                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                            
+                            connection.execute(preparedStatement: preparedSelect, parameters: ["apple"]) { result in
+                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                let rows = result.asRows
+                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                XCTAssertEqual(rows!.count, 1, "Wrong number of rows")
+                                
+                                connection.execute(preparedStatement: preparedSelect, parameters: ["banana"]) { result in
+                                    XCTAssertEqual(result.success, true, "SELECT failed")
+                                    let rows = result.asRows
+                                    XCTAssertNotNil(rows, "SELECT returned no rows")
+                                    XCTAssertEqual(rows!.count, 2, "Wrong number of rows")
+                                    
+                                    connection.execute(preparedStatement: preparedSelect2) { result in
+                                        XCTAssertEqual(result.success, true, "SELECT failed")
+                                        let rows = result.asRows
+                                        XCTAssertNotNil(rows, "SELECT returned no rows")
+                                        XCTAssertEqual(rows!.count, 3, "Wrong number of rows")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch {
+                        XCTFail("\(error)")
+                    }
+                }
+            }
+            expectation.fulfill()
+        })
+    }
+    
 }
