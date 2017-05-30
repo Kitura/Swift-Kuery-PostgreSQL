@@ -294,11 +294,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter preparedStatement: The prepared statement to execute.
     /// - Parameter onCompletion: The function to be called when the execution has completed.
     public func execute(preparedStatement: PreparedStatement, onCompletion: @escaping ((QueryResult) -> ()))  {
-        guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
-            onCompletion(.error(QueryError.unsupported("Failed to execute unsupported prepared statement")))
-            return
-        }
-        execute(query: nil, preparedStatement: statement.name, with: [Any?](), onCompletion: onCompletion)
+        execute(query: nil, preparedStatement: preparedStatement, with: [Any?](), onCompletion: onCompletion)
     }
     
     /// Execute a prepared statement with parameters.
@@ -307,11 +303,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter parameters: An array of the parameters.
     /// - Parameter onCompletion: The function to be called when the execution has completed.
     public func execute(preparedStatement: PreparedStatement, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
-        guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
-            onCompletion(.error(QueryError.unsupported("Failed to execute unsupported prepared statement")))
-            return
-        }
-        execute(query: nil, preparedStatement: statement.name, with: parameters, onCompletion: onCompletion)
+        execute(query: nil, preparedStatement: preparedStatement, with: parameters, onCompletion: onCompletion)
     }
     
     /// Execute a prepared statement with parameters.
@@ -332,7 +324,7 @@ public class PostgreSQLConnection: Connection {
         onCompletion(.successNoData)
     }
 
-    private func execute(query: String?, preparedStatement: String?, with parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
+    private func execute(query: String?, preparedStatement: PreparedStatement?, with parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
         guard let connection = connection else {
             onCompletion(.error(QueryError.connection("Connection is disconnected")))
             return
@@ -360,8 +352,13 @@ public class PostgreSQLConnection: Connection {
             }
         }
         else if let preparedStatement = preparedStatement {
+            guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
+                onCompletion(.error(QueryError.unsupported("Failed to execute unsupported prepared statement")))
+                return
+            }
+
             _ = parameterData.withUnsafeBufferPointer { buffer in
-                PQsendQueryPrepared(connection, preparedStatement, Int32(parameters.count), buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
+                PQsendQueryPrepared(connection, statement.name, Int32(parameters.count), buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
             }
         }
         for pointer in parameterPointers {

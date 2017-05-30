@@ -212,8 +212,8 @@ class TestParameters: XCTestCase {
     }
     
     class PreparedTable: Table {
-        let a = Column("a")
-        let b = Column("b")
+        let a = Column("a", Varchar.self, length: 40)
+        let b = Column("b", Int32.self)
         
         let tableName = tablePreparedStatements
     }
@@ -231,7 +231,7 @@ class TestParameters: XCTestCase {
             
             cleanUp(table: t.tableName, connection: connection) { result in
                 
-                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b integer)", connection: connection) { result, rows in
+                t.create(connection: connection) { result in
                     XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                     XCTAssertNil(result.asError)
                     
