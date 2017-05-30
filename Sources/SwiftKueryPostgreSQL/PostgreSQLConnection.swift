@@ -266,7 +266,7 @@ public class PostgreSQLConnection: Connection {
     }
 
     public func prepareStatement(_ raw: String) throws -> PreparedStatement  {
-        let statementName = String.random()
+        let statementName = String.randomString()
         guard let result = PQprepare(connection, statementName, raw, 0, nil),
             PQresultStatus(result) == PGRES_COMMAND_OK else {
                 var errorMessage = "Failed to create prepared statement."

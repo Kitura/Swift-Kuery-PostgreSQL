@@ -233,9 +233,10 @@ class TestParameters: XCTestCase {
                 
                 executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b integer)", connection: connection) { result, rows in
                     XCTAssertEqual(result.success, true, "CREATE TABLE failed")
-                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                    XCTAssertNil(result.asError)
                     
                     do {
+                        
                         let i1 = Insert(into: t, rows: [[Parameter(), 10], ["banana", Parameter()], [Parameter(), Parameter()]])
                         let preparedInsert = try connection.prepareStatement(i1)
                         
@@ -247,22 +248,25 @@ class TestParameters: XCTestCase {
                         
                         connection.execute(preparedStatement: preparedInsert, parameters: ["apple", 3, "banana", -8]) { result in
                             XCTAssertEqual(result.success, true, "INSERT failed")
-                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                            XCTAssertNil(result.asError)
                             
                             connection.execute(preparedStatement: preparedSelect, parameters: ["apple"]) { result in
                                 XCTAssertEqual(result.success, true, "SELECT failed")
+                                XCTAssertNil(result.asError)
                                 let rows = result.asRows
                                 XCTAssertNotNil(rows, "SELECT returned no rows")
                                 XCTAssertEqual(rows!.count, 1, "Wrong number of rows")
                                 
                                 connection.execute(preparedStatement: preparedSelect, parameters: ["banana"]) { result in
                                     XCTAssertEqual(result.success, true, "SELECT failed")
+                                    XCTAssertNil(result.asError)
                                     let rows = result.asRows
                                     XCTAssertNotNil(rows, "SELECT returned no rows")
                                     XCTAssertEqual(rows!.count, 2, "Wrong number of rows")
                                     
                                     connection.execute(preparedStatement: preparedSelect2) { result in
                                         XCTAssertEqual(result.success, true, "SELECT failed")
+                                        XCTAssertNil(result.asError)
                                         let rows = result.asRows
                                         XCTAssertNotNil(rows, "SELECT returned no rows")
                                         XCTAssertEqual(rows!.count, 3, "Wrong number of rows")
@@ -279,5 +283,4 @@ class TestParameters: XCTestCase {
             expectation.fulfill()
         })
     }
-    
 }

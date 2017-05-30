@@ -15,6 +15,7 @@
  */
 
 import CLibpq
+import Foundation
 
 func clearResult(_ lastResult: OpaquePointer, connection: OpaquePointer?) {
     PQclear(lastResult)
@@ -27,14 +28,20 @@ func clearResult(_ lastResult: OpaquePointer, connection: OpaquePointer?) {
 
 
 extension String {
-    static func random() -> String {
+    static func randomString() -> String {
         let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         var randomString: String = ""
         
+        let max = UInt32(base.characters.count)
         for _ in 0..<20 {
-            let randomValue = arc4random_uniform(UInt32(base.characters.count))
+            #if os(Linux)
+                let randomValue =  Int(random() % Int(max))
+            #else
+                let randomValue = Int(arc4random_uniform(UInt32(max)))
+            #endif
             randomString += "\(base[base.index(base.startIndex, offsetBy: Int(randomValue))])"
         }
         return randomString
     }
 }
+
