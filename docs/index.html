@@ -194,9 +194,9 @@ Edit Package.swift to contain:</p>
     <span class="nv">name</span><span class="p">:</span> <span class="s">"swift-kuery-play"</span><span class="p">,</span>
 
     <span class="nv">dependencies</span><span class="p">:</span> <span class="p">[</span>
-        <span class="o">.</span><span class="kt">Package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/IBM-Swift/HeliumLogger.git"</span><span class="p">,</span>       <span class="nv">majorVersion</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nv">minor</span><span class="p">:</span> <span class="mi">1</span><span class="p">),</span>
-        <span class="o">.</span><span class="kt">Package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/IBM-Swift/Kitura.git"</span><span class="p">,</span>             <span class="nv">majorVersion</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nv">minor</span><span class="p">:</span> <span class="mi">2</span><span class="p">),</span>
-        <span class="o">.</span><span class="kt">Package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL"</span><span class="p">,</span> <span class="nv">majorVersion</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">minor</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="o">.</span><span class="kt">Package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/IBM-Swift/HeliumLogger.git"</span><span class="p">,</span>       <span class="nv">majorVersion</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nv">minor</span><span class="p">:</span> <span class="mi">7</span><span class="p">),</span>
+        <span class="o">.</span><span class="kt">Package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/IBM-Swift/Kitura.git"</span><span class="p">,</span>             <span class="nv">majorVersion</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nv">minor</span><span class="p">:</span> <span class="mi">7</span><span class="p">),</span>
+        <span class="o">.</span><span class="kt">Package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL"</span><span class="p">,</span> <span class="nv">majorVersion</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">minor</span><span class="p">:</span> <span class="mi">10</span><span class="p">)</span>
     <span class="p">]</span>
 <span class="p">)</span>
 </code></pre>
@@ -243,14 +243,15 @@ Edit Package.swift to contain:</p>
 
           <span class="k">for</span> <span class="n">title</span> <span class="k">in</span> <span class="n">resultSet</span><span class="o">.</span><span class="n">titles</span> <span class="p">{</span>
             <span class="c1">// The column names of the result.</span>
-            <span class="n">retString</span><span class="o">.</span><span class="nf">append</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="n">title</span><span class="o">.</span><span class="nf">padding</span><span class="p">(</span><span class="nv">toLength</span><span class="p">:</span> <span class="mi">35</span><span class="p">,</span> <span class="nv">withPad</span><span class="p">:</span> <span class="s">" "</span><span class="p">,</span> <span class="nv">startingAt</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span><span class="se">)</span><span class="s">)"</span><span class="p">)</span>
+            <span class="n">retString</span><span class="o">.</span><span class="nf">append</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="n">title</span><span class="o">.</span><span class="nf">padding</span><span class="p">(</span><span class="nv">toLength</span><span class="p">:</span> <span class="mi">35</span><span class="p">,</span> <span class="nv">withPad</span><span class="p">:</span> <span class="s">" "</span><span class="p">,</span> <span class="nv">startingAt</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
           <span class="p">}</span>
           <span class="n">retString</span><span class="o">.</span><span class="nf">append</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
 
           <span class="k">for</span> <span class="n">row</span> <span class="k">in</span> <span class="n">resultSet</span><span class="o">.</span><span class="n">rows</span> <span class="p">{</span>
             <span class="k">for</span> <span class="n">value</span> <span class="k">in</span> <span class="n">row</span> <span class="p">{</span>
-              <span class="k">if</span> <span class="k">let</span> <span class="nv">value</span> <span class="o">=</span> <span class="n">value</span> <span class="k">as?</span> <span class="kt">String</span> <span class="p">{</span>
-                <span class="n">retString</span><span class="o">.</span><span class="nf">append</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="n">value</span><span class="o">.</span><span class="nf">padding</span><span class="p">(</span><span class="nv">toLength</span><span class="p">:</span> <span class="mi">35</span><span class="p">,</span> <span class="nv">withPad</span><span class="p">:</span> <span class="s">" "</span><span class="p">,</span> <span class="nv">startingAt</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+              <span class="k">if</span> <span class="k">let</span> <span class="nv">value</span> <span class="o">=</span> <span class="n">value</span> <span class="p">{</span>
+                 <span class="k">let</span> <span class="nv">valueString</span> <span class="o">=</span> <span class="kt">String</span><span class="p">(</span><span class="nv">describing</span><span class="p">:</span> <span class="n">value</span><span class="p">)</span>
+                 <span class="n">retString</span><span class="o">.</span><span class="nf">append</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="n">valueString</span><span class="o">.</span><span class="nf">padding</span><span class="p">(</span><span class="nv">toLength</span><span class="p">:</span> <span class="mi">35</span><span class="p">,</span> <span class="nv">withPad</span><span class="p">:</span> <span class="s">" "</span><span class="p">,</span> <span class="nv">startingAt</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
               <span class="p">}</span>
             <span class="p">}</span>
             <span class="n">retString</span><span class="o">.</span><span class="nf">append</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
@@ -276,8 +277,8 @@ Edit Package.swift to contain:</p>
   <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="c1">// Use port 8090 unless overridden by environment variable</span>
-<span class="k">let</span> <span class="nv">port</span> <span class="o">=</span> <span class="kt">Int</span><span class="p">(</span><span class="kt">ProcessInfo</span><span class="o">.</span><span class="n">processInfo</span><span class="o">.</span><span class="n">environment</span><span class="p">[</span><span class="s">"PORT"</span><span class="p">]</span> <span class="p">??</span> <span class="s">"8090"</span><span class="p">)</span> <span class="p">??</span> <span class="mi">8090</span>
+<span class="c1">// Use port 8080 unless overridden by environment variable</span>
+<span class="k">let</span> <span class="nv">port</span> <span class="o">=</span> <span class="kt">Int</span><span class="p">(</span><span class="kt">ProcessInfo</span><span class="o">.</span><span class="n">processInfo</span><span class="o">.</span><span class="n">environment</span><span class="p">[</span><span class="s">"PORT"</span><span class="p">]</span> <span class="p">??</span> <span class="s">"8080"</span><span class="p">)</span> <span class="p">??</span> <span class="mi">8080</span>
 
 <span class="kt">Kitura</span><span class="o">.</span><span class="nf">addHTTPServer</span><span class="p">(</span><span class="nv">onPort</span><span class="p">:</span> <span class="n">port</span><span class="p">,</span> <span class="nv">with</span><span class="p">:</span> <span class="n">router</span><span class="p">)</span>
 <span class="kt">Kitura</span><span class="o">.</span><span class="nf">run</span><span class="p">()</span>
@@ -288,7 +289,7 @@ Edit Package.swift to contain:</p>
 $ .build/debug/swift-kuery-play
 </code></pre>
 
-<p>Now open a web page to <a href="http://localhost:8090"><a href="http://localhost:8090">http://localhost:8090</a></a> and you should see:</p>
+<p>Now open a web page to <a href="http://localhost:8080"><a href="http://localhost:8080">http://localhost:8080</a></a> and you should see:</p>
 <pre class="highlight plaintext"><code>course                             grade                              
 How to build your first computer   99                                 
 How to work at a rock quarry       71      
@@ -341,7 +342,7 @@ How to build your first computer   99
 
 </code></pre>
 
-<p>At <a href="http://localhost:8090"><a href="http://localhost:8090">http://localhost:8090</a></a> you should see:</p>
+<p>At <a href="http://localhost:8080"><a href="http://localhost:8080">http://localhost:8080</a></a> you should see:</p>
 <pre class="highlight plaintext"><code>grade: 99 course: How to build your first computer
 grade: 71 course: How to work at a rock quarry  
 </code></pre>
@@ -356,7 +357,7 @@ grade: 71 course: How to work at a rock quarry
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2017-03-14)</p>
+      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2017-06-01)</p>
       <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.0</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>

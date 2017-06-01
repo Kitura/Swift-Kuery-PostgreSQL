@@ -302,6 +302,12 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
 
 </div>
 
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter poolOptions: A set of <code>ConnectionPoolOptions</code> to configure the created pool.
+
+</div>
+
 <div class="aside aside-returns">
     <p class="aside-title">Returns</p>
     The <code>ConnectionPool</code> of <code>PostgreSQLConnection</code>.
@@ -330,6 +336,19 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                               <td>
                                 <div>
                                   <p>A URL of the PostgreSQL server of the following form: Postgres://userid:pwd@host:port/db.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>poolOptions</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A set of <code>ConnectionPoolOptions</code> to configure the created pool.</p>
 
                                 </div>
                               </td>
@@ -375,6 +394,12 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
 <div class="aside aside-parameter">
     <p class="aside-title">Parameter</p>
     Parameter options: A set of <code><a href="../Enums/ConnectionOptions.html">ConnectionOptions</a></code> to pass to the PostgreSQL server.
+
+</div>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter poolOptions: A set of <code>ConnectionPoolOptions</code> to configure the created pool.
 
 </div>
 
@@ -432,6 +457,19 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                               <td>
                                 <div>
                                   <p>A set of <code>ConnectionOptions</code> to pass to the PostgreSQL server.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>poolOptions</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A set of <code>ConnectionPoolOptions</code> to configure the created pool.</p>
 
                                 </div>
                               </td>
@@ -926,97 +964,6 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection7executeFT5queryP10SwiftKuery5Query_10parametersGVs10DictionarySSGSqP___12onCompletionFOS1_11QueryResultT__T_"></a>
-                    <a name="//apple_ref/swift/Method/execute(query:parameters:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection7executeFT5queryP10SwiftKuery5Query_10parametersGVs10DictionarySSGSqP___12onCompletionFOS1_11QueryResultT__T_">execute(query:parameters:onCompletion:)</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Execute a query with parameters.</p>
-
-<div class="aside aside-parameter">
-    <p class="aside-title">Parameter</p>
-    Parameter query: The query to execute.
-
-</div>
-
-<div class="aside aside-parameter">
-    <p class="aside-title">Parameter</p>
-    Parameter parameters: A dictionary of the parameters with parameter names as the keys.
-
-</div>
-
-<div class="aside aside-parameter">
-    <p class="aside-title">Parameter</p>
-    Parameter onCompletion: The function to be called when the execution of the query has completed.
-
-</div>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">execute</span><span class="p">(</span><span class="nv">query</span><span class="p">:</span> <span class="kt">Query</span><span class="p">,</span> <span class="nv">parameters</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span><span class="kt">Any</span><span class="p">?],</span> <span class="nv">onCompletion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">((</span><span class="kt">QueryResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">()))</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div>
-                        <h4>Parameters</h4>
-                        <table class="graybox">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>query</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>The query to execute.</p>
-
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>parameters</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>A dictionary of the parameters with parameter names as the keys.</p>
-
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>onCompletion</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>The function to be called when the execution of the query has completed.</p>
-
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-                <li class="item">
-                  <div>
-                    <code>
                     <a name="/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection7executeFTSS10parametersGVs10DictionarySSGSqP___12onCompletionFO10SwiftKuery11QueryResultT__T_"></a>
                     <a name="//apple_ref/swift/Method/execute(_:parameters:onCompletion:)" class="dashAnchor"></a>
                     <a class="token" href="#/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection7executeFTSS10parametersGVs10DictionarySSGSqP___12onCompletionFO10SwiftKuery11QueryResultT__T_">execute(_:parameters:onCompletion:)</a>
@@ -1095,6 +1042,472 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                               <td>
                                 <div>
                                   <p>The function to be called when the execution of the query has completed.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection16prepareStatementFzP10SwiftKuery5Query_PS1_17PreparedStatement_"></a>
+                    <a name="//apple_ref/swift/Method/prepareStatement(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection16prepareStatementFzP10SwiftKuery5Query_PS1_17PreparedStatement_">prepareStatement(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Prepare statement.</p>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter query: The query to prepare statement for.
+
+</div>
+
+<div class="aside aside-returns">
+    <p class="aside-title">Returns</p>
+    The prepared statement.
+
+</div>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    QueryError.syntaxError if query build fails, or a database error if it fails to prepare statement.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">prepareStatement</span><span class="p">(</span><span class="n">_</span> <span class="nv">query</span><span class="p">:</span> <span class="kt">Query</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">PreparedStatement</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>query</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The query to prepare statement for.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The prepared statement.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection16prepareStatementFzSSP10SwiftKuery17PreparedStatement_"></a>
+                    <a name="//apple_ref/swift/Method/prepareStatement(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection16prepareStatementFzSSP10SwiftKuery17PreparedStatement_">prepareStatement(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Prepare statement.</p>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter raw: A String with the query to prepare statement for.
+
+</div>
+
+<div class="aside aside-returns">
+    <p class="aside-title">Returns</p>
+    The prepared statement.
+
+</div>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    QueryError.syntaxError if query build fails, or a database error if it fails to prepare statement.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">prepareStatement</span><span class="p">(</span><span class="n">_</span> <span class="nv">raw</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">PreparedStatement</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>raw</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A String with the query to prepare statement for.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The prepared statement.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection7executeFT17preparedStatementP10SwiftKuery17PreparedStatement_12onCompletionFOS1_11QueryResultT__T_"></a>
+                    <a name="//apple_ref/swift/Method/execute(preparedStatement:onCompletion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection7executeFT17preparedStatementP10SwiftKuery17PreparedStatement_12onCompletionFOS1_11QueryResultT__T_">execute(preparedStatement:onCompletion:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Execute a prepared statement.</p>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter preparedStatement: The prepared statement to execute.
+
+</div>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter onCompletion: The function to be called when the execution has completed.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">execute</span><span class="p">(</span><span class="nv">preparedStatement</span><span class="p">:</span> <span class="kt">PreparedStatement</span><span class="p">,</span> <span class="nv">onCompletion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">((</span><span class="kt">QueryResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">()))</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>preparedStatement</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The prepared statement to execute.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>onCompletion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The function to be called when the execution has completed.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection7executeFT17preparedStatementP10SwiftKuery17PreparedStatement_10parametersGSaGSqP___12onCompletionFOS1_11QueryResultT__T_"></a>
+                    <a name="//apple_ref/swift/Method/execute(preparedStatement:parameters:onCompletion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection7executeFT17preparedStatementP10SwiftKuery17PreparedStatement_10parametersGSaGSqP___12onCompletionFOS1_11QueryResultT__T_">execute(preparedStatement:parameters:onCompletion:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Execute a prepared statement with parameters.</p>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter preparedStatement: The prepared statement to execute.
+
+</div>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter parameters: An array of the parameters.
+
+</div>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter onCompletion: The function to be called when the execution has completed.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">execute</span><span class="p">(</span><span class="nv">preparedStatement</span><span class="p">:</span> <span class="kt">PreparedStatement</span><span class="p">,</span> <span class="nv">parameters</span><span class="p">:</span> <span class="p">[</span><span class="kt">Any</span><span class="p">?],</span> <span class="nv">onCompletion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">((</span><span class="kt">QueryResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">()))</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>preparedStatement</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The prepared statement to execute.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>parameters</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An array of the parameters.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>onCompletion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The function to be called when the execution has completed.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection7executeFT17preparedStatementP10SwiftKuery17PreparedStatement_10parametersGVs10DictionarySSGSqP___12onCompletionFOS1_11QueryResultT__T_"></a>
+                    <a name="//apple_ref/swift/Method/execute(preparedStatement:parameters:onCompletion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection7executeFT17preparedStatementP10SwiftKuery17PreparedStatement_10parametersGVs10DictionarySSGSqP___12onCompletionFOS1_11QueryResultT__T_">execute(preparedStatement:parameters:onCompletion:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Execute a prepared statement with parameters.</p>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter preparedStatement: The prepared statement to execute.
+
+</div>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter parameters: A dictionary of the parameters with parameter names as the keys.
+
+</div>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter onCompletion: The function to be called when the execution has completed.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">execute</span><span class="p">(</span><span class="nv">preparedStatement</span><span class="p">:</span> <span class="kt">PreparedStatement</span><span class="p">,</span> <span class="nv">parameters</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span><span class="kt">Any</span><span class="p">?],</span> <span class="nv">onCompletion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">((</span><span class="kt">QueryResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">()))</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>preparedStatement</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The prepared statement to execute.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>parameters</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A dictionary of the parameters with parameter names as the keys.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>onCompletion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The function to be called when the execution has completed.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection7releaseFT17preparedStatementP10SwiftKuery17PreparedStatement_12onCompletionFOS1_11QueryResultT__T_"></a>
+                    <a name="//apple_ref/swift/Method/release(preparedStatement:onCompletion:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC20SwiftKueryPostgreSQL20PostgreSQLConnection7releaseFT17preparedStatementP10SwiftKuery17PreparedStatement_12onCompletionFOS1_11QueryResultT__T_">release(preparedStatement:onCompletion:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Release a prepared statement.</p>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter preparedStatement: The prepared statement to release.
+
+</div>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter onCompletion: The function to be called when the execution has completed.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">release</span><span class="p">(</span><span class="nv">preparedStatement</span><span class="p">:</span> <span class="kt">PreparedStatement</span><span class="p">,</span> <span class="nv">onCompletion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">((</span><span class="kt">QueryResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">()))</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>preparedStatement</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The prepared statement to release.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>onCompletion</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The function to be called when the execution has completed.</p>
 
                                 </div>
                               </td>
@@ -1488,7 +1901,7 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2017-03-14)</p>
+      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2017-06-01)</p>
       <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.0</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
