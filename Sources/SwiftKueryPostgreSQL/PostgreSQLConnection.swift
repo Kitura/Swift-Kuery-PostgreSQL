@@ -29,6 +29,8 @@ public class PostgreSQLConnection: Connection {
     private var connectionParameters: String = ""
     private var inTransaction = false
     
+    private var preparedStatements = Set<String>()
+    
     /// An indication whether there is a connection to the database.
     public var isConnected: Bool {
         return connection != nil
@@ -39,7 +41,7 @@ public class PostgreSQLConnection: Connection {
     
     init(connectionParameters: String) {
         self.connectionParameters = connectionParameters
-        queryBuilder = PostgreSQLConnection.createQuryBuilder()
+        queryBuilder = PostgreSQLConnection.createQueryBuilder()
     }
     
     /// Initialize an instance of PostgreSQLConnection.
@@ -110,7 +112,7 @@ public class PostgreSQLConnection: Connection {
         }
     }
     
-    private static func createQuryBuilder() -> QueryBuilder {
+    private static func createQueryBuilder() -> QueryBuilder {
         let queryBuilder = QueryBuilder(withDeleteRequiresUsing: true, withUpdateRequiresFrom: true, createAutoIncrement: createAutoIncrement)
         queryBuilder.updateSubstitutions([QueryBuilder.QuerySubstitutionNames.ucase : "UPPER",
                                           QueryBuilder.QuerySubstitutionNames.lcase : "LOWER",
@@ -277,16 +279,23 @@ public class PostgreSQLConnection: Connection {
     /// - Throws: QueryError.syntaxError if query build fails, or a database error if it fails to prepare statement.
     public func prepareStatement(_ raw: String) throws -> PreparedStatement  {
         let statementName = String.randomString()
-        guard let result = PQprepare(connection, statementName, raw, 0, nil),
+        if let error = prepareStatement(name: statementName, for: raw) {
+            throw QueryError.noResult(error)
+        }
+        return PostgreSQLPreparedStatement(name: statementName, query: raw)
+    }
+    
+    private func prepareStatement(name: String, for query: String) -> String? {
+        guard let result = PQprepare(connection, name, query, 0, nil),
             PQresultStatus(result) == PGRES_COMMAND_OK else {
                 var errorMessage = "Failed to create prepared statement."
                 if let error = String(validatingUTF8: PQerrorMessage(connection)) {
                     errorMessage += " Error: \(error)."
                 }
-                throw QueryError.noResult(errorMessage)
+                return errorMessage
         }
-        
-        return PostgreSQLPreparedStatement(name: statementName)
+        preparedStatements.insert(name)
+        return nil
     }
 
     /// Execute a prepared statement.
@@ -355,6 +364,14 @@ public class PostgreSQLConnection: Connection {
             guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
                 onCompletion(.error(QueryError.unsupported("Failed to execute unsupported prepared statement")))
                 return
+            }
+            
+            if !preparedStatements.contains(statement.name) {
+                if let error = prepareStatement(name: statement.name, for: statement.query) {
+                    onCompletion(.error(QueryError.databaseError(error)))
+                    return
+
+                }
             }
 
             _ = parameterData.withUnsafeBufferPointer { buffer in
