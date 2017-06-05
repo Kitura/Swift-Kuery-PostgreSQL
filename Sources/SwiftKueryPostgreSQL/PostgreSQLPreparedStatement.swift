@@ -23,4 +23,6 @@ public struct PostgreSQLPreparedStatement: PreparedStatement {
     
     /// The name of the prepared statement.
     public let name: String
+    
+    let query: String
 }
