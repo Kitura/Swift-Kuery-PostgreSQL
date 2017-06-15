@@ -153,7 +153,15 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 return Float64(bitPattern: UInt64(bigEndian: data.withUnsafeBytes { $0.pointee } ))
                 
             case .numeric:
-                // Numeric is a sequence of Int16's: number of digits, weight, sign, display scale, numeric digits
+                // Numeric is a sequence of Int16's: number of digits, weight, sign, display scale, numeric digits.
+                // The numeric digits are stored in the form of a series of 16 bit base-10000 numbers each representing
+                // four decimal digits of the original number.
+                // For example, for -12345.12 the numeric value received from PostgreSQL will be
+                // 00030001 40000002 00010929 04b0
+                // The number of digits is 3, the digits are 0001 0929 04b0 (1 2345 12 decimal).
+                // The weight is 1, meaning there are two digits before the decimal point.
+                // The sign is 0x4000, meaning this is a negative number.
+                // The display scale is 2, meaning there are 2 "decimal" digits after the decimal point.
                 // https://www.postgresql.org/message-id/491DC5F3D279CD4EB4B157DDD62237F404E27FE9@zipwire.esri.com
                 let sign = PostgreSQLResultFetcher.int16NetworkToHost(from: value.advanced(by: 4))
                 if sign == -16384 { // 0xC000
