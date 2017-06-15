@@ -154,6 +154,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 
             case .numeric:
                 // Numeric is a sequence of Int16's: number of digits, weight, sign, display scale, numeric digits
+                // https://www.postgresql.org/message-id/491DC5F3D279CD4EB4B157DDD62237F404E27FE9@zipwire.esri.com
                 let sign = PostgreSQLResultFetcher.int16NetworkToHost(from: value.advanced(by: 4))
                 if sign == -16384 { // 0xC000
                     return "NaN"
@@ -171,15 +172,20 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 
                 if weight >= 0 {
                     for i in 0 ... weight {
-                        let digitsAsInt16 = PostgreSQLResultFetcher.int16NetworkToHost(from: currentDigitData)
-                        if i == 0 {
-                            result += String(digitsAsInt16)
+                        if currentDigitNumber < numberOfDigits {
+                            let digitsAsInt16 = PostgreSQLResultFetcher.int16NetworkToHost(from: currentDigitData)
+                            if i == 0 {
+                                result += String(digitsAsInt16)
+                            }
+                            else {
+                                result +=  String(format: "%04d", digitsAsInt16)
+                            }
+                            currentDigitData = currentDigitData.advanced(by: 2)
+                            currentDigitNumber = i + 1
                         }
                         else {
-                            result +=  String(format: "%04d", digitsAsInt16)
+                            result += "0000"
                         }
-                        currentDigitData = currentDigitData.advanced(by: 2)
-                        currentDigitNumber = i + 1
                     }
                 }
                 

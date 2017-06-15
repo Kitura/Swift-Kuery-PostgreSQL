@@ -267,10 +267,31 @@ class TestTypes: XCTestCase {
                                                             XCTAssertEqual(rows![4][3]! as! String, negativeLongNumber, "Wrong value in row 4 column 3")
                                                             XCTAssertEqual(rows![4][4]! as! String, "0", "Wrong value in row 4 column 4")
                                                             
-                                                            let drop = Raw(query: "DROP TABLE", table: t)
-                                                            executeQuery(query: drop, connection: connection) { result, rows in
-                                                                XCTAssertEqual(result.success, true, "DROP TABLE failed")
-                                                                XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
+                                                            i = Insert(into: t, values: "grape", "90000.0", "-400000000", "20000.000000000000000", "0.000000000000")
+                                                            executeQuery(query: i, connection: connection) { result, rows in
+                                                                XCTAssertEqual(result.success, true, "INSERT failed")
+                                                                XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+                                                                
+                                                                executeQuery(query: s, connection: connection) { result, rows in
+                                                                    XCTAssertEqual(result.success, true, "SELECT failed")
+                                                                    XCTAssertNil(result.asError, "Error in SELECT: \(result.asError!)")
+                                                                    XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                                    XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows")
+                                                                    XCTAssertEqual(rows![5].count, 5, "SELECT returned wrong number of columns")
+                                                                    
+                                                                    XCTAssertEqual(rows![5][0]! as! String, "grape")
+                                                                    XCTAssertEqual(rows![5][1]! as! String, "90000")
+                                                                    XCTAssertEqual(rows![5][2]! as! String, "-400000000")
+                                                                    XCTAssertEqual(rows![5][3]! as! String, "20000")
+                                                                    XCTAssertEqual(rows![5][4]! as! String, "0")
+                                                                    
+                                                                    let drop = Raw(query: "DROP TABLE", table: t)
+                                                                    executeQuery(query: drop, connection: connection) { result, rows in
+                                                                        XCTAssertEqual(result.success, true, "DROP TABLE failed")
+                                                                        XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
+                                                                        
+                                                                    }
+                                                                }
                                                             }
                                                         }
                                                     }
