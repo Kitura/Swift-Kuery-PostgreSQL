@@ -25,10 +25,10 @@ import Foundation
 public class PostgreSQLResultFetcher: ResultFetcher {
     private let titles: [String]
     private var row: [Any?]?
-    private var connection: OpaquePointer?
-    private var hasMoreRows = true
+    private var connection: PostgreSQLConnection
+    var hasMoreRows = true
     
-    init(queryResult: OpaquePointer, connection: OpaquePointer?) {
+    init(queryResult: OpaquePointer, connection: PostgreSQLConnection) {
         self.connection = connection
         
         let columns = PQnfields(queryResult)
@@ -53,7 +53,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
             return nil
         }
         
-        guard let queryResult = PQgetResult(connection) else {
+        guard let queryResult = PQgetResult(connection.connection) else {
             // We are not supposed to get here, because we clear the result if we get PGRES_TUPLES_OK.
             hasMoreRows = false
             return nil

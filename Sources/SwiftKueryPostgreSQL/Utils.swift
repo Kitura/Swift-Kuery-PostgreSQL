@@ -17,13 +17,16 @@
 import CLibpq
 import Foundation
 
-func clearResult(_ lastResult: OpaquePointer, connection: OpaquePointer?) {
-    PQclear(lastResult)
-    var result = PQgetResult(connection)
+func clearResult(_ lastResult: OpaquePointer?, connection: PostgreSQLConnection) {
+    if let lastResult = lastResult {
+        PQclear(lastResult)
+    }
+    var result = PQgetResult(connection.connection)
     while result != nil {
         PQclear(result)
-        result = PQgetResult(connection)
+        result = PQgetResult(connection.connection)
     }
+    connection.setState(.idle)
 }
 
 
