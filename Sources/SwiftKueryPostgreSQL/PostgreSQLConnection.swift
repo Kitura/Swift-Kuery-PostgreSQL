@@ -17,6 +17,7 @@
 import SwiftKuery
 import CLibpq
 
+import Dispatch
 import Foundation
 
 enum ConnectionState {
