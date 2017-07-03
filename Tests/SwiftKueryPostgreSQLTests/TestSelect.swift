@@ -401,10 +401,8 @@ class TestSelect: XCTestCase {
                         
                         let s1 = Select(from: t).where(t.b > 0)
                         s1.execute(connection) { result1 in
-                            print("executed select 1")
                             let s2 = Select(from: t).where(t.b < 0)
                             s2.execute(connection) { result2 in
-                                print("executed select 2")
                                 
                                 XCTAssertEqual(result1.success, true, "SELECT 1 failed")
                                 XCTAssertEqual(result2.success, true, "SELECT 2 failed")
