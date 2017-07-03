@@ -541,13 +541,17 @@ public class PostgreSQLConnection: Connection {
     
     func setUpForRunningQuery() -> String? {
         lockStateLock()
+
         switch state {
         case .runningQuery:
+            unlockStateLock()
             return "The connection is in the middle of running a query"
             
         case .fetchingResultSet:
             currentResultFetcher?.hasMoreRows = false
+            unlockStateLock()
             clearResult(nil, connection: self)
+            lockStateLock()
             
         case .idle:
             break
