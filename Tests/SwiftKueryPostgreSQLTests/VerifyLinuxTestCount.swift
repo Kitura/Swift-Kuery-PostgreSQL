@@ -23,47 +23,91 @@
             var darwinCount: Int = 0
             
             linuxCount = TestAlias.allTests.count
-            darwinCount = Int(TestAlias.defaultTestSuite().testCaseCount)
+            #if swift(>=3.2)
+                darwinCount = Int(TestAlias.defaultTestSuite.testCaseCount)
+            #else
+                darwinCount = Int(TestAlias.defaultTestSuite().testCaseCount)
+            #endif
             XCTAssertEqual(linuxCount, darwinCount, "\(darwinCount - linuxCount) tests are missing from TestAlias.allTests")
 
             linuxCount = TestInsert.allTests.count
-            darwinCount = Int(TestInsert.defaultTestSuite().testCaseCount)
+            #if swift(>=3.2)
+                darwinCount = Int(TestInsert.defaultTestSuite.testCaseCount)
+            #else
+                darwinCount = Int(TestInsert.defaultTestSuite().testCaseCount)
+            #endif
             XCTAssertEqual(linuxCount, darwinCount, "\(darwinCount - linuxCount) tests are missing from TestInsert.allTests")
 
             linuxCount = TestJoin.allTests.count
-            darwinCount = Int(TestJoin.defaultTestSuite().testCaseCount)
+            #if swift(>=3.2)
+                darwinCount = Int(TestJoin.defaultTestSuite.testCaseCount)
+            #else
+                darwinCount = Int(TestJoin.defaultTestSuite().testCaseCount)
+            #endif
             XCTAssertEqual(linuxCount, darwinCount, "\(darwinCount - linuxCount) tests are missing from TestJoin.allTests")
 
             linuxCount = TestParameters.allTests.count
-            darwinCount = Int(TestParameters.defaultTestSuite().testCaseCount)
+            #if swift(>=3.2)
+                darwinCount = Int(TestParameters.defaultTestSuite.testCaseCount)
+            #else
+                darwinCount = Int(TestParameters.defaultTestSuite().testCaseCount)
+            #endif
             XCTAssertEqual(linuxCount, darwinCount, "\(darwinCount - linuxCount) tests are missing from TestParameters.allTests")
 
             linuxCount = TestSchema.allTests.count
-            darwinCount = Int(TestSchema.defaultTestSuite().testCaseCount)
+            #if swift(>=3.2)
+                darwinCount = Int(TestSchema.defaultTestSuite.testCaseCount)
+            #else
+                darwinCount = Int(TestSchema.defaultTestSuite().testCaseCount)
+            #endif
             XCTAssertEqual(linuxCount, darwinCount, "\(darwinCount - linuxCount) tests are missing from TestSchema.allTests")
 
             linuxCount = TestSelect.allTests.count
-            darwinCount = Int(TestSelect.defaultTestSuite().testCaseCount)
+            #if swift(>=3.2)
+                darwinCount = Int(TestSelect.defaultTestSuite.testCaseCount)
+            #else
+                darwinCount = Int(TestSelect.defaultTestSuite().testCaseCount)
+            #endif
             XCTAssertEqual(linuxCount, darwinCount, "\(darwinCount - linuxCount) tests are missing from TestSelect.allTests")
 
             linuxCount = TestSubquery.allTests.count
-            darwinCount = Int(TestSubquery.defaultTestSuite().testCaseCount)
+            #if swift(>=3.2)
+                darwinCount = Int(TestSubquery.defaultTestSuite.testCaseCount)
+            #else
+                darwinCount = Int(TestSubquery.defaultTestSuite().testCaseCount)
+            #endif
             XCTAssertEqual(linuxCount, darwinCount, "\(darwinCount - linuxCount) tests are missing from TestSubquery.allTests")
 
             linuxCount = TestTransaction.allTests.count
-            darwinCount = Int(TestTransaction.defaultTestSuite().testCaseCount)
+            #if swift(>=3.2)
+                darwinCount = Int(TestTransaction.defaultTestSuite.testCaseCount)
+            #else
+                darwinCount = Int(TestTransaction.defaultTestSuite().testCaseCount)
+            #endif
             XCTAssertEqual(linuxCount, darwinCount, "\(darwinCount - linuxCount) tests are missing from TestTransaction.allTests")
 
             linuxCount = TestTypes.allTests.count
-            darwinCount = Int(TestTypes.defaultTestSuite().testCaseCount)
+            #if swift(>=3.2)
+                darwinCount = Int(TestTypes.defaultTestSuite.testCaseCount)
+            #else
+                darwinCount = Int(TestTypes.defaultTestSuite().testCaseCount)
+            #endif
             XCTAssertEqual(linuxCount, darwinCount, "\(darwinCount - linuxCount) tests are missing from TestTypes.allTests")
 
             linuxCount = TestUpdate.allTests.count
-            darwinCount = Int(TestUpdate.defaultTestSuite().testCaseCount)
+            #if swift(>=3.2)
+                darwinCount = Int(TestUpdate.defaultTestSuite.testCaseCount)
+            #else
+                darwinCount = Int(TestUpdate.defaultTestSuite().testCaseCount)
+            #endif
             XCTAssertEqual(linuxCount, darwinCount, "\(darwinCount - linuxCount) tests are missing from TestUpdate.allTests")
 
             linuxCount = TestWith.allTests.count
-            darwinCount = Int(TestWith.defaultTestSuite().testCaseCount)
+            #if swift(>=3.2)
+                darwinCount = Int(TestWith.defaultTestSuite.testCaseCount)
+            #else
+                darwinCount = Int(TestWith.defaultTestSuite().testCaseCount)
+            #endif
             XCTAssertEqual(linuxCount, darwinCount, "\(darwinCount - linuxCount) tests are missing from TestWith.allTests")
         }
     }
