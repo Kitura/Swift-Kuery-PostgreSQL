@@ -1,0 +1,5 @@
+test:
+  image: ibmcom/swift-ubuntu:4.0
+  volumes:
+      - .:/Swift-Kuery-PostgreSQL
+  command: bash -c "cd /Swift-Kuery-PostgreSQL && swift package clean && swift build"

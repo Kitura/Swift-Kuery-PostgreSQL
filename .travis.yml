@@ -10,6 +10,7 @@ branches:
   only:
     - master
     - /^issue.*$/
+    - /^issue_*$/
 
 notifications:
   slack:
@@ -20,20 +21,15 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-    - os: linux
-      dist: trusty
-      sudo: required
-      env: SWIFT_SNAPSHOT=$SWIFT_4_DEV_SNAPSHOT
-    - os: osx
-      osx_image: xcode8.3
-      sudo: required
     - os: osx
       osx_image: xcode9
       sudo: required
-      env: SWIFT_SNAPSHOT=$SWIFT_4_DEV_SNAPSHOT
 
 services:
   - postgresql
 
+before_install:
+  - git clone https://github.com/IBM-Swift/Package-Builder.git
+
 script:
-  - ./build.sh
+  - ./Package-Builder/build-package.sh -projectDir $TRAVIS_BUILD_DIR
