@@ -10,7 +10,6 @@ branches:
   only:
     - master
     - /^issue.*$/
-    - /^issue_*$/
 
 notifications:
   slack:
@@ -29,6 +28,15 @@ services:
   - postgresql
 
 before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        rm -rf /usr/local/var/postgres
+        initdb /usr/local/var/postgres
+        pg_ctl -D /usr/local/var/postgres start
+        sleep 10
+        createuser -s postgres
+    else
+        psql --version || { apt-get update && apt-get install -y postgresql postgresql-contrib && service postgresql start && psql --version; }
+
   - git clone https://github.com/IBM-Swift/Package-Builder.git
 
 script:
