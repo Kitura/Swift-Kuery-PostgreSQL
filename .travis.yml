@@ -28,15 +28,7 @@ services:
   - postgresql
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        rm -rf /usr/local/var/postgres
-        initdb /usr/local/var/postgres
-        pg_ctl -D /usr/local/var/postgres start
-        sleep 10
-        createuser -s postgres
-    else
-        psql --version || { apt-get update && apt-get install -y postgresql postgresql-contrib && service postgresql start && psql --version; }
-
+  - psql -c 'create database travis_ci_test;' -U postgres
   - git clone https://github.com/IBM-Swift/Package-Builder.git
 
 script:

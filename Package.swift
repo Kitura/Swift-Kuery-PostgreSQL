@@ -31,6 +31,10 @@ let package = Package(
         .target(
             name: "SwiftKueryPostgreSQL",
             dependencies: ["SwiftKuery"]
+        ),
+        .testTarget(
+            name: "SwiftKueryPostgreSQLTests",
+            dependencies: ["SwiftKueryPostgreSQL"]
         )
     ]
 )

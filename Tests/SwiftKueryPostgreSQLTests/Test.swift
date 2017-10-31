@@ -33,7 +33,7 @@ extension Test {
         // sleep(10)
     }
 
-    func performTest(asyncTasks: @escaping (XCTestExpectation) -> Void...) {
+    func performTest(asyncTasks: (XCTestExpectation) -> Void...) {
         let queue = DispatchQueue(label: "Query queue")
 
         for (index, asyncTask) in asyncTasks.enumerated() {
