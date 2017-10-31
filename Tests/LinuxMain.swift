@@ -18,19 +18,18 @@ import XCTest
 import Glibc
 @testable import SwiftKueryPostgreSQLTests
 
-srand(UInt32(time(nil)))
-
 // http://stackoverflow.com/questions/24026510/how-do-i-shuffle-an-array-in-swift
-extension MutableCollection where Indices.Iterator.Element == Index {
+extension MutableCollection {
     mutating func shuffle() {
         let c = count
         guard c > 1 else { return }
-        
-        for (firstUnshuffled, unshuffledCount) in zip(indices, stride(from: c, to: 1, by: -1)) {
+
+        srand(UInt32(time(nil)))
+        for (firstUnshuffled , unshuffledCount) in zip(indices, stride(from: c, to: 1, by: -1)) {
             let d: IndexDistance = numericCast(random() % numericCast(unshuffledCount))
             guard d != 0 else { continue }
             let i = index(firstUnshuffled, offsetBy: d)
-            swap(&self[firstUnshuffled], &self[i])
+            swapAt(firstUnshuffled, i)
         }
     }
 }
@@ -55,4 +54,4 @@ XCTMain([
     testCase(TestTypes.allTests.shuffled()),
     testCase(TestUpdate.allTests.shuffled()),
     testCase(TestWith.allTests.shuffled()),
-    ])
+    ].shuffled())
