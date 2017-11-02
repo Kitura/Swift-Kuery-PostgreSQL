@@ -1,3 +1,6 @@
+// swift-tools-version:4.0
+// The swift-tools-version declares the minimum version of Swift required to build this package.
+
 /**
  * Copyright IBM Corporation 2016, 2017
  *
@@ -19,8 +22,19 @@ import PackageDescription
 let package = Package(
     name: "SwiftKueryPostgreSQL",
     dependencies: [
-        .Package(url: "https://github.com/IBM-Swift/CLibpq.git", majorVersion: 0, minor: 1),
-        .Package(url: "https://github.com/IBM-Swift/Swift-Kuery.git", majorVersion: 0, minor: 13),
-    ],
-    exclude: ["Configuration", "Scripts"]
+        .package(url: "https://github.com/IBM-Swift/CLibpq.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/IBM-Swift/Swift-Kuery.git", .upToNextMinor(from: "0.13.0")),
+        ],
+    targets: [
+        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
+        // Targets can depend on other targets in this package, and on products in packages which this package depends on.
+        .target(
+            name: "SwiftKueryPostgreSQL",
+            dependencies: ["SwiftKuery"]
+        ),
+        .testTarget(
+            name: "SwiftKueryPostgreSQLTests",
+            dependencies: ["SwiftKueryPostgreSQL"]
+        )
+    ]
 )
