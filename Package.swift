@@ -21,6 +21,12 @@ import PackageDescription
 
 let package = Package(
     name: "SwiftKueryPostgreSQL",
+    products: [
+        .library(
+            name: "SwiftKueryPostgreSQL",
+            targets: ["SwiftKueryPostgreSQL"]
+        )
+    ],
     dependencies: [
         .package(url: "https://github.com/IBM-Swift/CLibpq.git", .upToNextMinor(from: "0.1.0")),
         .package(url: "https://github.com/IBM-Swift/Swift-Kuery.git", .upToNextMinor(from: "0.13.0")),
