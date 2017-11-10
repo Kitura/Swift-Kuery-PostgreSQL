@@ -137,9 +137,10 @@ $ cd swift-kuery-play
 $ swift package init --type executable
 Creating executable package: swift-kuery-play
 Creating Package.swift
+Creating README.md
 Creating .gitignore
 Creating Sources/
-Creating Sources/main.swift
+Creating Sources/swift-kuery-play/main.swift
 Creating Tests/
 $
 ```
@@ -148,16 +149,21 @@ Now, add Swift-Kuery as a dependency for our project.
 Edit Package.swift to contain:
 
 ```swift
+// swift-tools-version:4.0
 import PackageDescription
 
 let package = Package(
     name: "swift-kuery-play",
-
-	dependencies: [
-		.Package(url: "https://github.com/IBM-Swift/HeliumLogger.git",       majorVersion: 1, minor: 7),
-		.Package(url: "https://github.com/IBM-Swift/Kitura.git",             majorVersion: 1, minor: 7),
-		.Package(url: "https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL", majorVersion: 0, minor: 12)
-	]
+    dependencies: [
+        .package(url: "https://github.com/IBM-Swift/HeliumLogger.git", .upToNextMinor(from: "1.7.0")),
+        .package(url: "https://github.com/IBM-Swift/Kitura.git", .upToNextMinor(from: "2.0.0")),
+        .package(url: "https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL", .upToNextMinor(from: "1.0.0"))
+    ],
+    targets: [
+        .target(
+            name: "swift-kuery-play",
+            dependencies: ["HeliumLogger", "Kitura", "SwiftKueryPostgreSQL"]),
+    ]
 )
 ```
 
