@@ -32,7 +32,7 @@ extension String {
         let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         var randomString: String = ""
         
-        let max = UInt32(base.characters.count)
+        let max = UInt32(base.count)
         for _ in 0..<20 {
             #if os(Linux)
                 let randomValue =  Int(random() % Int(max))

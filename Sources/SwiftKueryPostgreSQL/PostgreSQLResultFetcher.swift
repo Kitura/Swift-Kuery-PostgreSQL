@@ -209,12 +209,12 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                         currentDigitNumber = i
                     }
 
-                    if weight < 0 && fraction.characters.count < displayScale { // 0.x number, add zeroes
+                    if weight < 0 && fraction.count < displayScale { // 0.x number, add zeroes
                         fraction = fraction.leftPadding(toLength: displayScale)
                     }
                     
                     while fraction.hasSuffix("0") {
-                        fraction = String(fraction.characters.dropLast())
+                        fraction = String(fraction.dropLast())
                     }
 
                     if result.isEmpty {
@@ -269,8 +269,8 @@ public class PostgreSQLResultFetcher: ResultFetcher {
 
 extension String {
     func leftPadding(toLength: Int, withPad: String = "0") -> String {
-        guard toLength > self.characters.count else { return self }
-        let padding = String(repeating: withPad, count: toLength - self.characters.count)
+        guard toLength > self.count else { return self }
+        let padding = String(repeating: withPad, count: toLength - self.count)
         return padding + self
     }
 }
