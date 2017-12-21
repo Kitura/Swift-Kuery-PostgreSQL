@@ -294,6 +294,7 @@ public class PostgreSQLConnection: Connection {
                 }
                 return errorMessage
         }
+        PQclear(result)
         preparedStatements.insert(name)
         return nil
     }
