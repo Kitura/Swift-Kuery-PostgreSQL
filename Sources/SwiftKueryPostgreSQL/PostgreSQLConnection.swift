@@ -211,9 +211,6 @@ public class PostgreSQLConnection: Connection {
             let postgresQuery = try buildQuery(query)
             execute(query: postgresQuery, preparedStatement: nil, with: parameters, onCompletion: onCompletion)
         }
-        catch QueryError.invalidTableDefinition(let  error){
-            onCompletion(.error(QueryError.invalidTableDefinition(error)))
-        }
         catch QueryError.syntaxError(let error) {
             onCompletion(.error(QueryError.syntaxError(error)))
         }
@@ -230,9 +227,6 @@ public class PostgreSQLConnection: Connection {
         do {
             let postgresQuery = try buildQuery(query)
             execute(query: postgresQuery, preparedStatement: nil, with: [Any?](), onCompletion: onCompletion)
-        }
-        catch QueryError.invalidTableDefinition(let error){
-            onCompletion(.error(QueryError.invalidTableDefinition(error)))
         }
         catch QueryError.syntaxError(let error) {
             onCompletion(.error(QueryError.syntaxError(error)))
@@ -512,10 +506,6 @@ public class PostgreSQLConnection: Connection {
 
         if (insertQuery.suffix != nil) {
           throw QueryError.syntaxError("Suffix for query already set, could not add Returning suffix")
-        }
-
-        if (columns.count > 1) {
-          throw QueryError.invalidTableDefinition("2 or more columns set as primary key and auto increment")
         }
       }
       return postgresQuery
