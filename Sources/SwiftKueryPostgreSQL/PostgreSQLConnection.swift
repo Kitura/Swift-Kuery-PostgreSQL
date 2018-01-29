@@ -208,7 +208,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(query: Query, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
         do {
-            let postgresQuery = try query.build(queryBuilder: queryBuilder)
+            let postgresQuery = try buildQuery(query)
             execute(query: postgresQuery, preparedStatement: nil, with: parameters, onCompletion: onCompletion)
         }
         catch QueryError.syntaxError(let error) {
@@ -218,14 +218,14 @@ public class PostgreSQLConnection: Connection {
             onCompletion(.error(QueryError.syntaxError("Failed to build the query")))
         }
     }
-    
+
     /// Execute a query.
     ///
     /// - Parameter query: The query to execute.
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(query: Query, onCompletion: @escaping ((QueryResult) -> ())) {
         do {
-            let postgresQuery = try query.build(queryBuilder: queryBuilder)
+            let postgresQuery = try buildQuery(query)
             execute(query: postgresQuery, preparedStatement: nil, with: [Any?](), onCompletion: onCompletion)
         }
         catch QueryError.syntaxError(let error) {
@@ -268,7 +268,7 @@ public class PostgreSQLConnection: Connection {
     /// - Returns: The prepared statement.
     /// - Throws: QueryError.syntaxError if query build fails, or a database error if it fails to prepare statement.
     public func prepareStatement(_ query: Query) throws -> PreparedStatement {
-        let postgresQuery = try query.build(queryBuilder: queryBuilder)
+        let postgresQuery = try buildQuery(query)
         return try prepareStatement(postgresQuery)
     }
 
@@ -479,6 +479,7 @@ public class PostgreSQLConnection: Connection {
             if let error = String(validatingUTF8: PQerrorMessage(connection)) {
                 message += " Error: \(error)."
             }
+
             PQclear(result)
             onCompletion(.error(QueryError.databaseError(message)))
             return
@@ -490,5 +491,23 @@ public class PostgreSQLConnection: Connection {
         
         PQclear(result)
         onCompletion(.successNoData)
+    }
+
+    private func buildQuery(_ query: Query) throws  -> String {
+      var postgresQuery = try query.build(queryBuilder: queryBuilder)
+
+      if let insertQuery = query as? Insert, insertQuery.returnID {
+        let columns = insertQuery.table.columns.filter { $0.isPrimaryKey && $0.autoIncrement }
+
+        if (insertQuery.suffix == nil && columns.count == 1) {
+           let insertQueryReturnID = insertQuery.suffix("Returning " + columns[0].name)
+           postgresQuery = try insertQueryReturnID.build(queryBuilder: queryBuilder)
+        }
+
+        if (insertQuery.suffix != nil) {
+          throw QueryError.syntaxError("Suffix for query already set, could not add Returning suffix")
+        }
+      }
+      return postgresQuery
     }
 }
