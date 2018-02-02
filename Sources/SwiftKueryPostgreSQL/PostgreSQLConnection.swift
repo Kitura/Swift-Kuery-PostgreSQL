@@ -500,7 +500,7 @@ public class PostgreSQLConnection: Connection {
         let columns = insertQuery.table.columns.filter { $0.isPrimaryKey && $0.autoIncrement }
 
         if (insertQuery.suffix == nil && columns.count == 1) {
-           let insertQueryReturnID = insertQuery.suffix("Returning " + columns[0].name)
+           let insertQueryReturnID = insertQuery.suffix("Returning " + columns[0].name + " AS id")
            postgresQuery = try insertQueryReturnID.build(queryBuilder: queryBuilder)
         }
 
