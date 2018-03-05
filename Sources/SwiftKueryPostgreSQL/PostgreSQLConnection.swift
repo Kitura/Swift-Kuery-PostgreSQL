@@ -286,14 +286,17 @@ public class PostgreSQLConnection: Connection {
     }
     
     private func prepareStatement(name: String, for query: String) -> String? {
-        guard let result = PQprepare(connection, name, query, 0, nil),
-            PQresultStatus(result) == PGRES_COMMAND_OK else {
+        let result = PQprepare(connection, name, query, 0, nil)
+        let status = PQresultStatus(result)
+        if status != PGRES_COMMAND_OK {
                 var errorMessage = "Failed to create prepared statement."
                 if let error = String(validatingUTF8: PQerrorMessage(connection)) {
                     errorMessage += " Error: \(error)."
                 }
+                PQclear(result)
                 return errorMessage
         }
+        PQclear(result)
         preparedStatements.insert(name)
         return nil
     }
