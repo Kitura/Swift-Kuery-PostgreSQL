@@ -298,17 +298,19 @@ public class PostgreSQLConnection: Connection {
         if let error = setUpForRunningQuery() {
             return error
         }
-        
-        guard let result = PQprepare(connection, name, query, 0, nil),
-            PQresultStatus(result) == PGRES_COMMAND_OK else {
-                setState(.idle)
-                var errorMessage = "Failed to create prepared statement."
-                if let error = String(validatingUTF8: PQerrorMessage(connection)) {
-                    errorMessage += " Error: \(error)."
-                }
-                return errorMessage
+        let result = PQprepare(connection, name, query, 0, nil)
+        let status = PQresultStatus(result)
+        if status != PGRES_COMMAND_OK {
+            setState(.idle)
+            var errorMessage = "Failed to create prepared statement."
+            if let error = String(validatingUTF8: PQerrorMessage(connection)) {
+                errorMessage += " Error: \(error)."
+            }
+            PQclear(result)
+            return errorMessage
         }
         setState(.idle)
+        PQclear(result)
         preparedStatements.insert(name)
         return nil
     }
