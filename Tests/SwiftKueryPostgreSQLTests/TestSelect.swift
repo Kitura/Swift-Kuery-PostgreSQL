@@ -26,11 +26,13 @@ let tableSelect = "tableSelectLinux"
 let tableSelect2 = "tableSelect2Linux"
 let tableSelect3 = "tableSelect3Linux"
 let tableSelectDate = "tableSelectDateLinux"
+let tableConnectionState = "tableConnectionStateLinux"
 #else
 let tableSelect = "tableSelectOSX"
 let tableSelect2 = "tableSelect2OSX"
 let tableSelect3 = "tableSelect3OSX"
 let tableSelectDate = "tableSelectDateOSX"
+let tableConnectionState = "tableConnectionStateOSX"
 #endif
 
 class TestSelect: XCTestCase {
@@ -40,6 +42,7 @@ class TestSelect: XCTestCase {
             ("testSelect", testSelect),
             ("testSelectDate", testSelectDate),
             ("testSelectFromMany", testSelectFromMany),
+            ("testConnectionState", testConnectionState),
         ]
     }
     
@@ -367,4 +370,63 @@ class TestSelect: XCTestCase {
         })
     }
     
+    
+    class ConnectionStateTable: Table {
+        let a = Column("a", Varchar.self, length: 30)
+        let b = Column("b", Int32.self)
+        
+        let tableName = tableConnectionState
+    }
+    
+    func testConnectionState() {
+        let t = ConnectionStateTable()
+        
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
+        performTest(asyncTasks: { expectation in
+            
+            guard let connection = pool.getConnection() else {
+                XCTFail("Failed to get connection")
+                return
+            }
+            
+            cleanUp(table: t.tableName, connection: connection) { result in
+                
+                t.create(connection: connection) { result in
+                    XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+                    
+                    let i = Insert(into: t, rows: [["apple", 1], ["apricot", 2], ["banana", 3], ["qiwi", -1], ["plum", -2], ["peach", -3]])
+                    executeQuery(query: i, connection: connection) { result, rows in
+                        XCTAssertEqual(result.success, true, "INSERT failed")
+                        
+                        let s1 = Select(from: t).where(t.b > 0)
+                        s1.execute(connection) { result1 in
+                            let s2 = Select(from: t).where(t.b < 0)
+                            s2.execute(connection) { result2 in
+                                
+                                XCTAssertEqual(result1.success, true, "SELECT 1 failed")
+                                XCTAssertEqual(result2.success, true, "SELECT 2 failed")
+                                
+                                var rows: [[Any?]]? = nil
+                                if let resultSet = result2.asResultSet {
+                                    rows = rowsAsArray(resultSet)
+                                    if let rows = rows {
+                                        for row in rows {
+                                            if let b = row[1] as? Int32 {
+                                                XCTAssertTrue(b < 0, "Bad result for SELECT")
+                                            }
+                                            else {
+                                                XCTFail("Wrong type in SELECT")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            expectation.fulfill()
+        })
+    }
 }

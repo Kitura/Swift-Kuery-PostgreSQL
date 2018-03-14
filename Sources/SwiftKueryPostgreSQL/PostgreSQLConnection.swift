@@ -17,7 +17,12 @@
 import SwiftKuery
 import CLibpq
 
+import Dispatch
 import Foundation
+
+enum ConnectionState {
+    case idle, runningQuery, fetchingResultSet
+}
 
 // MARK: PostgreSQLConnection
 
@@ -25,9 +30,13 @@ import Foundation
 /// Please see [PostgreSQL manual](https://www.postgresql.org/docs/8.0/static/libpq-exec.html) for details.
 public class PostgreSQLConnection: Connection {
     
-    private var connection: OpaquePointer?
+    var connection: OpaquePointer?
     private var connectionParameters: String = ""
     private var inTransaction = false
+    
+    private var state: ConnectionState = .idle
+    private var stateLock = DispatchSemaphore(value: 1)
+    private weak var currentResultFetcher: PostgreSQLResultFetcher?
     
     private var preparedStatements = Set<String>()
     
@@ -286,16 +295,21 @@ public class PostgreSQLConnection: Connection {
     }
     
     private func prepareStatement(name: String, for query: String) -> String? {
+        if let error = setUpForRunningQuery() {
+            return error
+        }
         let result = PQprepare(connection, name, query, 0, nil)
         let status = PQresultStatus(result)
         if status != PGRES_COMMAND_OK {
-                var errorMessage = "Failed to create prepared statement."
-                if let error = String(validatingUTF8: PQerrorMessage(connection)) {
-                    errorMessage += " Error: \(error)."
-                }
-                PQclear(result)
-                return errorMessage
+            setState(.idle)
+            var errorMessage = "Failed to create prepared statement."
+            if let error = String(validatingUTF8: PQerrorMessage(connection)) {
+                errorMessage += " Error: \(error)."
+            }
+            PQclear(result)
+            return errorMessage
         }
+        setState(.idle)
         PQclear(result)
         preparedStatements.insert(name)
         return nil
@@ -339,6 +353,11 @@ public class PostgreSQLConnection: Connection {
     private func execute(query: String?, preparedStatement: PreparedStatement?, with parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
         guard let connection = connection else {
             onCompletion(.error(QueryError.connection("Connection is disconnected")))
+            return
+        }
+        
+        if let error = setUpForRunningQuery() {
+            onCompletion(.error(QueryError.connection(error)))
             return
         }
         
@@ -391,6 +410,7 @@ public class PostgreSQLConnection: Connection {
     
     private func processQueryResult(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
         guard let result = PQgetResult(connection) else {
+            setState(.idle)
             var errorMessage = "No result returned for query: \(query)."
             if let error = String(validatingUTF8: PQerrorMessage(connection)) {
                 errorMessage += " Error: \(error)."
@@ -403,16 +423,18 @@ public class PostgreSQLConnection: Connection {
         if status == PGRES_COMMAND_OK || status == PGRES_TUPLES_OK {
             // Since we set the single row mode, PGRES_TUPLES_OK means the result is empty, i.e. there are
             // no rows to return.
-            clearResult(result, connection: connection)
+            clearResult(result, connection: self)
             onCompletion(.successNoData)
         }
         else if status == PGRES_SINGLE_TUPLE {
-            let resultFetcher = PostgreSQLResultFetcher(queryResult: result, connection: connection)
+            let resultFetcher = PostgreSQLResultFetcher(queryResult: result, connection: self)
+            setState(.fetchingResultSet)
+            currentResultFetcher = resultFetcher
             onCompletion(.resultSet(ResultSet(resultFetcher)))
         }
         else {
             let errorMessage = String(validatingUTF8: PQresultErrorMessage(result)) ?? "Unknown"
-            clearResult(result, connection: connection)
+            clearResult(result, connection: self)
             onCompletion(.error(QueryError.databaseError("Query execution error:\n" + errorMessage + " For query: " + query)))
         }
     }
@@ -475,6 +497,11 @@ public class PostgreSQLConnection: Connection {
             return
         }
         
+        if let error = setUpForRunningQuery() {
+            onCompletion(.error(QueryError.connection(error)))
+            return
+        }
+        
         let result = PQexec(connection, command)
         let status = PQresultStatus(result)
         if status != PGRES_COMMAND_OK {
@@ -484,6 +511,7 @@ public class PostgreSQLConnection: Connection {
             }
 
             PQclear(result)
+            setState(.idle)
             onCompletion(.error(QueryError.databaseError(message)))
             return
         }
@@ -493,6 +521,7 @@ public class PostgreSQLConnection: Connection {
         }
         
         PQclear(result)
+        setState(.idle)
         onCompletion(.successNoData)
     }
 
@@ -512,5 +541,47 @@ public class PostgreSQLConnection: Connection {
         }
       }
       return postgresQuery
+    }
+    
+    private func lockStateLock() {
+        _ = stateLock.wait(timeout: DispatchTime.distantFuture)
+    }
+    
+    private func unlockStateLock() {
+        stateLock.signal()
+    }
+    
+    func setState(_ newState: ConnectionState) {
+        lockStateLock()
+        if state == .fetchingResultSet {
+            currentResultFetcher = nil
+        }
+        state = newState
+        unlockStateLock()
+    }
+    
+    func setUpForRunningQuery() -> String? {
+        lockStateLock()
+
+        switch state {
+        case .runningQuery:
+            unlockStateLock()
+            return "The connection is in the middle of running a query"
+            
+        case .fetchingResultSet:
+            currentResultFetcher?.hasMoreRows = false
+            unlockStateLock()
+            clearResult(nil, connection: self)
+            lockStateLock()
+            
+        case .idle:
+            break
+        }
+        
+        state = .runningQuery
+        
+        unlockStateLock()
+
+        return nil
     }
 }
