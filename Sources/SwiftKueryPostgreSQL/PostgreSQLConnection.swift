@@ -92,7 +92,7 @@ public class PostgreSQLConnection: Connection {
     
     private static func extractConnectionParameters(url: URL) -> String {
         var result = ""
-        if let scheme = url.scheme, scheme == "Postgres", let host = url.host, let port = url.port {
+        if let scheme = url.scheme, scheme.lowercased() == "postgres", let host = url.host, let port = url.port {
             result = "host = \(host) port = \(port)"
             if let user = url.user {
                 result += " user = \(user)"
