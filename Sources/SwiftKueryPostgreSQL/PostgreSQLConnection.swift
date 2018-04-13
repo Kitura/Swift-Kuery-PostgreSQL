@@ -128,7 +128,8 @@ public class PostgreSQLConnection: Connection {
                                           QueryBuilder.QuerySubstitutionNames.len : "LENGTH",
                                           QueryBuilder.QuerySubstitutionNames.numberedParameter : "$",
                                           QueryBuilder.QuerySubstitutionNames.namedParameter : "",
-                                          QueryBuilder.QuerySubstitutionNames.double : "double precision"
+                                          QueryBuilder.QuerySubstitutionNames.double : "double precision",
+                                          QueryBuilder.QuerySubstitutionNames.uuid : "uuid"
             ])
         return queryBuilder
     }
