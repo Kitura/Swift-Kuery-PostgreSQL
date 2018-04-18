@@ -42,7 +42,7 @@ public class PostgreSQLConnection: Connection {
     
     /// An indication whether there is a connection to the database.
     public var isConnected: Bool {
-        return connection != nil
+        return connection != nil && PQstatus(connection) == CONNECTION_OK
     }
     
     /// The `QueryBuilder` with PostgreSQL specific substitutions.
