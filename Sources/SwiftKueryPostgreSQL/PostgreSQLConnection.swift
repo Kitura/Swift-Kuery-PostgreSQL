@@ -108,7 +108,7 @@ public class PostgreSQLConnection: Connection {
     }
     
     
-    static func createAutoIncrement(_ type: String, _ _: Bool) -> String {
+    static func createAutoIncrement(_ type: String, _: Bool) -> String {
         switch type {
         case "smallint":
             return "smallserial"
