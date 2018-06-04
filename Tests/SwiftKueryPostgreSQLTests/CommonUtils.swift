@@ -151,7 +151,7 @@ func rowsAsArray(_ result: ResultSet) -> [[Any?]] {
 }
 
 func createConnection() -> PostgreSQLConnection {
-    // We do not specify a database name for our tests so postgreSQL defualts to using the username as the database name.
+    // We do not specify a database name for our tests so postgreSQL defaults to using the username as the database name.
     let host = read(fileName: "host.txt")
     let port = Int32(read(fileName: "port.txt"))!
     let username = read(fileName: "username.txt")
