@@ -102,7 +102,7 @@ func executeRawQuery(_ raw: String, connection: Connection, callback: @escaping 
 }
 
 func cleanUp(table: String, connection: Connection, callback: @escaping (QueryResult)->()) {
-    connection.execute("DROP TABLE " + table) { result in
+    connection.execute("DROP TABLE \"" + table + "\"") { result in
         callback(result)
     }
 }

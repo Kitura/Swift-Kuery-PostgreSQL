@@ -79,7 +79,7 @@ class TestTypes: XCTestCase {
             
             cleanUp(table: t.tableName, connection: connection) { result in
                 
-                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b smallint, c integer, d bigint, e decimal(7,2), f numeric, g real, h double precision, i smallserial, j serial, k bigserial)", connection: connection) { result, rows in
+                executeRawQuery("CREATE TABLE \"" +  t.tableName + "\" (a varchar(40), b smallint, c integer, d bigint, e decimal(7,2), f numeric, g real, h double precision, i smallserial, j serial, k bigserial)", connection: connection) { result, rows in
                     XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                     XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                     
@@ -170,7 +170,7 @@ class TestTypes: XCTestCase {
             
             cleanUp(table: t.tableName, connection: connection) { result in
                 
-                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b decimal(7,2), c numeric, d decimal, e numeric(12,4))", connection: connection) { result, rows in
+                executeRawQuery("CREATE TABLE \"" +  t.tableName + "\" (a varchar(40), b decimal(7,2), c numeric, d decimal, e numeric(12,4))", connection: connection) { result, rows in
                     XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                     XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                     
@@ -330,7 +330,7 @@ class TestTypes: XCTestCase {
             
             cleanUp(table: t.tableName, connection: connection) { result in
                 
-                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b boolean, c boolean)", connection: connection) { result, rows in
+                executeRawQuery("CREATE TABLE \"" +  t.tableName + "\" (a varchar(40), b boolean, c boolean)", connection: connection) { result, rows in
                     XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                     XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                     
@@ -388,7 +388,7 @@ class TestTypes: XCTestCase {
             
             cleanUp(table: t.tableName, connection: connection) { result in
                 
-                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b date, c time, d time with time zone, e timestamp, f timestamp with time zone)", connection: connection) { result, rows in
+                executeRawQuery("CREATE TABLE \"" +  t.tableName + "\" (a varchar(40), b date, c time, d time with time zone, e timestamp, f timestamp with time zone)", connection: connection) { result, rows in
                     XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                     XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                     
@@ -498,7 +498,7 @@ class TestTypes: XCTestCase {
             
             cleanUp(table: t.tableName, connection: connection) { result in
                 
-                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(4), b character varying(4), c character(5), d char(5), e text, f \"char\", g name, h json, i xml)", connection: connection) { result, rows in
+                executeRawQuery("CREATE TABLE \"" +  t.tableName + "\" (a varchar(4), b character varying(4), c character(5), d char(5), e text, f \"char\", g name, h json, i xml)", connection: connection) { result, rows in
                     XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                     XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                     
@@ -561,7 +561,7 @@ class TestTypes: XCTestCase {
             
             cleanUp(table: t.tableName, connection: connection) { result in
                 
-                executeRawQuery("CREATE TABLE " +  t.tableName + " (a varchar(40), b uuid)", connection: connection) { result, rows in
+                executeRawQuery("CREATE TABLE \"" +  t.tableName + "\" (a varchar(40), b uuid)", connection: connection) { result, rows in
                     XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                     XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                     
