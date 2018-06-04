@@ -78,16 +78,16 @@ class TestJoin: XCTestCase {
                     
                     cleanUp(table: myTable3.tableName, connection: connection) { result in
                         
-                        executeRawQuery("CREATE TABLE " +  myTable1.tableName + " (a varchar(40), b integer)", connection: connection) { result, rows in
+                        executeRawQuery("CREATE TABLE \"" +  myTable1.tableName + "\" (a varchar(40), b integer)", connection: connection) { result, rows in
                             
                             XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                             XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                             
-                            executeRawQuery("CREATE TABLE " +  myTable2.tableName + " (c varchar(40), b integer)", connection: connection) { result, rows in
+                            executeRawQuery("CREATE TABLE \"" +  myTable2.tableName + "\" (c varchar(40), b integer)", connection: connection) { result, rows in
                                 XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                                 XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                                 
-                                executeRawQuery("CREATE TABLE " +  myTable3.tableName + " (d varchar(40), b integer)", connection: connection) { result, rows in
+                                executeRawQuery("CREATE TABLE \"" +  myTable3.tableName + "\" (d varchar(40), b integer)", connection: connection) { result, rows in
                                     XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                                     XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                                     
@@ -203,16 +203,16 @@ class TestJoin: XCTestCase {
                     
                     cleanUp(table: myTable3.tableName, connection: connection) { result in
                         
-                        executeRawQuery("CREATE TABLE " +  myTable1.tableName + " (a varchar(40), b integer)", connection: connection) { result, rows in
+                        executeRawQuery("CREATE TABLE \"" +  myTable1.tableName + "\" (a varchar(40), b integer)", connection: connection) { result, rows in
                             
                             XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                             XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                             
-                            executeRawQuery("CREATE TABLE " +  myTable2.tableName + " (c varchar(40), b integer)", connection: connection) { result, rows in
+                            executeRawQuery("CREATE TABLE \"" +  myTable2.tableName + "\" (c varchar(40), b integer)", connection: connection) { result, rows in
                                 XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                                 XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                                 
-                                executeRawQuery("CREATE TABLE " +  myTable3.tableName + " (d varchar(40), b integer)", connection: connection) { result, rows in
+                                executeRawQuery("CREATE TABLE \"" +  myTable3.tableName + "\" (d varchar(40), b integer)", connection: connection) { result, rows in
                                     XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                                     XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
                                     
