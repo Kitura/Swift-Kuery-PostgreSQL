@@ -1,13 +1,28 @@
+<p align="center">
+    <a href="http://kitura.io/">
+        <img src="https://raw.githubusercontent.com/IBM-Swift/Kitura/master/Sources/Kitura/resources/kitura-bird.svg?sanitize=true" height="100" alt="Kitura">
+    </a>
+</p>
+
+
+<p align="center">
+    <a href="https://ibm-swift.github.io/Swift-Kuery-PostgreSQL/index.html">
+    <img src="https://img.shields.io/badge/apidoc-SwiftKueryPostgreSQL-1FBCE4.svg?style=flat" alt="APIDoc">
+    </a>
+    <a href="https://travis-ci.org/IBM-Swift/Swift-Kuery-PostgreSQL">
+    <img src="https://travis-ci.org/IBM-Swift/Swift-Kuery-PostgreSQL.svg?branch=master" alt="Build Status - Master">
+    </a>
+    <img src="https://img.shields.io/badge/os-macOS-green.svg?style=flat" alt="macOS">
+    <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux">
+    <img src="https://img.shields.io/badge/license-Apache2-blue.svg?style=flat" alt="Apache 2">
+    <a href="http://swift-at-ibm-slack.mybluemix.net/">
+    <img src="http://swift-at-ibm-slack.mybluemix.net/badge.svg" alt="Slack Status">
+    </a>
+</p>
+
 # Swift-Kuery-PostgreSQL
-PostgreSQL plugin for Swift-Kuery framework
 
-[![Build Status - Master](https://travis-ci.org/IBM-Swift/Swift-Kuery-PostgreSQL.svg?branch=master)](https://travis-ci.org/IBM-Swift/Swift-Kuery-PostgreSQL)
-![Mac OS X](https://img.shields.io/badge/os-Mac%20OS%20X-green.svg?style=flat)
-![Linux](https://img.shields.io/badge/os-linux-green.svg?style=flat)
-![Apache 2](https://img.shields.io/badge/license-Apache2-blue.svg?style=flat)
-
-## Summary
-[PostgreSQL](https://www.postgresql.org/) plugin for the [Swift-Kuery](https://github.com/IBM-Swift/Swift-Kuery) framework. It enables you to use Swift-Kuery to manipulate data in PostgreSQL database.
+[PostgreSQL](https://www.postgresql.org/) plugin for the [Swift-Kuery](https://github.com/IBM-Swift/Swift-Kuery) framework. It enables you to use Swift-Kuery to manipulate data in a PostgreSQL database.
 
 ## PostgreSQL client installation
 To use Swift-Kuery-PostgreSQL you must have the appropriate PostgreSQL C-language client installed.
@@ -21,6 +36,28 @@ $ brew install postgresql
 ```
 $ sudo apt-get install libpq-dev
 ```
+
+## Usage
+
+#### Add dependencies
+
+Add the `SwiftKueryPostgreSQL` package to the dependencies within your application’s `Package.swift` file. Substitute `"x.x.x"` with the latest `SwiftKueryPostgreSQL` [release](https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL/releases).
+
+```swift
+.package(url: "https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL.git", from: "x.x.x")
+```
+
+Add `SwiftKueryPostgreSQL` to your target's dependencies:
+
+```swift
+.target(name: "example", dependencies: ["SwiftKueryPostgreSQL"]),
+```
+
+#### Import package
+
+  ```swift
+  import SwiftKueryMySQL
+  ```
 
 ## Using Swift-Kuery-PostgreSQL
 
@@ -38,7 +75,7 @@ let connection = PostgreSQLConnection(host: host, port: port, options: [Connecti
    * *password* - the user password
    * *connectionTimeout* - maximum wait for connection in seconds. Zero or not specified means wait indefinitely.
 
-For more information please see [PostgreSQL manual](https://www.postgresql.org/docs/8.0/static/libpq.html#LIBPQ-CONNECT).
+For more details refer to the [PostgreSQL manual](https://www.postgresql.org/docs/8.0/static/libpq.html#LIBPQ-CONNECT).
 
 <br>
 
@@ -77,9 +114,9 @@ createdb school
 ```
 
 ### Create the tables
-Now, let's create a couple tables we will need.
+Now, let's create the tables we need for this example.
 
-We will use the interactive session so open up the client to the database we created:
+Use the interative `psql` client to open the database we created:
 
 ```
 $ psql school
@@ -98,7 +135,7 @@ CREATE TABLE student (
 );
 ```
 
-And now, create the grades table:
+Next, create the grades table:
 
 ```sql
 CREATE TABLE grades (
@@ -126,7 +163,7 @@ INSERT INTO grades (studentId, course, grade) VALUES (2, 'How to work at a rock 
 ```
 
 ### Use Swift-Kuery
-Now we are set to connect to our database from Swift and use Swift-Kuery to query our data into our Swift application.
+Now we are set to connect to our database from Swift and use Swift-Kuery to query the data into our Swift application.
 
 #### Create simple Swift executable
 First create a directory for our project and then initialize it.
@@ -145,8 +182,8 @@ Creating Tests/
 $
 ```
 
-Now, add Swift-Kuery as a dependency for our project.
-Edit Package.swift to contain:
+Now, add Swift-Kuery-PostgreSQL as a dependency for our project, this will automatically pull in Swift-Kuery.
+Edit `Package.swift` to contain the following, substituting `"x.x.x"` with the latest `Kitura` and `Swift-Kuery-PostgreSQL` releases.
 
 ```swift
 // swift-tools-version:4.0
@@ -155,29 +192,23 @@ import PackageDescription
 let package = Package(
     name: "swift-kuery-play",
     dependencies: [
-        .package(url: "https://github.com/IBM-Swift/HeliumLogger.git", .upToNextMinor(from: "1.7.0")),
-        .package(url: "https://github.com/IBM-Swift/Kitura.git", .upToNextMinor(from: "2.0.0")),
-        .package(url: "https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL", .upToNextMinor(from: "1.0.0"))
+        .package(url: "https://github.com/IBM-Swift/Kitura.git", from: "x.x.x"),
+        .package(url: "https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL", from: "x.x.x")
     ],
     targets: [
         .target(
             name: "swift-kuery-play",
-            dependencies: ["HeliumLogger", "Kitura", "SwiftKueryPostgreSQL"]),
+            dependencies: ["Kitura", "SwiftKueryPostgreSQL"]),
     ]
 )
 ```
 
-Now, let's edit your main.swift file to contain:
+Now, edit your `main.swift` file to contain:
 
 ```swift
 import SwiftKuery
 import SwiftKueryPostgreSQL
 import Kitura
-import Foundation
-
-import HeliumLogger
-
-HeliumLogger.use()
 
 let router = Router()
 
@@ -193,7 +224,7 @@ let grades = Grades()
 
 let connection = PostgreSQLConnection(host: "localhost", port: 5432, options: [.databaseName("school")])
 
-func grades(_ callback:@escaping (String)->Void) -> Void {
+func grades(_ callback: @escaping (String) -> Void) -> Void {
   connection.connect() { error in
     if let error = error {
       callback("Error is \(error)")
@@ -245,10 +276,7 @@ router.get("/") {
   }
 }
 
-// Use port 8080 unless overridden by environment variable
-let port = Int(ProcessInfo.processInfo.environment["PORT"] ?? "8080") ?? 8080
-
-Kitura.addHTTPServer(onPort: port, with: router)
+Kitura.addHTTPServer(onPort: 8080, with: router)
 Kitura.run()
 ```
 
@@ -290,10 +318,10 @@ How to build your first computer   99
 ```
 
 Another possibility is to use `QueryResult.asRows` that returns the result as an array of dictionaries where each dictionary represents a row of the result with the column title as the key.       
- Change your `grades` function as following:
+ Change your `grades` function as follows:
 
 ```swift
-func grades(_ callback:@escaping (String)->Void) -> Void {
+func grades(_ callback: @escaping (String) -> Void) -> Void {
   connection.connect() { error in
     if let error = error {
       callback("Error is \(error)")
@@ -306,7 +334,9 @@ func grades(_ callback:@escaping (String)->Void) -> Void {
             var retString = ""
             for row in rows {
                 for (title, value) in row {
-                    retString.append("\(title): \(value! as! String) ")
+                    if let value = value {
+                        retString.append("\(title): \(value) ")
+                    }
                 }
                 retString.append("\n")
             }
@@ -327,5 +357,12 @@ At <a href="http://localhost:8080">http://localhost:8080</a> you should see:
 grade: 99 course: How to build your first computer
 grade: 71 course: How to work at a rock quarry  
 ```
+## API Documentation
+For more information visit our [API reference](https://ibm-swift.github.io/SwiftKueryPostgreSQL/index.html).
+
+## Community
+
+We love to talk server-side Swift, and Kitura. Join our [Slack](http://swift-at-ibm-slack.mybluemix.net/) to meet the team!
+
 ## License
-This library is licensed under Apache 2.0. Full license text is available in [LICENSE](LICENSE.txt).
+This library is licensed under Apache 2.0. Full license text is available in [LICENSE](https://github.com/IBM-Swift/SwiftKueryPostgreSQL/blob/master/LICENSE.txt)
