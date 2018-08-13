@@ -50,6 +50,8 @@ class TestTransaction: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
+
+            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -85,6 +87,7 @@ class TestTransaction: XCTestCase {
                                         XCTAssertEqual(result.success, true, "SELECT failed")
                                         XCTAssertNotNil(rows, "SELECT returned no rows")
                                         XCTAssertEqual(rows!.count, 4, "SELECT returned wrong number of rows: \(rows!.count) instead of 4")
+                                        semaphore.signal()
                                     }
                                 }
                             }
@@ -92,6 +95,7 @@ class TestTransaction: XCTestCase {
                     }
                 }
             }
+            semaphore.wait()
             expectation.fulfill()
         })
     }
@@ -101,6 +105,8 @@ class TestTransaction: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
+
+            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -135,6 +141,7 @@ class TestTransaction: XCTestCase {
                                     executeQuery(query: s, connection: connection) { result, rows in
                                         XCTAssertEqual(result.success, true, "SELECT failed")
                                         XCTAssertNil(rows, "SELECT returned rows")
+                                        semaphore.signal()
                                     }
                                 }
                             }
@@ -142,6 +149,7 @@ class TestTransaction: XCTestCase {
                     }
                 }
             }
+            semaphore.wait()
             expectation.fulfill()
         })
     }
@@ -151,6 +159,8 @@ class TestTransaction: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
+
+            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -220,6 +230,7 @@ class TestTransaction: XCTestCase {
                                                                     connection.commit() { result in
                                                                         XCTAssertEqual(result.success, true, "Failed to commit transaction")
                                                                         XCTAssertNil(result.asError, "Error in commit transaction: \(result.asError!)")
+                                                                        semaphore.signal()
                                                                     }
                                                                 }
                                                             }
@@ -235,6 +246,7 @@ class TestTransaction: XCTestCase {
                     }
                 }
             }
+            semaphore.wait()
             expectation.fulfill()
         })
     }
@@ -244,6 +256,8 @@ class TestTransaction: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
+
+            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -283,6 +297,7 @@ class TestTransaction: XCTestCase {
                                                 connection.commit() { result in
                                                     XCTAssertEqual(result.success, true, "Failed to commit transaction")
                                                     XCTAssertNil(result.asError, "Error in commit transaction: \(result.asError!)")
+                                                    semaphore.signal()
                                                 }
                                             }
                                         }
@@ -293,6 +308,7 @@ class TestTransaction: XCTestCase {
                     }
                 }
             }
+            semaphore.wait()
             expectation.fulfill()
         })
     }
@@ -303,6 +319,8 @@ class TestTransaction: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
+
+            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -339,6 +357,7 @@ class TestTransaction: XCTestCase {
                                             connection.commit() { result in
                                                 XCTAssertEqual(result.success, true, "Failed to commit transaction")
                                                 XCTAssertNil(result.asError, "Error in commit transaction: \(result.asError!)")
+                                                semaphore.signal()
                                             }
                                         }
                                     }
@@ -348,6 +367,7 @@ class TestTransaction: XCTestCase {
                     }
                 }
             }
+            semaphore.wait()
             expectation.fulfill()
         })
     }
@@ -357,6 +377,8 @@ class TestTransaction: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
+
+            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -398,6 +420,7 @@ class TestTransaction: XCTestCase {
                                                 connection.commit() { result in
                                                     XCTAssertEqual(result.success, true, "Failed to commit transaction")
                                                     XCTAssertNil(result.asError, "Error in commit transaction: \(result.asError!)")
+                                                    semaphore.signal()
                                                 }
                                             }
                                         }
@@ -408,6 +431,7 @@ class TestTransaction: XCTestCase {
                     }
                 }
             }
+            semaphore.wait()
             expectation.fulfill()
         })
     }

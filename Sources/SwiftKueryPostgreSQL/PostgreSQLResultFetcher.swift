@@ -106,6 +106,10 @@ public class PostgreSQLResultFetcher: ResultFetcher {
         return titles
     }
     
+    public func done() {
+        clearResult(nil, connection: connection)
+    }
+
     private static func convert(_ queryResult: OpaquePointer, row: Int32, column: Int32) -> Any {
         let value = PQgetvalue(queryResult, row, column)
         let count = Int(PQgetlength(queryResult, row, column))
