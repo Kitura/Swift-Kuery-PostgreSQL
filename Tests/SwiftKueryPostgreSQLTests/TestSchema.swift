@@ -394,7 +394,7 @@ class TestSchema: XCTestCase {
     }
 
     class AutoIncrement3: Table {
-        let a = Column("a", String.self, primaryKey: true, defaultValue: "qiwi")
+        let a = Column("a", String.self, defaultValue: "qiwi")
         let b = Column("b", String.self, autoIncrement: true, primaryKey: true)
 
         let tableName = "AutoIncrement3" + tableNameSuffix
