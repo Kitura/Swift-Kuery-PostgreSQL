@@ -34,6 +34,7 @@ class TestSchema: XCTestCase {
             ("testForeignKeys", testForeignKeys),
             ("testPrimaryKeys", testPrimaryKeys),
             ("testTypes", testTypes),
+            ("testAutoIncrement", testAutoIncrement),
         ]
     }
     
@@ -378,4 +379,58 @@ class TestSchema: XCTestCase {
         })
     }
     
+    class AutoIncrement1: Table {
+        let a = Column("a", String.self, defaultValue: "qiwi")
+        let b = Column("b", Int32.self, autoIncrement: true, primaryKey: true)
+
+        let tableName = "AutoIncrement1" + tableNameSuffix
+    }
+
+    class AutoIncrement2: Table {
+        let a = Column("a", String.self, primaryKey: true, defaultValue: "qiwi")
+        let b = Column("b", Int32.self, autoIncrement: true)
+
+        let tableName = "AutoIncrement2" + tableNameSuffix
+    }
+
+    class AutoIncrement3: Table {
+        let a = Column("a", String.self, primaryKey: true, defaultValue: "qiwi")
+        let b = Column("b", String.self, autoIncrement: true, primaryKey: true)
+
+        let tableName = "AutoIncrement3" + tableNameSuffix
+    }
+
+    func testAutoIncrement() {
+        let t1 = AutoIncrement1()
+        let t2 = AutoIncrement2()
+        let t3 = AutoIncrement3()
+
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
+        performTest(asyncTasks: { expectation in
+
+            guard let connection = pool.getConnection() else {
+                XCTFail("Failed to get connection")
+                return
+            }
+            cleanUp(table: t1.tableName, connection: connection) { result in
+                cleanUp(table: t2.tableName, connection: connection) { result in
+                    cleanUp(table: t3.tableName, connection: connection) { result in
+
+                        t1.create(connection: connection) { result in
+                            XCTAssertEqual(result.success, true, "CREATE TABLE failed for \(t1.tableName)")
+
+                            t2.create(connection: connection) { result in
+                                XCTAssertEqual(result.success, true, "CREATE TABLE non primary key auto increment column failed")
+
+                                t3.create(connection: connection) { result in
+                                    XCTAssertEqual(result.success, false, "CREATE TABLE non integer auto increment column didn't fail")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            expectation.fulfill()
+        })
+    }
 }

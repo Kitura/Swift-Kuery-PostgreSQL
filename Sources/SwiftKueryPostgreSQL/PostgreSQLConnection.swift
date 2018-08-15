@@ -594,7 +594,7 @@ class PostgreSQLColumnBuilder: ColumnCreator {
                 //Unrecognised type for autoIncrement column, return nil
                 return nil
             }
-            result += autoIncrementType + " AUTOINCREMENT"
+            result += autoIncrementType
         } else {
             result += typeString
         }
@@ -629,11 +629,11 @@ class PostgreSQLColumnBuilder: ColumnCreator {
     func getAutoIncrementType(for type: String) -> String? {
         switch type {
         case "smallint":
-            return "smallserial"
+            return "smallserial "
         case "integer":
-            return "serial"
+            return "serial "
         case "bigint":
-            return "bigserial"
+            return "bigserial "
         default:
             return nil
         }
