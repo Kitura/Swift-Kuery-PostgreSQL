@@ -347,6 +347,13 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter preparedStatement: The prepared statement to release.
     /// - Parameter onCompletion: The function to be called when the execution has completed.
     public func release(preparedStatement: PreparedStatement, onCompletion: @escaping ((QueryResult) -> ())) {
+        // Is this a PostgreSQLPreparedStatement?
+        guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
+            onCompletion(.error(QueryError.unsupported("Failed to release unsupported prepared statement")))
+            return
+        }
+        // Remove entry from the preparedStatements set
+        preparedStatements.remove(statement.name)
         // No need to deallocate prepared statements in PostgreSQL.
         onCompletion(.successNoData)
     }
