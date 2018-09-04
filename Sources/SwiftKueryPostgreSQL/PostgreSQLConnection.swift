@@ -347,6 +347,8 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter preparedStatement: The prepared statement to release.
     /// - Parameter onCompletion: The function to be called when the execution has completed.
     public func release(preparedStatement: PreparedStatement, onCompletion: @escaping ((QueryResult) -> ())) {
+        // Remove entry from preparedStatements
+        preparedStatements.remove(preparedStatement.name)
         // No need to deallocate prepared statements in PostgreSQL.
         onCompletion(.successNoData)
     }
