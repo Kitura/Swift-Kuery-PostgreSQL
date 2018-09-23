@@ -362,13 +362,7 @@ public class PostgreSQLConnection: Connection {
             return
         }
         
-        var parameterPointers = [UnsafeMutablePointer<Int8>]()
-        // Free pointers when done, otherwise onCompletion calls with error will just leak
-        defer {
-            for pointer in parameterPointers {
-                free(pointer)
-            }
-        }
+        var parameterPointers = [UnsafeMutablePointer<UInt8>]()
         var parameterData = [UnsafePointer<Int8>?]()
         // Reserve capacity of pointers, otherwise it may cause performance issues
         if parameters.count > 0 {
@@ -386,23 +380,21 @@ public class PostgreSQLConnection: Connection {
                     return
                 }
                 // Allocate memory
-                let parameter_pointer = UnsafeMutablePointer<Int8>.allocate(capacity: count)
-                // Copy the UTF8 data to the pointer
-                parameterData.withUnsafeMutableBufferPointer {
-                    buffer in
-                    _ = parameterUTF8_data.copyBytes(to: buffer)
-                }
+                let parameter_pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: count)
+                parameterUTF8_data.copyBytes(to: parameter_pointer, count: count-1)
                 // Force null termination of C UTF8 string
                 parameter_pointer[count-1] = 0
                 // parameterPointers will be used later to free memory
                 parameterPointers.append(parameter_pointer)
-                parameterData.append(parameter_pointer)
+                parameter_pointer.withMemoryRebound(to: Int8.self, capacity: count) { parameter_pointer in
+                    parameterData.append(parameter_pointer)
+                }
             }
             else {
                 parameterData.append(nil)
             }
         }
-
+        
         if let query = query {
             _ = parameterData.withUnsafeBufferPointer { buffer in
                 PQsendQueryParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
@@ -418,15 +410,17 @@ public class PostgreSQLConnection: Connection {
                 if let error = prepareStatement(name: statement.name, for: statement.query) {
                     onCompletion(.error(QueryError.databaseError(error)))
                     return
-
+                    
                 }
             }
-
+            
             _ = parameterData.withUnsafeBufferPointer { buffer in
                 PQsendQueryPrepared(connection, statement.name, Int32(parameters.count), buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
             }
         }
-        
+        for pointer in parameterPointers {
+            free(pointer)
+        }
         PQsetSingleRowMode(connection)
         processQueryResult(query: query ?? "Execution of prepared statement \(preparedStatement!)", onCompletion: onCompletion)
     }
