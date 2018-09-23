@@ -362,16 +362,41 @@ public class PostgreSQLConnection: Connection {
             return
         }
         
-        var parameterPointers = [UnsafeMutablePointer<Int8>?]()
+        var parameterPointers = [UnsafeMutablePointer<Int8>]()
+        // Free pointers when done, otherwise onCompletion calls with error will just leak
+        defer {
+            for pointer in parameterPointers {
+                free(pointer)
+            }
+        }
         var parameterData = [UnsafePointer<Int8>?]()
+        // Reserve capacity of pointers, otherwise it may cause performance issues
+        if parameters.count > 0 {
+            parameterPointers.reserveCapacity(parameters.count)
+            parameterData.reserveCapacity(parameters.count)
+        }
         // At the moment we only create string parameters. Binary parameters should be added.
         for parameter in parameters {
             if let parameter = parameter {
                 let parameterString = String(describing: parameter)
                 let count = parameterString.lengthOfBytes(using: .utf8) + 1
-                parameterPointers.append(UnsafeMutablePointer<Int8>.allocate(capacity: Int(count)))
-                memcpy(parameterPointers[parameterPointers.count-1]!, UnsafeRawPointer(parameterString), count)
-                parameterData.append(parameterPointers.last!)
+                // Convert the string value to UTF8 string, we cannot relay on UnsafeRawPointer(String) to return a UTF8 string that is null terminated like in the previous implementation.
+                guard let parameterUTF8_data = parameterString.data(using: .utf8) else {
+                    onCompletion(.error(QueryError.syntaxError("Could not convert parameter to UTF8 string")))
+                    return
+                }
+                // Allocate memory
+                let parameter_pointer = UnsafeMutablePointer<Int8>.allocate(capacity: count)
+                // Copy the UTF8 data to the pointer
+                parameterData.withUnsafeMutableBufferPointer {
+                    buffer in
+                    _ = parameterUTF8_data.copyBytes(to: buffer)
+                }
+                // Force null termination of C UTF8 string
+                parameter_pointer[count-1] = 0
+                // parameterPointers will be used later to free memory
+                parameterPointers.append(parameter_pointer)
+                parameterData.append(parameter_pointer)
             }
             else {
                 parameterData.append(nil)
@@ -400,9 +425,6 @@ public class PostgreSQLConnection: Connection {
             _ = parameterData.withUnsafeBufferPointer { buffer in
                 PQsendQueryPrepared(connection, statement.name, Int32(parameters.count), buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
             }
-        }
-        for pointer in parameterPointers {
-            free(pointer)
         }
         
         PQsetSingleRowMode(connection)
