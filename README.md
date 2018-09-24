@@ -56,7 +56,7 @@ Add `SwiftKueryPostgreSQL` to your target's dependencies:
 #### Import package
 
   ```swift
-  import SwiftKueryMySQL
+  import SwiftKueryPostgreSQL
   ```
 
 ## Using Swift-Kuery-PostgreSQL
