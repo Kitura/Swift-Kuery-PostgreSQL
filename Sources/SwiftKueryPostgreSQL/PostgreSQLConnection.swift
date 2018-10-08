@@ -1,5 +1,5 @@
 /**
- Copyright IBM Corporation 2016, 2017
+ Copyright IBM Corporation 2016, 2017, 2018
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -106,22 +106,9 @@ public class PostgreSQLConnection: Connection {
         }
         return result
     }
-
-    static func createAutoIncrement(_ type: String, _: Bool) -> String {
-        switch type {
-        case "smallint":
-            return "smallserial"
-        case "integer":
-            return "serial"
-        case "bigint":
-            return "bigserial"
-        default:
-            return ""
-        }
-    }
     
     private static func createQueryBuilder() -> QueryBuilder {
-        let queryBuilder = QueryBuilder(withDeleteRequiresUsing: true, withUpdateRequiresFrom: true, createAutoIncrement: createAutoIncrement)
+        let queryBuilder = QueryBuilder(withDeleteRequiresUsing: true, withUpdateRequiresFrom: true, columnBuilder: PostgreSQLColumnBuilder())
         queryBuilder.updateSubstitutions([QueryBuilder.QuerySubstitutionNames.ucase : "UPPER",
                                           QueryBuilder.QuerySubstitutionNames.lcase : "LOWER",
                                           QueryBuilder.QuerySubstitutionNames.len : "LENGTH",
@@ -514,8 +501,14 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter onCompletion: The function to be called when the execution has completed.
     public func release(preparedStatement: PreparedStatement, onCompletion: @escaping ((QueryResult) -> ())) {
         DispatchQueue.global().async {
-            // No need to deallocate prepared statements in PostgreSQL.
-            self.runCompletionHandler(.successNoData, onCompletion: onCompletion)
+            guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
+            onCompletion(.error(QueryError.unsupported("Failed to release unsupported prepared statement")))
+            return
+        }
+        // Remove entry from the preparedStatements set
+        preparedStatements.remove(statement.name)
+        // No need to deallocate prepared statements in PostgreSQL.
+        onCompletion(.successNoData)
         }
     }
 
@@ -839,8 +832,8 @@ public class PostgreSQLConnection: Connection {
             let columns = insertQuery.table.columns.filter { $0.isPrimaryKey && $0.autoIncrement }
 
             if (insertQuery.suffix == nil && columns.count == 1) {
-                let insertQueryReturnID = insertQuery.suffix("Returning " + columns[0].name + " AS id")
-                postgresQuery = try insertQueryReturnID.build(queryBuilder: queryBuilder)
+              let insertQueryReturnID = insertQuery.suffix("Returning " + columns[0].name)
+              postgresQuery = try insertQueryReturnID.build(queryBuilder: queryBuilder)
             }
 
             if (insertQuery.suffix != nil) {
@@ -890,5 +883,91 @@ public class PostgreSQLConnection: Connection {
         unlockStateLock()
 
         return nil
+    }
+}
+
+class PostgreSQLColumnBuilder: ColumnCreator {
+    func buildColumn(for column: Column, using queryBuilder: QueryBuilder) -> String? {
+        guard let type = column.type else {
+            return nil
+        }
+
+        var result = column.name
+        let identifierQuoteCharacter = queryBuilder.substitutions[QueryBuilder.QuerySubstitutionNames.identifierQuoteCharacter.rawValue]
+        if !result.hasPrefix(identifierQuoteCharacter) {
+            result = identifierQuoteCharacter + result + identifierQuoteCharacter + " "
+        }
+
+        var typeString = type.create(queryBuilder: queryBuilder)
+        if let length = column.length {
+            typeString += "(\(length))"
+        }
+        if column.autoIncrement {
+            guard let autoIncrementType = getAutoIncrementType(for: typeString) else {
+                //Unrecognised type for autoIncrement column, return nil
+                return nil
+            }
+            result += autoIncrementType
+        } else {
+            result += typeString
+        }
+
+        if column.isPrimaryKey {
+            result += " PRIMARY KEY"
+        }
+        if column.isNotNullable {
+            result += " NOT NULL"
+        }
+        if column.isUnique {
+            result += " UNIQUE"
+        }
+        if let defaultValue = column.defaultValue {
+            var packedType: String
+            do {
+                packedType = try packType(defaultValue, queryBuilder: queryBuilder)
+            } catch {
+                return nil
+            }
+            result += " DEFAULT " + packedType
+        }
+        if let checkExpression = column.checkExpression {
+            result += checkExpression.contains(column.name) ? " CHECK (" + checkExpression.replacingOccurrences(of: column.name, with: "\"\(column.name)\"") + ")" : " CHECK (" + checkExpression + ")"
+        }
+        if let collate = column.collate {
+            result += " COLLATE \"" + collate + "\""
+        }
+        return result
+    }
+
+    func getAutoIncrementType(for type: String) -> String? {
+        switch type {
+        case "smallint":
+            return "smallserial "
+        case "integer":
+            return "serial "
+        case "bigint":
+            return "bigserial "
+        default:
+            return nil
+        }
+    }
+
+    func packType(_ item: Any, queryBuilder: QueryBuilder) throws -> String {
+        switch item {
+        case let val as String:
+            return "'\(val)'"
+        case let val as Bool:
+            return val ? queryBuilder.substitutions[QueryBuilder.QuerySubstitutionNames.booleanTrue.rawValue]
+                : queryBuilder.substitutions[QueryBuilder.QuerySubstitutionNames.booleanFalse.rawValue]
+        case let val as Parameter:
+            return try val.build(queryBuilder: queryBuilder)
+        case let value as Date:
+            if let dateFormatter = queryBuilder.dateFormatter {
+                return dateFormatter.string(from: value)
+            }
+            return "'\(String(describing: value))'"
+        default:
+            return String(describing: item)
+        }
     }
 }
