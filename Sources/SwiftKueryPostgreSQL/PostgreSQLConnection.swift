@@ -506,7 +506,7 @@ public class PostgreSQLConnection: Connection {
             return
         }
         // Remove entry from the preparedStatements set
-        preparedStatements.remove(statement.name)
+        self.preparedStatements.remove(statement.name)
         // No need to deallocate prepared statements in PostgreSQL.
         onCompletion(.successNoData)
         }
