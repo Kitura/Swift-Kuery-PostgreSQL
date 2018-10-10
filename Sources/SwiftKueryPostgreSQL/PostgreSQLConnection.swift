@@ -338,6 +338,13 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter preparedStatement: The prepared statement to release.
     /// - Parameter onCompletion: The function to be called when the execution has completed.
     public func release(preparedStatement: PreparedStatement, onCompletion: @escaping ((QueryResult) -> ())) {
+        // Is this a PostgreSQLPreparedStatement?
+        guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
+            onCompletion(.error(QueryError.unsupported("Failed to release unsupported prepared statement")))
+            return
+        }
+        // Remove entry from the preparedStatements set
+        preparedStatements.remove(statement.name)
         // No need to deallocate prepared statements in PostgreSQL.
         onCompletion(.successNoData)
     }
@@ -540,7 +547,7 @@ public class PostgreSQLConnection: Connection {
         let columns = insertQuery.table.columns.filter { $0.isPrimaryKey && $0.autoIncrement }
 
         if (insertQuery.suffix == nil && columns.count == 1) {
-           let insertQueryReturnID = insertQuery.suffix("Returning " + columns[0].name + " AS id")
+           let insertQueryReturnID = insertQuery.suffix("Returning " + columns[0].name)
            postgresQuery = try insertQueryReturnID.build(queryBuilder: queryBuilder)
         }
 
