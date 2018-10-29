@@ -195,7 +195,7 @@ public class PostgreSQLConnection: Connection {
 
     /// Establish a connection with the database.
     ///
-    /// - Parameter onCompletion: The function to be called when the connection is established.
+    /// - Returns: QueryError or nil if connection is succesful.
     public func connectSync() -> QueryError? {
         var error: QueryError?
         let semaphore = DispatchSemaphore(value: 0)
@@ -291,8 +291,7 @@ public class PostgreSQLConnection: Connection {
     /// Prepare statement.
     ///
     /// - Parameter query: The query to prepare statement for.
-    /// - Returns: The prepared statement.
-    /// - Throws: QueryError.syntaxError if query build fails, or a database error if it fails to prepare statement.
+    /// - Parameter onCompletion: The function to be called when the statement has been prepared.
     public func prepareStatement(_ query: Query, onCompletion: @escaping ((PreparedStatement?, QueryError?) -> ())) {
         var postgresQuery: String
         do {
@@ -304,6 +303,10 @@ public class PostgreSQLConnection: Connection {
         prepareStatement(postgresQuery, onCompletion: onCompletion)
     }
 
+    /// Prepare statement.
+    ///
+    /// - Parameter raw: A String with the query to prepare statement for.
+    /// - Parameter onCompletion: The function to be called when the statement has been prepared.
     public func prepareStatement(_ raw: String, onCompletion: @escaping ((PreparedStatement?, QueryError?) -> ())) {
         let statementName = String.randomString()
         prepareStatement(statementName, raw, onCompletion: onCompletion)
@@ -311,9 +314,9 @@ public class PostgreSQLConnection: Connection {
 
     /// Prepare statement.
     ///
+    /// - Parameter statementName: A String to the name of the statement.
     /// - Parameter raw: A String with the query to prepare statement for.
-    /// - Returns: The prepared statement.
-    /// - Throws: QueryError.syntaxError if query build fails, or a database error if it fails to prepare statement.
+    /// - Parameter onCompletion: The function to be called when the statement has been prepared.
     internal func prepareStatement(_ statementName: String, _ raw: String, onCompletion: @escaping ((PreparedStatement?, QueryError?) -> ())) {
         DispatchQueue.global().async {
             if let error = self.setUpForRunningQuery() {
