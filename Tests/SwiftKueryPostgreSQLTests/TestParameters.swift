@@ -246,9 +246,9 @@ class TestParameters: XCTestCase {
                     XCTAssertNil(result.asError)
 
                     let i1 = Insert(into: t, rows: [[Parameter(), 10], ["banana", Parameter()], [Parameter(), Parameter()]])
-                    connection.prepareStatement(i1) { stmt, error in
-                        guard let preparedInsert = stmt else {
-                            if let error = error {
+                    connection.prepareStatement(i1) { result in
+                        guard let preparedInsert = result.asPreparedStatement else {
+                            if let error = result.asError {
                                 XCTFail("Unable to prepare statement preparedInsert: \(error.localizedDescription)")
                             }
                             XCTFail("Unable to prepare statement preparedInsert")
@@ -260,9 +260,9 @@ class TestParameters: XCTestCase {
                             XCTAssertNil(result.asError)
 
                             let s1 = Select(from: t).where(t.a == Parameter())
-                            connection.prepareStatement(s1) { stmt, error in
-                                guard let preparedSelect = stmt else {
-                                    if let error = error {
+                            connection.prepareStatement(s1) { result in
+                                guard let preparedSelect = result.asPreparedStatement else {
+                                    if let error = result.asError {
                                         XCTFail("Unable to prepare statement preparedSelect: \(error.localizedDescription)")
                                     }
                                     XCTFail("Unable to prepare statement preparedSelect")
@@ -284,9 +284,9 @@ class TestParameters: XCTestCase {
                                         XCTAssertEqual(rows!.count, 2, "Wrong number of rows")
 
                                         let s2 = "SELECT * FROM \"" + t.tableName + "\""
-                                        connection.prepareStatement(s2) { stmt, error in
-                                            guard let preparedSelect2 = stmt else {
-                                                if let error = error {
+                                        connection.prepareStatement(s2) { result in
+                                            guard let preparedSelect2 = result.asPreparedStatement else {
+                                                if let error = result.asError {
                                                     XCTFail("Unable to prepare statement preparedSelect2: \(error.localizedDescription)")
                                                 }
                                                 XCTFail("Unable to prepare statement preparedSelect2")

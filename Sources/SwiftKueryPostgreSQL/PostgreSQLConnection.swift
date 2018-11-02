@@ -174,41 +174,36 @@ public class PostgreSQLConnection: Connection {
     /// Establish a connection with the database.
     ///
     /// - Parameter onCompletion: The function to be called when the connection is established.
-    public func connect(onCompletion: @escaping (QueryError?) -> ()) {
+    public func connect(onCompletion: @escaping (QueryResult) -> ()) {
         DispatchQueue.global().async {
             if self.connectionParameters == "" {
-                self.runCompletionHandler(QueryError.connection("No connection parameters."), onCompletion: onCompletion)
+                return self.runCompletionHandler(.error(QueryError.connection("No connection parameters.")), onCompletion: onCompletion)
             }
             self.connection = PQconnectdb(self.connectionParameters)
 
-            let queryError: QueryError?
             if let error = String(validatingUTF8: PQerrorMessage(self.connection)), !error.isEmpty {
-                queryError = QueryError.connection(error)
                 self.connection = nil
+                return self.runCompletionHandler(.error(QueryError.connection(error)), onCompletion: onCompletion)
             }
-            else {
-                queryError = nil
-            }
-            self.runCompletionHandler(queryError, onCompletion: onCompletion)
+            return self.runCompletionHandler(.successNoData, onCompletion: onCompletion)
         }
     }
 
     /// Establish a connection with the database.
     ///
     /// - Returns: QueryError or nil if connection is succesful.
-    public func connectSync() -> QueryError? {
-        var error: QueryError?
+    public func connectSync() -> QueryResult {
+        var result: QueryResult? = nil
         let semaphore = DispatchSemaphore(value: 0)
-        connect { err in
-            error = err
+        connect() { res in
+            result = res
             semaphore.signal()
         }
         semaphore.wait()
-        guard let errorUnwrapped = error else {
-            // Everything worked
-            return nil
+        guard let resultUnwrapped = result else {
+            return .error(QueryError.connection("ConnectSync unexpetedly return a nil QueryResult"))
         }
-        return errorUnwrapped
+        return resultUnwrapped
     }
     
     /// Close the connection to the database.
@@ -292,13 +287,12 @@ public class PostgreSQLConnection: Connection {
     ///
     /// - Parameter query: The query to prepare statement for.
     /// - Parameter onCompletion: The function to be called when the statement has been prepared.
-    public func prepareStatement(_ query: Query, onCompletion: @escaping ((PreparedStatement?, QueryError?) -> ())) {
+    public func prepareStatement(_ query: Query, onCompletion: @escaping ((QueryResult) -> ())) {
         var postgresQuery: String
         do {
             postgresQuery = try buildQuery(query)
         } catch let error {
-            runCompletionHandler(nil, QueryError.syntaxError("Unable to prepare statement: \(error.localizedDescription)"), onCompletion: onCompletion)
-            return
+            return runCompletionHandler(.error(QueryError.syntaxError("Unable to prepare statement: \(error.localizedDescription)")), onCompletion: onCompletion)
         }
         prepareStatement(postgresQuery, onCompletion: onCompletion)
     }
@@ -307,7 +301,7 @@ public class PostgreSQLConnection: Connection {
     ///
     /// - Parameter raw: A String with the query to prepare statement for.
     /// - Parameter onCompletion: The function to be called when the statement has been prepared.
-    public func prepareStatement(_ raw: String, onCompletion: @escaping ((PreparedStatement?, QueryError?) -> ())) {
+    public func prepareStatement(_ raw: String, onCompletion: @escaping ((QueryResult) -> ())) {
         let statementName = String.randomString()
         prepareStatement(statementName, raw, onCompletion: onCompletion)
     }
@@ -317,11 +311,10 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter statementName: A String to the name of the statement.
     /// - Parameter raw: A String with the query to prepare statement for.
     /// - Parameter onCompletion: The function to be called when the statement has been prepared.
-    internal func prepareStatement(_ statementName: String, _ raw: String, onCompletion: @escaping ((PreparedStatement?, QueryError?) -> ())) {
+    internal func prepareStatement(_ statementName: String, _ raw: String, onCompletion: @escaping ((QueryResult) -> ())) {
         DispatchQueue.global().async {
             if let error = self.setUpForRunningQuery() {
-                onCompletion(nil, QueryError.connection("\(error)"))
-                return
+                return onCompletion(.error(QueryError.connection("\(error)")))
             }
             let result = PQprepare(self.connection, statementName, raw, 0, nil)
             let status = PQresultStatus(result)
@@ -332,13 +325,12 @@ public class PostgreSQLConnection: Connection {
                     errorMessage += " Error: \(error)."
                 }
                 PQclear(result)
-                onCompletion(nil, QueryError.databaseError(errorMessage))
-                return
+                return self.runCompletionHandler(.error(QueryError.databaseError(errorMessage)), onCompletion: onCompletion)
             }
             self.setState(.idle)
             PQclear(result)
             self.preparedStatements.insert(statementName)
-            onCompletion(PostgreSQLPreparedStatement(name: statementName, query: raw), nil)
+            return self.runCompletionHandler(.success(PostgreSQLPreparedStatement(name: statementName, query: raw)), onCompletion: onCompletion)
         }
     }
 
@@ -430,10 +422,9 @@ public class PostgreSQLConnection: Connection {
             }
 
             guard preparedStatements.contains(statement.name) else {
-                prepareStatement(statement.name, statement.query) { stmt, error in
-                    if let error = error {
-                        self.runCompletionHandler(.error(QueryError.databaseError(error.localizedDescription)), onCompletion: onCompletion)
-                        return
+                prepareStatement(statement.name, statement.query) { result in
+                    if let error = result.asError {
+                        return self.runCompletionHandler(.error(QueryError.databaseError(error.localizedDescription)), onCompletion: onCompletion)
                     }
                     _ = parameterData.withUnsafeBufferPointer { buffer in
                         PQsendQueryPrepared(connection, statement.name, Int32(parameters.count), buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
