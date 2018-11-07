@@ -12,10 +12,6 @@ branches:
     - next
     - /^issue.*$/
 
-notifications:
-  slack:
-    secure: "M43SJGp/boNNsbeLwJuExcpa9ETIE+eNAXz2wSmAgy/TLh1jOlp8EOVTj7ttRT8rCfZkJKTxE93kMesVF5ObOsRfOzX3tsAQfrOcrvxwxSRU13/KenqNl1b/ergxPSmXgsh2Oxn7RkNbwWOOcS/3L/0Vb0g8eqza8Ehc8FM7sSKZXgn4lE3rG2Zp9RYSSdK/K7QKM3KTyUCSekAZsXfDBiIkqa3Fl8TVDH7AGYJnernnJHl/9UArxC8SVtRkQuX0jZXT2RSgO+xqm3wTFikq+VixUEqKqakNusyaO01+QexA4fWYyM9QuHfHATjeOJrgeg7CAqA0JN/yP0J/LUaMKGQIzRXUjQ5S3tSmAYHyVbL87wAH/TiN8NeXUDSP9TviVg5jJmzLTZJ8kwowSelhHA1T5rnNNGw78gO26q0gmtwgOA8L9wfxOPxv5UMUBvBcmODF/g+2sIFfyepcTcwx+xMxH6J6nBmRCQLKfyuxYc1ILaIOTPGdDjjBHl6IxphGuOykgVQXzi0xzefYJkFKpX69+ksMF4xU3QDoruqqKqJA7vd1g/YOganyVN4NzzEgvGHQR/+GerzjUEm341LnzgbE/nanxEK3ZnSb430SMHzniqBszU+LYDd5NVT5CcAm5L5ksEaNUH7aqreY2TGJHQzFgjH22mEgJjK+WAu3uPA="
-
 matrix:
   include:
     - os: linux
@@ -25,7 +21,7 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      env: SWIFT_SNAPSHOT=4.1
+      env: SWIFT_SNAPSHOT=4.1.3
     - os: linux
       dist: trusty
       sudo: required
