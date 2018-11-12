@@ -474,7 +474,7 @@ public class PostgreSQLConnection: Connection {
             let resultFetcher = PostgreSQLResultFetcher(queryResult: result, connection: self)
             setState(.fetchingResultSet)
             currentResultFetcher = resultFetcher
-            runCompletionHandler(.resultSet(ResultSet(resultFetcher)), onCompletion: onCompletion)
+            runCompletionHandler(.resultSet(ResultSet(resultFetcher, connection: self)), onCompletion: onCompletion)
         }
         else {
             let errorMessage = String(validatingUTF8: PQresultErrorMessage(result)) ?? "Unknown"
@@ -638,10 +638,6 @@ public class PostgreSQLConnection: Connection {
         unlockStateLock()
 
         return nil
-    }
-
-    func runCompletionHandler(_ result: QueryResult, onCompletion: @escaping ((QueryResult) -> ())) {
-        onCompletion(result)
     }
 }
 
