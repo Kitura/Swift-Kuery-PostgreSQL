@@ -639,6 +639,10 @@ public class PostgreSQLConnection: Connection {
 
         return nil
     }
+
+    func runCompletionHandler(_ result: QueryResult, onCompletion: @escaping ((QueryResult) -> ())) {
+        onCompletion(result)
+    }
 }
 
 class PostgreSQLColumnBuilder: ColumnCreator {
