@@ -314,7 +314,7 @@ public class PostgreSQLConnection: Connection {
     internal func prepareStatement(_ statementName: String, _ raw: String, onCompletion: @escaping ((QueryResult) -> ())) {
         DispatchQueue.global().async {
             if let error = self.setUpForRunningQuery() {
-                return onCompletion(.error(QueryError.connection("\(error)")))
+                return self.runCompletionHandler(.error(QueryError.connection("\(error)")), onCompletion: onCompletion)
             }
             let result = PQprepare(self.connection, statementName, raw, 0, nil)
             let status = PQresultStatus(result)
@@ -373,13 +373,12 @@ public class PostgreSQLConnection: Connection {
     public func release(preparedStatement: PreparedStatement, onCompletion: @escaping ((QueryResult) -> ())) {
         DispatchQueue.global().async {
             guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
-            onCompletion(.error(QueryError.unsupported("Failed to release unsupported prepared statement")))
-            return
-        }
-        // Remove entry from the preparedStatements set
-        self.preparedStatements.remove(statement.name)
-        // No need to deallocate prepared statements in PostgreSQL.
-        onCompletion(.successNoData)
+                return self.runCompletionHandler(.error(QueryError.unsupported("Failed to release unsupported prepared statement")), onCompletion: onCompletion)
+            }
+            // Remove entry from the preparedStatements set
+            self.preparedStatements.remove(statement.name)
+            // No need to deallocate prepared statements in PostgreSQL.
+            return self.runCompletionHandler(.successNoData, onCompletion: onCompletion)
         }
     }
 
@@ -482,18 +481,6 @@ public class PostgreSQLConnection: Connection {
             clearResult(result, connection: self)
             runCompletionHandler(.error(QueryError.databaseError("Query execution error:\n" + errorMessage + " For query: " + query)), onCompletion: onCompletion)
         }
-    }
-
-    private func runCompletionHandler(_ queryResult: QueryResult, onCompletion: @escaping ((QueryResult) -> ())) {
-            onCompletion(queryResult)
-    }
-
-    private func runCompletionHandler(_ queryError: QueryError?, onCompletion: @escaping ((QueryError?) -> ())) {
-        guard queryError != nil else {
-            onCompletion(nil)
-            return
-        }
-        onCompletion(queryError)
     }
 
     /// Start a transaction.
