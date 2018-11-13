@@ -17,6 +17,7 @@
 import XCTest
 import SwiftKuery
 import Foundation
+import Dispatch
 
 @testable import SwiftKueryPostgreSQL
 
