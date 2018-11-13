@@ -221,13 +221,11 @@ public class PostgreSQLConnection: Connection {
         DispatchQueue.global().async {
             do {
                 let postgresQuery = try self.buildQuery(query)
-                self.execute(query: postgresQuery, preparedStatement: nil, with: parameters, onCompletion: onCompletion)
-            }
-            catch QueryError.syntaxError(let error) {
-                self.runCompletionHandler(.error(QueryError.syntaxError(error)), onCompletion: onCompletion)
-            }
-            catch {
-                self.runCompletionHandler(.error(QueryError.syntaxError("Failed to build the query")), onCompletion: onCompletion)
+                return self.execute(query: postgresQuery, preparedStatement: nil, with: parameters, onCompletion: onCompletion)
+            } catch QueryError.syntaxError(let error) {
+                return self.runCompletionHandler(.error(QueryError.syntaxError(error)), onCompletion: onCompletion)
+            } catch {
+                return self.runCompletionHandler(.error(QueryError.syntaxError("Failed to build the query")), onCompletion: onCompletion)
             }
         }
     }
@@ -240,13 +238,11 @@ public class PostgreSQLConnection: Connection {
         DispatchQueue.global().async {
             do {
                 let postgresQuery = try self.buildQuery(query)
-                self.execute(query: postgresQuery, preparedStatement: nil, with: [Any?](), onCompletion: onCompletion)
-            }
-            catch QueryError.syntaxError(let error) {
-                self.runCompletionHandler(.error(QueryError.syntaxError(error)), onCompletion: onCompletion)
-            }
-            catch {
-                self.runCompletionHandler(.error(QueryError.syntaxError("Failed to build the query")), onCompletion: onCompletion)
+                return self.execute(query: postgresQuery, preparedStatement: nil, with: [Any?](), onCompletion: onCompletion)
+            } catch QueryError.syntaxError(let error) {
+                return self.runCompletionHandler(.error(QueryError.syntaxError(error)), onCompletion: onCompletion)
+            } catch {
+                return self.runCompletionHandler(.error(QueryError.syntaxError("Failed to build the query")), onCompletion: onCompletion)
             }
         }
     }
