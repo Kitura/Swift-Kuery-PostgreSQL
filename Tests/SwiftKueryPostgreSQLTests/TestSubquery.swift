@@ -16,7 +16,6 @@
 
 import XCTest
 import SwiftKuery
-import Dispatch
 @testable import SwiftKueryPostgreSQL
 
 #if os(Linux)
@@ -44,8 +43,6 @@ class TestSubquery: XCTestCase {
         let t = MyTable()
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -152,7 +149,7 @@ class TestSubquery: XCTestCase {
                                                                     XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
                                                                     XCTAssertNotNil(rows, "SELECT returned no rows")
                                                                     XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 6")
-                                                                    semaphore.signal()
+                                                                    expectation.fulfill()
                                                                 }
                                                             }
                                                         }
@@ -167,8 +164,6 @@ class TestSubquery: XCTestCase {
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     

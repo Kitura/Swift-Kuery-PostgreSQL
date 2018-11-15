@@ -17,7 +17,6 @@
 import XCTest
 import SwiftKuery
 import Foundation
-import Dispatch
 
 @testable import SwiftKueryPostgreSQL
 
@@ -63,8 +62,6 @@ class TestSchema: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -143,7 +140,7 @@ class TestSchema: XCTestCase {
                                                         XCTAssertEqual(rows![0][1]! as! Int32, 5, "Wrong value in row 0 column 1")
                                                         XCTAssertEqual(rows![0][2]! as! Double, 4.95, "Wrong value in row 0 column 2")
                                                         XCTAssertEqual(rows![0][3]! as! Int32, 123, "Wrong value in row 0 column 3")
-                                                        semaphore.signal()
+                                                        expectation.fulfill()
                                                     }
                                                 }
                                             }
@@ -155,8 +152,6 @@ class TestSchema: XCTestCase {
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -194,8 +189,6 @@ class TestSchema: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -216,15 +209,13 @@ class TestSchema: XCTestCase {
                                 t3.primaryKey(t3.c, t3.d).create(connection: connection) { result in
                                     XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                                     XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
-                                    semaphore.signal()
+                                    expectation.fulfill()
                                 }
                             }
                         }
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -250,8 +241,6 @@ class TestSchema: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -267,13 +256,11 @@ class TestSchema: XCTestCase {
                         t5.foreignKey([t5.e, t5.f], references: [t4.a, t4.b]).create(connection: connection) { result in
                             XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                             XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
-                            semaphore.signal()
+                            expectation.fulfill()
                         }
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -307,15 +294,12 @@ class TestSchema: XCTestCase {
         
         let tableName = "TypesTable" + tableNameSuffix
     }
-    
-    
+
     func testTypes() {
         let t = TypesTable()
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -383,15 +367,13 @@ class TestSchema: XCTestCase {
                                     timestamp = rows![0][11]! as! Date
                                     let thenTimeInterval = Int(then.timeIntervalSince1970)
                                     XCTAssertEqual(Int(timestamp.timeIntervalSince1970), thenTimeInterval, "Wrong value in row 0 column 11")
-                                    semaphore.signal()
+                                    expectation.fulfill()
                                 }
                             }
                         }
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -440,13 +422,14 @@ class TestSchema: XCTestCase {
 
                                 t3.create(connection: connection) { result in
                                     XCTAssertEqual(result.success, false, "CREATE TABLE non integer auto increment column didn't fail")
+
+                                    expectation.fulfill()
                                 }
                             }
                         }
                     }
                 }
             }
-            expectation.fulfill()
         })
     }
 }

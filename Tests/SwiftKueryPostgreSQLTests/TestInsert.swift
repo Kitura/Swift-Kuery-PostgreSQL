@@ -17,8 +17,6 @@
 import XCTest
 import SwiftKuery
 
-import Dispatch
-
 @testable import SwiftKueryPostgreSQL
 
 #if os(Linux)
@@ -66,8 +64,6 @@ class TestInsert: XCTestCase {
 
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
 
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -157,7 +153,7 @@ class TestInsert: XCTestCase {
                                                         executeQuery(query: dropT, connection: connection) { result, rows in
                                                             XCTAssertEqual(result.success, true, "DROP TABLE failed")
                                                             XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
-                                                            semaphore.signal()
+                                                            expectation.fulfill()
                                                         }
                                                     }
                                                 }
@@ -170,8 +166,6 @@ class TestInsert: XCTestCase {
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
 
@@ -180,8 +174,6 @@ class TestInsert: XCTestCase {
 
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
 
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -206,13 +198,11 @@ class TestInsert: XCTestCase {
                         executeQuery(query: dropT3, connection: connection) { result, rows in
                             XCTAssertEqual(result.success, true, "DROP TABLE failed")
                             XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
-                            semaphore.signal()
+                            expectation.fulfill()
                         }
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
 }

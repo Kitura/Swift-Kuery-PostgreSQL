@@ -16,7 +16,6 @@
 
 import XCTest
 import SwiftKuery
-import Dispatch
 
 @testable import SwiftKueryPostgreSQL
 
@@ -46,8 +45,6 @@ class TestUpdate: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -122,7 +119,7 @@ class TestUpdate: XCTestCase {
                                                     executeQuery(query: s1, connection: connection) { result, rows in
                                                         XCTAssertEqual(result.success, true, "SELECT failed")
                                                         XCTAssertNil(result.asResultSet, "SELECT should not return any rows")
-                                                        semaphore.signal()
+                                                        expectation.fulfill()
                                                     }
                                                 }
                                             }
@@ -134,8 +131,6 @@ class TestUpdate: XCTestCase {
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
 }

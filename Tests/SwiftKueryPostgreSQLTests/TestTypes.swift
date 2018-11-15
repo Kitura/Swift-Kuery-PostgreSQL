@@ -18,7 +18,6 @@ import XCTest
 import SwiftKuery
 
 import Foundation
-import Dispatch
 
 @testable import SwiftKueryPostgreSQL
 
@@ -72,8 +71,6 @@ class TestTypes: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -139,7 +136,7 @@ class TestTypes: XCTestCase {
                                     executeQuery(query: drop, connection: connection) { result, rows in
                                         XCTAssertEqual(result.success, true, "DROP TABLE failed")
                                         XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
-                                        semaphore.signal()
+                                        expectation.fulfill()
                                     }
                                 }
                             }
@@ -147,8 +144,6 @@ class TestTypes: XCTestCase {
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -167,8 +162,6 @@ class TestTypes: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -296,7 +289,7 @@ class TestTypes: XCTestCase {
                                                                     executeQuery(query: drop, connection: connection) { result, rows in
                                                                         XCTAssertEqual(result.success, true, "DROP TABLE failed")
                                                                         XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
-                                                                        semaphore.signal()
+                                                                        expectation.fulfill()
                                                                     }
                                                                 }
                                                             }
@@ -312,8 +305,6 @@ class TestTypes: XCTestCase {
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -330,8 +321,6 @@ class TestTypes: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -365,14 +354,12 @@ class TestTypes: XCTestCase {
                             executeQuery(query: drop, connection: connection) { result, rows in
                                 XCTAssertEqual(result.success, true, "DROP TABLE failed")
                                 XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
-                                semaphore.signal()
+                                expectation.fulfill()
                             }
                         }
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -392,8 +379,6 @@ class TestTypes: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -475,15 +460,13 @@ class TestTypes: XCTestCase {
                                 executeQuery(query: drop, connection: connection) { result, rows in
                                     XCTAssertEqual(result.success, true, "DROP TABLE failed")
                                     XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
-                                    semaphore.signal()
+                                    expectation.fulfill()
                                 }
                             }
                         }
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -506,8 +489,6 @@ class TestTypes: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -550,14 +531,12 @@ class TestTypes: XCTestCase {
                             executeQuery(query: drop, connection: connection) { result, rows in
                                 XCTAssertEqual(result.success, true, "DROP TABLE failed")
                                 XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
-                                semaphore.signal()
+                                expectation.fulfill()
                             }
                         }
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -573,8 +552,6 @@ class TestTypes: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -609,14 +586,12 @@ class TestTypes: XCTestCase {
                                 
                                 XCTAssertEqual(rows![0][1]! as! String, uuid1, "Wrong value in row 0 column 1")
                                 XCTAssertEqual(rows![1][1]! as! String, uuid2, "Wrong value in row 1 column 1")
-                                semaphore.signal()
+                                expectation.fulfill()
                             }
                         }
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
 }

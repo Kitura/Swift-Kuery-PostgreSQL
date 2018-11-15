@@ -18,7 +18,6 @@ import XCTest
 import SwiftKuery
 
 import Foundation
-import Dispatch
 
 @testable import SwiftKueryPostgreSQL
 
@@ -71,8 +70,6 @@ class TestSelect: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -209,7 +206,7 @@ class TestSelect: XCTestCase {
                                                                     executeQuery(query: drop, connection: connection) { result, rows in
                                                                         XCTAssertEqual(result.success, true, "DROP TABLE failed")
                                                                         XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
-                                                                        semaphore.signal()
+                                                                        expectation.fulfill()
                                                                     }
                                                                 }
                                                             }
@@ -225,8 +222,6 @@ class TestSelect: XCTestCase {
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -237,8 +232,6 @@ class TestSelect: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -285,7 +278,7 @@ class TestSelect: XCTestCase {
                                                     let resultSet = result.asResultSet!
                                                     XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
                                                     XCTAssertEqual(resultSet.titles.count, 6, "SELECT returned wrong number of columns: \(resultSet.titles.count) instead of 6")
-                                                    semaphore.signal()
+                                                    expectation.fulfill()
                                                 }
                                             }
                                         }
@@ -296,8 +289,6 @@ class TestSelect: XCTestCase {
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -322,8 +313,6 @@ class TestSelect: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -370,7 +359,7 @@ class TestSelect: XCTestCase {
                                         XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
                                         XCTAssertNotNil(rows, "SELECT returned no rows")
                                         XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
-                                        semaphore.signal()
+                                        expectation.fulfill()
                                     }
                                 }
                             }
@@ -378,8 +367,6 @@ class TestSelect: XCTestCase {
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -396,8 +383,6 @@ class TestSelect: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -436,14 +421,12 @@ class TestSelect: XCTestCase {
                                         }
                                     }
                                 }
-                                semaphore.signal()
+                                expectation.fulfill()
                             }
                         }
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
 }

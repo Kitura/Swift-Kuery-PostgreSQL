@@ -17,8 +17,6 @@
 import XCTest
 import SwiftKuery
 
-import Dispatch
-
 @testable import SwiftKueryPostgreSQL
 
 #if os(Linux)
@@ -53,8 +51,6 @@ class TestParameters: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -114,7 +110,7 @@ class TestParameters: XCTestCase {
                                             let s2 = Select(from: t).where(t.a != Parameter())
                                             executeQueryWithParameters(query: s2, connection: connection, parameters: nil) { result, rows in
                                                 XCTAssertEqual(result.success, true, "SELECT failed")
-                                                semaphore.signal()
+                                                expectation.fulfill()
                                             }
                                         }
                                     }
@@ -124,8 +120,6 @@ class TestParameters: XCTestCase {
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -141,8 +135,6 @@ class TestParameters: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -206,7 +198,7 @@ class TestParameters: XCTestCase {
                                                 XCTAssertEqual(rows![3][0]! as! String, "qiwi", "Wrong value in row 3 column 0")
                                                 XCTAssertEqual(rows![4][0]! as! String, "qiwi", "Wrong value in row 4 column 0")
                                                 XCTAssertEqual(rows![5][0]! as! String, "qiwi", "Wrong value in row 5 column 0")
-                                                semaphore.signal()
+                                                expectation.fulfill()
                                             }
                                         }
                                     }
@@ -216,8 +208,6 @@ class TestParameters: XCTestCase {
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
     
@@ -233,8 +223,6 @@ class TestParameters: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-
-            let semaphore = DispatchSemaphore(value: 0)
             
             guard let connection = pool.getConnection() else {
                 XCTFail("Failed to get connection")
@@ -254,7 +242,7 @@ class TestParameters: XCTestCase {
                                 XCTFail("Unable to prepare statement preparedInsert: \(error.localizedDescription)")
                             }
                             XCTFail("Unable to prepare statement preparedInsert")
-                            semaphore.signal()
+                            expectation.fulfill()
                             return
                         }
                         connection.execute(preparedStatement: preparedInsert, parameters: ["apple", 3, "banana", -8]) { result in
@@ -268,7 +256,7 @@ class TestParameters: XCTestCase {
                                         XCTFail("Unable to prepare statement preparedSelect: \(error.localizedDescription)")
                                     }
                                     XCTFail("Unable to prepare statement preparedSelect")
-                                    semaphore.signal()
+                                    expectation.fulfill()
                                     return
                                 }
                                 connection.execute(preparedStatement: preparedSelect, parameters: ["apple"]) { result in
@@ -292,7 +280,7 @@ class TestParameters: XCTestCase {
                                                     XCTFail("Unable to prepare statement preparedSelect2: \(error.localizedDescription)")
                                                 }
                                                 XCTFail("Unable to prepare statement preparedSelect2")
-                                                semaphore.signal()
+                                                expectation.fulfill()
                                                 return
                                             }
 
@@ -302,7 +290,7 @@ class TestParameters: XCTestCase {
                                                 let rows = result.asRows
                                                 XCTAssertNotNil(rows, "SELECT returned no rows")
                                                 XCTAssertEqual(rows!.count, 3, "Wrong number of rows")
-                                                semaphore.signal()
+                                                expectation.fulfill()
                                             }
                                         }
                                     }
@@ -312,8 +300,6 @@ class TestParameters: XCTestCase {
                     }
                 }
             }
-            semaphore.wait()
-            expectation.fulfill()
         })
     }
 }
