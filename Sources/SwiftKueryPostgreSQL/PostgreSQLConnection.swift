@@ -175,10 +175,10 @@ public class PostgreSQLConnection: Connection {
     ///
     /// - Parameter onCompletion: The function to be called when the connection is established.
     public func connect(onCompletion: @escaping (QueryResult) -> ()) {
+        if self.connectionParameters == "" {
+            return self.runCompletionHandler(.error(QueryError.connection("No connection parameters.")), onCompletion: onCompletion)
+        }
         DispatchQueue.global().async {
-            if self.connectionParameters == "" {
-                return self.runCompletionHandler(.error(QueryError.connection("No connection parameters.")), onCompletion: onCompletion)
-            }
             self.connection = PQconnectdb(self.connectionParameters)
 
             if let error = String(validatingUTF8: PQerrorMessage(self.connection)), !error.isEmpty {
