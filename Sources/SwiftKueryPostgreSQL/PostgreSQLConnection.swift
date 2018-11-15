@@ -218,15 +218,13 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter parameters: An array of the parameters.
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(query: Query, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            do {
-                let postgresQuery = try self.buildQuery(query)
-                return self.execute(query: postgresQuery, preparedStatement: nil, with: parameters, onCompletion: onCompletion)
-            } catch QueryError.syntaxError(let error) {
-                return self.runCompletionHandler(.error(QueryError.syntaxError(error)), onCompletion: onCompletion)
-            } catch {
-                return self.runCompletionHandler(.error(QueryError.syntaxError("Failed to build the query")), onCompletion: onCompletion)
-            }
+        do {
+            let postgresQuery = try self.buildQuery(query)
+            return execute(query: postgresQuery, preparedStatement: nil, with: parameters, onCompletion: onCompletion)
+        } catch QueryError.syntaxError(let error) {
+            return runCompletionHandler(.error(QueryError.syntaxError(error)), onCompletion: onCompletion)
+        } catch {
+            return runCompletionHandler(.error(QueryError.syntaxError("Failed to build the query")), onCompletion: onCompletion)
         }
     }
 
@@ -235,15 +233,13 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter query: The query to execute.
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(query: Query, onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            do {
-                let postgresQuery = try self.buildQuery(query)
-                return self.execute(query: postgresQuery, preparedStatement: nil, with: [Any?](), onCompletion: onCompletion)
-            } catch QueryError.syntaxError(let error) {
-                return self.runCompletionHandler(.error(QueryError.syntaxError(error)), onCompletion: onCompletion)
-            } catch {
-                return self.runCompletionHandler(.error(QueryError.syntaxError("Failed to build the query")), onCompletion: onCompletion)
-            }
+        do {
+            let postgresQuery = try self.buildQuery(query)
+            return execute(query: postgresQuery, preparedStatement: nil, with: [Any?](), onCompletion: onCompletion)
+        } catch QueryError.syntaxError(let error) {
+            return runCompletionHandler(.error(QueryError.syntaxError(error)), onCompletion: onCompletion)
+        } catch {
+            return runCompletionHandler(.error(QueryError.syntaxError("Failed to build the query")), onCompletion: onCompletion)
         }
     }
 
@@ -252,9 +248,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter raw: A String with the raw query to execute.
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(_ raw: String, onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            self.execute(query: raw, preparedStatement: nil, with: [Any?](), onCompletion: onCompletion)
-        }
+        execute(query: raw, preparedStatement: nil, with: [Any?](), onCompletion: onCompletion)
     }
 
     /// Execute a raw query with parameters.
@@ -263,9 +257,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter parameters: An array of the parameters.
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(_ raw: String, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            self.execute(query: raw, preparedStatement: nil, with: parameters, onCompletion: onCompletion)
-        }
+        execute(query: raw, preparedStatement: nil, with: parameters, onCompletion: onCompletion)
     }
 
     /// Execute a raw query with parameters.
@@ -274,9 +266,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter parameters: A dictionary of the parameters with parameter names as the keys.
     /// - Parameter onCompletion: The function to be called when the execution of the query has completed.
     public func execute(_ raw: String, parameters: [String:Any?], onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            self.runCompletionHandler(.error(QueryError.unsupported("Named parameters in raw queries are not supported in PostgreSQL")), onCompletion: onCompletion)
-        }
+        runCompletionHandler(.error(QueryError.unsupported("Named parameters in raw queries are not supported in PostgreSQL")), onCompletion: onCompletion)
     }
 
     /// Prepare statement.
@@ -335,9 +325,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter preparedStatement: The prepared statement to execute.
     /// - Parameter onCompletion: The function to be called when the execution has completed.
     public func execute(preparedStatement: PreparedStatement, onCompletion: @escaping ((QueryResult) -> ()))  {
-        DispatchQueue.global().async {
-            self.execute(query: nil, preparedStatement: preparedStatement, with: [Any?](), onCompletion: onCompletion)
-        }
+        execute(query: nil, preparedStatement: preparedStatement, with: [Any?](), onCompletion: onCompletion)
     }
 
     /// Execute a prepared statement with parameters.
@@ -346,9 +334,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter parameters: An array of the parameters.
     /// - Parameter onCompletion: The function to be called when the execution has completed.
     public func execute(preparedStatement: PreparedStatement, parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            self.execute(query: nil, preparedStatement: preparedStatement, with: parameters, onCompletion: onCompletion)
-        }
+        execute(query: nil, preparedStatement: preparedStatement, with: parameters, onCompletion: onCompletion)
     }
 
     /// Execute a prepared statement with parameters.
@@ -357,9 +343,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter parameters: A dictionary of the parameters with parameter names as the keys.
     /// - Parameter onCompletion: The function to be called when the execution has completed.
     public func execute(preparedStatement: PreparedStatement, parameters: [String:Any?], onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            self.runCompletionHandler(.error(QueryError.unsupported("Named parameters in prepared statemennts are not supported in PostgreSQL")), onCompletion: onCompletion)
-        }
+        runCompletionHandler(.error(QueryError.unsupported("Named parameters in prepared statemennts are not supported in PostgreSQL")), onCompletion: onCompletion)
     }
 
     /// Release a prepared statement.
@@ -367,85 +351,86 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter preparedStatement: The prepared statement to release.
     /// - Parameter onCompletion: The function to be called when the execution has completed.
     public func release(preparedStatement: PreparedStatement, onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
-                return self.runCompletionHandler(.error(QueryError.unsupported("Failed to release unsupported prepared statement")), onCompletion: onCompletion)
-            }
-            // Remove entry from the preparedStatements set
-            self.preparedStatements.remove(statement.name)
-            // No need to deallocate prepared statements in PostgreSQL.
-            return self.runCompletionHandler(.successNoData, onCompletion: onCompletion)
+        guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
+            return runCompletionHandler(.error(QueryError.unsupported("Failed to release unsupported prepared statement")), onCompletion: onCompletion)
         }
+        // Remove entry from the preparedStatements set
+        preparedStatements.remove(statement.name)
+        // No need to deallocate prepared statements in PostgreSQL.
+        return runCompletionHandler(.successNoData, onCompletion: onCompletion)
     }
 
     private func execute(query: String?, preparedStatement: PreparedStatement?, with parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
         guard let connection = connection else {
-            self.runCompletionHandler(.error(QueryError.connection("Connection is disconnected")), onCompletion: onCompletion)
-            return
-        }
-        
-        if let error = setUpForRunningQuery() {
-            self.runCompletionHandler(.error(QueryError.connection(error)), onCompletion: onCompletion)
-            return
-        }
-        
-        var parameterPointers = [UnsafeMutablePointer<Int8>?]()
-        var parameterData = [UnsafePointer<Int8>?]()
-        // At the moment we only create string parameters. Binary parameters should be added.
-        for parameter in parameters {
-            if let parameter = parameter {
-                let parameterString = String(describing: parameter)
-                let count = parameterString.lengthOfBytes(using: .utf8) + 1
-                parameterPointers.append(UnsafeMutablePointer<Int8>.allocate(capacity: Int(count)))
-                memcpy(parameterPointers[parameterPointers.count-1]!, UnsafeRawPointer(parameterString), count)
-                parameterData.append(parameterPointers.last!)
-            }
-            else {
-                parameterData.append(nil)
-            }
+            return self.runCompletionHandler(.error(QueryError.connection("Connection is disconnected")), onCompletion: onCompletion)
         }
 
-        if let query = query {
-            _ = parameterData.withUnsafeBufferPointer { buffer in
-                PQsendQueryParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
-            }
-        }
-        else if let preparedStatement = preparedStatement {
+        // Check if we have a prepared statement
+        if let preparedStatement = preparedStatement {
+            // Check the prepared statement is an instance of PostgreSQLPreparedStatement
             guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
-                self.runCompletionHandler(.error(QueryError.unsupported("Failed to execute unsupported prepared statement")), onCompletion: onCompletion)
-                return
+                return self.runCompletionHandler(.error(QueryError.unsupported("Failed to execute unsupported prepared statement")), onCompletion: onCompletion)
             }
 
+            // Check whether the prepared statement has previously been cached on this connection.
             guard preparedStatements.contains(statement.name) else {
-                prepareStatement(statement.name, statement.query) { result in
+                // prepare the prepared statement for use on this connection
+                return prepareStatement(statement.name, statement.query) { result in
                     if let error = result.asError {
                         return self.runCompletionHandler(.error(QueryError.databaseError(error.localizedDescription)), onCompletion: onCompletion)
                     }
-                    _ = parameterData.withUnsafeBufferPointer { buffer in
-                        PQsendQueryPrepared(connection, statement.name, Int32(parameters.count), buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
-                    }
-
-                    for pointer in parameterPointers {
-                        free(pointer)
-                    }
-
-                    PQsetSingleRowMode(connection)
-                    self.processQueryResult(query: query ?? "Execution of prepared statement \(preparedStatement)", onCompletion: onCompletion)
+                    // Recursively call execute now the statement has been prepared for use on this connection.
+                    return self.execute(query: query, preparedStatement: preparedStatement, with: parameters, onCompletion: onCompletion)
                 }
+            }
+        }
+
+        DispatchQueue.global().async {
+            if let error = self.setUpForRunningQuery() {
+                self.runCompletionHandler(.error(QueryError.connection(error)), onCompletion: onCompletion)
                 return
             }
 
-            _ = parameterData.withUnsafeBufferPointer { buffer in
-                PQsendQueryPrepared(connection, statement.name, Int32(parameters.count), buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
+            var parameterPointers = [UnsafeMutablePointer<Int8>?]()
+            var parameterData = [UnsafePointer<Int8>?]()
+            // At the moment we only create string parameters. Binary parameters should be added.
+            for parameter in parameters {
+                if let parameter = parameter {
+                    let parameterString = String(describing: parameter)
+                    let count = parameterString.lengthOfBytes(using: .utf8) + 1
+                    parameterPointers.append(UnsafeMutablePointer<Int8>.allocate(capacity: Int(count)))
+                    memcpy(parameterPointers[parameterPointers.count-1]!, UnsafeRawPointer(parameterString), count)
+                    parameterData.append(parameterPointers.last!)
+                }
+                else {
+                    parameterData.append(nil)
+                }
             }
-        }
 
-        for pointer in parameterPointers {
-            free(pointer)
-        }
+            // Ensure pointers are freed upon exiting this closure
+            defer {
+                for pointer in parameterPointers {
+                    free(pointer)
+                }
+            }
 
-        PQsetSingleRowMode(connection)
-        processQueryResult(query: query ?? "Execution of prepared statement \(preparedStatement!)", onCompletion: onCompletion)
+            if let query = query {
+                _ = parameterData.withUnsafeBufferPointer { buffer in
+                    PQsendQueryParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
+                }
+            } else {
+                guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
+                    // We should never get here as the prepared statement parameter has already been validated as a PostgreSQLPreparedStatement
+                    return assertionFailure("Unexpected invalid pepared statement")
+                }
+                _ = parameterData.withUnsafeBufferPointer { buffer in
+                    PQsendQueryPrepared(connection, statement.name, Int32(parameters.count), buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
+                }
+            }
+
+            PQsetSingleRowMode(connection)
+            self.processQueryResult(query: query ?? "Execution of prepared statement \(preparedStatement!)", onCompletion: onCompletion)
+        }
     }
 
     private func processQueryResult(query: String, onCompletion: @escaping ((QueryResult) -> ())) {
@@ -483,27 +468,21 @@ public class PostgreSQLConnection: Connection {
     ///
     /// - Parameter onCompletion: The function to be called when the execution of start transaction command has completed.
     public func startTransaction(onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            self.executeTransaction(command: "BEGIN", inTransaction: false, changeTransactionState: true, errorMessage: "Failed to rollback the transaction", onCompletion: onCompletion)
-        }
+        executeTransaction(command: "BEGIN", inTransaction: false, changeTransactionState: true, errorMessage: "Failed to rollback the transaction", onCompletion: onCompletion)
     }
 
     /// Commit the current transaction.
     ///
     /// - Parameter onCompletion: The function to be called when the execution of commit transaction command has completed.
     public func commit(onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            self.executeTransaction(command: "COMMIT", inTransaction: true, changeTransactionState: true, errorMessage: "Failed to rollback the transaction", onCompletion: onCompletion)
-        }
+        executeTransaction(command: "COMMIT", inTransaction: true, changeTransactionState: true, errorMessage: "Failed to rollback the transaction", onCompletion: onCompletion)
     }
 
     /// Rollback the current transaction.
     ///
     /// - Parameter onCompletion: The function to be called when the execution of rolback transaction command has completed.
     public func rollback(onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            self.executeTransaction(command: "ROLLBACK", inTransaction: true, changeTransactionState: true, errorMessage: "Failed to rollback the transaction", onCompletion: onCompletion)
-        }
+        executeTransaction(command: "ROLLBACK", inTransaction: true, changeTransactionState: true, errorMessage: "Failed to rollback the transaction", onCompletion: onCompletion)
     }
 
     /// Create a savepoint.
@@ -511,9 +490,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter savepoint: The name to  be given to the created savepoint.
     /// - Parameter onCompletion: The function to be called when the execution of create savepoint command has completed.
     public func create(savepoint: String, onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            self.executeTransaction(command: "SAVEPOINT \(savepoint)", inTransaction: true, changeTransactionState: false, errorMessage: "Failed to create the savepoint \(savepoint)", onCompletion: onCompletion)
-        }
+        executeTransaction(command: "SAVEPOINT \(savepoint)", inTransaction: true, changeTransactionState: false, errorMessage: "Failed to create the savepoint \(savepoint)", onCompletion: onCompletion)
     }
 
     /// Rollback the current transaction to the specified savepoint.
@@ -521,9 +498,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter to savepoint: The name of the savepoint to rollback to.
     /// - Parameter onCompletion: The function to be called when the execution of rolback transaction command has completed.
     public func rollback(to savepoint: String, onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            self.executeTransaction(command: "ROLLBACK TO \(savepoint)", inTransaction: true, changeTransactionState: false, errorMessage: "Failed to rollback to the savepoint \(savepoint)", onCompletion: onCompletion)
-        }
+        executeTransaction(command: "ROLLBACK TO \(savepoint)", inTransaction: true, changeTransactionState: false, errorMessage: "Failed to rollback to the savepoint \(savepoint)", onCompletion: onCompletion)
     }
 
     /// Release a savepoint.
@@ -531,49 +506,45 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter savepoint: The name of the savepoint to release.
     /// - Parameter onCompletion: The function to be called when the execution of release savepoint command has completed.
     public func release(savepoint: String, onCompletion: @escaping ((QueryResult) -> ())) {
-        DispatchQueue.global().async {
-            self.executeTransaction(command: "RELEASE SAVEPOINT \(savepoint)", inTransaction: true, changeTransactionState: false, errorMessage: "Failed to release the savepoint \(savepoint)", onCompletion: onCompletion)
-        }
+        executeTransaction(command: "RELEASE SAVEPOINT \(savepoint)", inTransaction: true, changeTransactionState: false, errorMessage: "Failed to release the savepoint \(savepoint)", onCompletion: onCompletion)
     }
 
     private func executeTransaction(command: String, inTransaction: Bool, changeTransactionState: Bool, errorMessage: String, onCompletion: @escaping ((QueryResult) -> ())) {
         guard let connection = connection else {
-            self.runCompletionHandler(.error(QueryError.connection("Connection is disconnected")), onCompletion: onCompletion)
-            return
-        }
-        
-        guard self.inTransaction == inTransaction else {
-            let error = self.inTransaction ? "Transaction already exists" : "No transaction exists"
-            self.runCompletionHandler(.error(QueryError.transactionError(error)), onCompletion: onCompletion)
-            return
-        }
-        
-        if let error = setUpForRunningQuery() {
-            self.runCompletionHandler(.error(QueryError.connection(error)), onCompletion: onCompletion)
-            return
+            return runCompletionHandler(.error(QueryError.connection("Connection is disconnected")), onCompletion: onCompletion)
         }
 
-        let result = PQexec(connection, command)
-        let status = PQresultStatus(result)
-        if status != PGRES_COMMAND_OK {
-            var message = errorMessage
-            if let error = String(validatingUTF8: PQerrorMessage(connection)) {
-                message += " Error: \(error)."
+        guard self.inTransaction == inTransaction else {
+            let error = self.inTransaction ? "Transaction already exists" : "No transaction exists"
+            return runCompletionHandler(.error(QueryError.transactionError(error)), onCompletion: onCompletion)
+        }
+
+        DispatchQueue.global().async {
+            if let error = self.setUpForRunningQuery() {
+                return self.runCompletionHandler(.error(QueryError.connection(error)), onCompletion: onCompletion)
+            }
+
+            let result = PQexec(connection, command)
+            let status = PQresultStatus(result)
+            if status != PGRES_COMMAND_OK {
+                var message = errorMessage
+                if let error = String(validatingUTF8: PQerrorMessage(connection)) {
+                    message += " Error: \(error)."
+                }
+
+                PQclear(result)
+                self.setState(.idle)
+                return self.runCompletionHandler(.error(QueryError.databaseError(message)), onCompletion: onCompletion)
+            }
+
+            if changeTransactionState {
+                self.inTransaction = !self.inTransaction
             }
 
             PQclear(result)
-            setState(.idle)
-            self.runCompletionHandler(.error(QueryError.databaseError(message)), onCompletion: onCompletion)
-            return
+            self.setState(.idle)
+            return self.runCompletionHandler(.successNoData, onCompletion: onCompletion)
         }
-        
-        if changeTransactionState {
-            self.inTransaction = !self.inTransaction
-        }
-
-        PQclear(result)
-        setState(.idle)
-        self.runCompletionHandler(.successNoData, onCompletion: onCompletion)
     }
 
     private func buildQuery(_ query: Query) throws  -> String {
