@@ -343,7 +343,7 @@ public class PostgreSQLConnection: Connection {
     /// - Parameter parameters: A dictionary of the parameters with parameter names as the keys.
     /// - Parameter onCompletion: The function to be called when the execution has completed.
     public func execute(preparedStatement: PreparedStatement, parameters: [String:Any?], onCompletion: @escaping ((QueryResult) -> ())) {
-        runCompletionHandler(.error(QueryError.unsupported("Named parameters in prepared statemennts are not supported in PostgreSQL")), onCompletion: onCompletion)
+        runCompletionHandler(.error(QueryError.unsupported("Named parameters in prepared statements are not supported in PostgreSQL")), onCompletion: onCompletion)
     }
 
     /// Release a prepared statement.
