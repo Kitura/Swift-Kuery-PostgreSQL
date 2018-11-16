@@ -105,7 +105,9 @@ public class PostgreSQLResultFetcher: ResultFetcher {
     public func fetchTitles() -> [String] {
         return titles
     }
-    
+
+    /// Indicate no further calls will be made to this ResultFetcher allowing the connection in use to be released.
+    ///
     public func done() {
         clearResult(nil, connection: connection)
     }
