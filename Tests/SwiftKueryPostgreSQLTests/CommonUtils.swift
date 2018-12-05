@@ -22,6 +22,7 @@
 
 import XCTest
 import Foundation
+import Dispatch
 
 import SwiftKuery
 import SwiftKueryPostgreSQL
@@ -57,8 +58,7 @@ func executeQuery(query: Query, connection: Connection, callback: @escaping (Que
     }
     catch {}
     connection.execute(query: query) { result in
-        let rows = printResultAndGetRowsAsArray(result)
-        callback(result, rows)
+        printResultAndGetRowsAsArray(result, callback: callback)
     }
 }
 
@@ -68,8 +68,7 @@ func executeQueryWithParameters(query: Query, connection: Connection, parameters
     }
     catch {}
     connection.execute(query: query, parameters: parameters) { result in
-        let rows = printResultAndGetRowsAsArray(result)
-        callback(result, rows)
+        printResultAndGetRowsAsArray(result, callback: callback)
     }
 }
 
@@ -79,8 +78,7 @@ func executeQueryWithNamedParameters(query: Query, connection: Connection, param
     }
     catch {}
     connection.execute(query: query, parameters: parameters) { result in
-        let rows = printResultAndGetRowsAsArray(result)
-        callback(result, rows)
+        printResultAndGetRowsAsArray(result, callback: callback)
     }
 }
 
@@ -88,16 +86,14 @@ func executeQueryWithNamedParameters(query: Query, connection: Connection, param
 func executeRawQueryWithParameters(_ raw: String, connection: Connection, parameters: Any?..., callback: @escaping (QueryResult, [[Any?]]?)->()) {
     print("=======\(raw)=======")
     connection.execute(raw, parameters: parameters) { result in
-        let rows = printResultAndGetRowsAsArray(result)
-        callback(result, rows)
+        printResultAndGetRowsAsArray(result, callback: callback)
     }
 }
 
 func executeRawQuery(_ raw: String, connection: Connection, callback: @escaping (QueryResult, [[Any?]]?)->()) {
     print("=======\(raw)=======")
     connection.execute(raw) { result in
-        let rows = printResultAndGetRowsAsArray(result)
-        callback(result, rows)
+        printResultAndGetRowsAsArray(result, callback: callback)
     }
 }
 
@@ -107,18 +103,23 @@ func cleanUp(table: String, connection: Connection, callback: @escaping (QueryRe
     }
 }
 
-private func printResultAndGetRowsAsArray(_ result: QueryResult) -> [[Any?]]? {
-    var rows: [[Any?]]? = nil
+private func printResultAndGetRowsAsArray(_ result: QueryResult, callback: @escaping (QueryResult, [[Any?]]?)->()) {
+    var rows: [[Any?]] = [[Any?]]()
     if let resultSet = result.asResultSet {
-        let titles = resultSet.titles
-        let length = titles.count > 6 ? 18 : 36
-        for title in titles {
-            print(title.padding(toLength: length, withPad: " ", startingAt: 0), terminator: "")
-        }
-        print()
-        rows = rowsAsArray(resultSet)
-        if let rows = rows {
-            for row in rows {
+        resultSet.getColumnTitles() { titles, error in
+            guard let titles = titles else {
+                return callback(result, nil)
+            }
+            let length = titles.count > 6 ? 18 : 36
+            for title in titles {
+                print(title.padding(toLength: length, withPad: " ", startingAt: 0), terminator: "")
+            }
+            print()
+            resultSet.forEach() { row, error in
+                guard let row = row else {
+                    // No more rows
+                    return callback(result, rows)
+                }
                 for value in row {
                     var valueToPrint = ""
                     if let value = value {
@@ -127,27 +128,16 @@ private func printResultAndGetRowsAsArray(_ result: QueryResult) -> [[Any?]]? {
                     print(valueToPrint.padding(toLength: length, withPad: " ", startingAt: 0), terminator: "")
                 }
                 print()
+                rows.append(row)
             }
         }
-    }
-    else if let value = result.asValue  {
+    } else if let value = result.asValue  {
         print("Result: ", value)
-    }
-    else if result.success  {
+    } else if result.success  {
         print("Success")
-    }
-    else if let queryError = result.asError {
+    } else if let queryError = result.asError {
         print("Error in query: ", queryError)
     }
-    return rows
-}
-
-func getNumberOfRows(_ result: ResultSet) -> Int {
-    return result.rows.map{ $0 as [Any?] }.count
-}
-
-func rowsAsArray(_ result: ResultSet) -> [[Any?]] {
-    return result.rows.map{ $0 as [Any?] }
 }
 
 func createConnection() -> PostgreSQLConnection {

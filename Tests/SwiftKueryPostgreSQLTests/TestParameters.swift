@@ -51,7 +51,7 @@ class TestParameters: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-            
+
             pool.getConnection() { connection, error in
                 guard let connection = connection else {
                     XCTFail("Failed to get connection")
@@ -136,7 +136,7 @@ class TestParameters: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-            
+
             pool.getConnection() { connection, error in
                 guard let connection = connection else {
                     XCTFail("Failed to get connection")
@@ -225,7 +225,7 @@ class TestParameters: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-            
+
             pool.getConnection() { connection, error in
                 guard let connection = connection else {
                     XCTFail("Failed to get connection")
@@ -264,35 +264,48 @@ class TestParameters: XCTestCase {
                                     connection.execute(preparedStatement: preparedSelect, parameters: ["apple"]) { result in
                                         XCTAssertEqual(result.success, true, "SELECT failed")
                                         XCTAssertNil(result.asError)
-                                        let rows = result.asRows
-                                        XCTAssertNotNil(rows, "SELECT returned no rows")
-                                        XCTAssertEqual(rows!.count, 1, "Wrong number of rows")
-
-                                        connection.execute(preparedStatement: preparedSelect, parameters: ["banana"]) { result in
-                                            XCTAssertEqual(result.success, true, "SELECT failed")
-                                            XCTAssertNil(result.asError)
-                                            let rows = result.asRows
+                                        result.asRows() { rows, error in
+                                            guard let rows = rows else {
+                                                return XCTFail("Query expected to return a row")
+                                            }
                                             XCTAssertNotNil(rows, "SELECT returned no rows")
-                                            XCTAssertEqual(rows!.count, 2, "Wrong number of rows")
+                                            XCTAssertEqual(rows.count, 1, "Wrong number of rows")
 
-                                            let s2 = "SELECT * FROM \"" + t.tableName + "\""
-                                            connection.prepareStatement(s2) { result in
-                                                guard let preparedSelect2 = result.asPreparedStatement else {
-                                                    if let error = result.asError {
-                                                        XCTFail("Unable to prepare statement preparedSelect2: \(error.localizedDescription)")
+                                            connection.execute(preparedStatement: preparedSelect, parameters: ["banana"]) { result in
+                                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                                XCTAssertNil(result.asError)
+                                                result.asRows() { rows, error in
+                                                    guard let rows = rows else {
+                                                        return XCTFail("Query expected to return a row")
                                                     }
-                                                    XCTFail("Unable to prepare statement preparedSelect2")
-                                                    expectation.fulfill()
-                                                    return
-                                                }
-
-                                                connection.execute(preparedStatement: preparedSelect2) { result in
-                                                    XCTAssertEqual(result.success, true, "SELECT failed")
-                                                    XCTAssertNil(result.asError)
-                                                    let rows = result.asRows
                                                     XCTAssertNotNil(rows, "SELECT returned no rows")
-                                                    XCTAssertEqual(rows!.count, 3, "Wrong number of rows")
-                                                    expectation.fulfill()
+                                                    XCTAssertEqual(rows.count, 2, "Wrong number of rows")
+
+                                                    let s2 = "SELECT * FROM \"" + t.tableName + "\""
+                                                    connection.prepareStatement(s2) { result in
+                                                        guard let preparedSelect2 = result.asPreparedStatement else {
+                                                            if let error = result.asError {
+                                                                XCTFail("Unable to prepare statement preparedSelect2: \(error.localizedDescription)")
+                                                            }
+                                                            XCTFail("Unable to prepare statement preparedSelect2")
+                                                            expectation.fulfill()
+                                                            return
+                                                        }
+
+                                                        connection.execute(preparedStatement: preparedSelect2) { result in
+                                                            XCTAssertEqual(result.success, true, "SELECT failed")
+                                                            XCTAssertNil(result.asError)
+                                                            result.asRows() { rows, error in
+                                                                guard let rows = rows else {
+                                                                return XCTFail("Query expected to return a row")
+                                                                }
+                                                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                                XCTAssertEqual(rows.count, 3, "Wrong number of rows")
+                                                                expectation.fulfill()
+                                                            }
+                                                        }
+
+                                                    }
                                                 }
                                             }
                                         }
