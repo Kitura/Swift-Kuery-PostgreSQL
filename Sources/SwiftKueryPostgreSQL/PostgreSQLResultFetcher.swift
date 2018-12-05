@@ -105,7 +105,13 @@ public class PostgreSQLResultFetcher: ResultFetcher {
     public func fetchTitles() -> [String] {
         return titles
     }
-    
+
+    /// Indicate no further calls will be made to this ResultFetcher allowing the connection in use to be released.
+    ///
+    public func done() {
+        clearResult(nil, connection: connection)
+    }
+
     private static func convert(_ queryResult: OpaquePointer, row: Int32, column: Int32) -> Any {
         let value = PQgetvalue(queryResult, row, column)
         let count = Int(PQgetlength(queryResult, row, column))
