@@ -35,7 +35,11 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .systemLibrary(
             name: "CLibpq",
-            pkgConfig: "libpq"
+            pkgConfig: "libpq",
+            providers: [
+                .brew(["postgresql"]),
+                .apt(["libpq-dev"])
+            ]
         ),
         .target(
             name: "SwiftKueryPostgreSQL",
