@@ -260,6 +260,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
         }
         resultFetcher.titles = columnNames
         resultFetcher.row = resultFetcher.buildRow(queryResult: queryResult)
+        callback(resultFetcher)
     }
 }
 

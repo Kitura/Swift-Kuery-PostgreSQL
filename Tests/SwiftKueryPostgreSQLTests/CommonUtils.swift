@@ -133,10 +133,13 @@ private func printResultAndGetRowsAsArray(_ result: QueryResult, callback: @esca
         }
     } else if let value = result.asValue  {
         print("Result: ", value)
+        callback(result, nil)
     } else if result.success  {
         print("Success")
+        callback(result, nil)
     } else if let queryError = result.asError {
         print("Error in query: ", queryError)
+        callback(result, nil)
     }
 }
 

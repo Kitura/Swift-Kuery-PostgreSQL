@@ -139,6 +139,7 @@ class TestInsert: XCTestCase {
                                                             XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
                                                             XCTAssertNotNil(result.asResultSet, "INSERT returned no rows")
                                                             XCTAssertNotNil(rows, "INSERT returned no rows")
+                                                            let resultSet = result.asResultSet!
                                                             XCTAssertEqual(rows!.count, 3, "INSERT returned wrong number of rows: \(rows!.count) instead of 3")
                                                             resultSet.getColumnTitles() { titles, error in
                                                                 guard let titles = titles else {
