@@ -443,7 +443,8 @@ class TestSelect: XCTestCase {
                                     if let resultSet = result2.asResultSet {
                                         resultSet.forEach() { row, error in
                                             guard let row = row else {
-                                                return XCTFail("Query expected to return rows")
+                                                // A nil row indicates the end of the operation
+                                                return expectation.fulfill()
                                             }
                                             if let b = row[1] as? Int32 {
                                                 XCTAssertTrue(b < 0, "Bad result for SELECT")
@@ -453,7 +454,6 @@ class TestSelect: XCTestCase {
 
                                         }
                                     }
-                                    expectation.fulfill()
                                 }
                             }
                         }
