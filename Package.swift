@@ -29,7 +29,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/IBM-Swift/CLibpq.git", .upToNextMinor(from: "0.1.0")),
-        .package(url: "https://github.com/IBM-Swift/Swift-Kuery.git", .upToNextMinor(from:"1.3.0")),
+        .package(url: "https://github.com/IBM-Swift/Swift-Kuery.git", .revision("d1f891a76766e63442a9b8b68541e2c9ccc7db21")),
         ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
