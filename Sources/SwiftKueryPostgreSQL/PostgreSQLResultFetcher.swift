@@ -251,6 +251,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
     // Reference date in Postgres is 2000-01-01, while in Swift it is 2001-01-01. There were 366 days in the year 2000.
     private static let timeIntervalBetween1970AndPostgresReferenceDate = Date.timeIntervalBetween1970AndReferenceDate - TimeInterval(366 * secondsInDay)
 
+    // Static factory method to create an instance of PostgreSQLQueryBuilder
     internal static func create(queryResult: OpaquePointer, connection: PostgreSQLConnection, callback: (PostgreSQLResultFetcher) ->()) {
         let resultFetcher = PostgreSQLResultFetcher(connection: connection)
         let columns = PQnfields(queryResult)
