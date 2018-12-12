@@ -65,9 +65,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
     ///
     /// - Parameter callback: A closure that accepts a tuple containing an optional array of column titles of type String and an optional Error
     public func fetchTitles(callback: @escaping (([String]?, Error?)) -> ()) {
-        DispatchQueue.global().async {
-            callback((self.titles, nil))
-        }
+        callback((self.titles, nil))
     }
     
     private func buildRow(queryResult: OpaquePointer) -> [Any?] {
