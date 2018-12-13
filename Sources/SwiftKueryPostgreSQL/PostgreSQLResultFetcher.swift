@@ -250,6 +250,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
     private static let timeIntervalBetween1970AndPostgresReferenceDate = Date.timeIntervalBetween1970AndReferenceDate - TimeInterval(366 * secondsInDay)
 
     // Static factory method to create an instance of PostgreSQLQueryBuilder
+    // This exists to allow the column names from the returned result to be retrieved while we have access to a result set as part of an asynchronous callback chain.
     internal static func create(queryResult: OpaquePointer, connection: PostgreSQLConnection, callback: (PostgreSQLResultFetcher) ->()) {
         let resultFetcher = PostgreSQLResultFetcher(connection: connection)
         let columns = PQnfields(queryResult)
