@@ -18,62 +18,54 @@ import SwiftKuery
 import CLibpq
 
 import Foundation
+import Dispatch
 
 // MARK: PostgreSQLResultFetcher
 
 /// An implementation of query result fetcher.
 public class PostgreSQLResultFetcher: ResultFetcher {
-    private let titles: [String]
+
+    private var titles: [String]?
     private var row: [Any?]?
+
     private var connection: PostgreSQLConnection
-    var hasMoreRows = true
     
-    init(queryResult: OpaquePointer, connection: PostgreSQLConnection) {
+    private init(connection: PostgreSQLConnection) {
         self.connection = connection
-        
-        let columns = PQnfields(queryResult)
-        var columnNames = [String]()
-        for column in 0 ..< columns {
-            columnNames.append(String(validatingUTF8: PQfname(queryResult, column))!)
-        }
-        titles = columnNames
-        row = buildRow(queryResult: queryResult)
     }
-    
-    /// Fetch the next row of the query result. This function is blocking.
+
+    /// Fetch the next row of the query result. This function is non-blocking.
     ///
-    /// - Returns: An array of values of type Any? representing the next row from the query result.
-    public func fetchNext() -> [Any?]? {
+    /// - Parameter callback: A closure that accepts a tuple containing an optional array of values of type Any? representing the next row from the query result and an optional Error.
+    public func fetchNext(callback: @escaping (([Any?]?, Error?)) -> ()) {
         if let row = row {
             self.row = nil
-            return row
+            return callback((row, nil))
         }
-        
-        if !hasMoreRows {
-            return nil
-        }
-        
         guard let queryResult = PQgetResult(connection.connection) else {
             // We are not supposed to get here, because we clear the result if we get PGRES_TUPLES_OK.
-            hasMoreRows = false
-            return nil
+            return callback((nil, QueryError.noResult("Unexpected execution path")))
         }
-        
-        let status = PQresultStatus(queryResult)
-        if status == PGRES_TUPLES_OK {
-            // The end of the query results.
-            clearResult(queryResult, connection: connection)
-            hasMoreRows = false
-            return nil
+        DispatchQueue.global().async {
+            let status = PQresultStatus(queryResult)
+            if status == PGRES_TUPLES_OK {
+                // The end of the query results.
+                clearResult(queryResult, connection: self.connection)
+                return callback((nil, nil))
+            }
+            if status != PGRES_SINGLE_TUPLE {
+                clearResult(queryResult, connection: self.connection)
+                return callback((nil, QueryError.noResult("Error retrieving result from database")))
+            }
+            return callback((self.buildRow(queryResult: queryResult), nil))
         }
-        if status != PGRES_SINGLE_TUPLE {
-            clearResult(queryResult, connection: connection)
-            hasMoreRows = false
-            return nil
-        }
-        
-        hasMoreRows = true
-        return buildRow(queryResult: queryResult)
+    }
+
+    /// Fetch the titles of the query result. This function is non-blocking.
+    ///
+    /// - Parameter callback: A closure that accepts a tuple containing an optional array of column titles of type String and an optional Error
+    public func fetchTitles(callback: @escaping (([String]?, Error?)) -> ()) {
+        callback((self.titles, nil))
     }
     
     private func buildRow(queryResult: OpaquePointer) -> [Any?] {
@@ -89,21 +81,6 @@ public class PostgreSQLResultFetcher: ResultFetcher {
         }
         PQclear(queryResult)
         return row
-    }
-    
-    /// Fetch the next row of the query result. This function is non-blocking.
-    ///
-    /// - Parameter callback: A callback to call when the next row of the query result is ready.
-    public func fetchNext(callback: ([Any?]?) ->()) {
-        // For now
-        callback(fetchNext())
-    }
-    
-    /// Fetch the titles of the query result. This function is blocking.
-    ///
-    /// - Returns: An array of column titles of type String.
-    public func fetchTitles() -> [String] {
-        return titles
     }
 
     /// Indicate no further calls will be made to this ResultFetcher allowing the connection in use to be released.
@@ -271,6 +248,20 @@ public class PostgreSQLResultFetcher: ResultFetcher {
     private static let secondsInDay: Int32 = 24 * 60 * 60
     // Reference date in Postgres is 2000-01-01, while in Swift it is 2001-01-01. There were 366 days in the year 2000.
     private static let timeIntervalBetween1970AndPostgresReferenceDate = Date.timeIntervalBetween1970AndReferenceDate - TimeInterval(366 * secondsInDay)
+
+    // Static factory method to create an instance of PostgreSQLQueryBuilder
+    // This exists to allow the column names from the returned result to be retrieved while we have access to a result set as part of an asynchronous callback chain.
+    internal static func create(queryResult: OpaquePointer, connection: PostgreSQLConnection, callback: (PostgreSQLResultFetcher) ->()) {
+        let resultFetcher = PostgreSQLResultFetcher(connection: connection)
+        let columns = PQnfields(queryResult)
+        var columnNames = [String]()
+        for column in 0 ..< columns {
+            columnNames.append(String(validatingUTF8: PQfname(queryResult, column))!)
+        }
+        resultFetcher.titles = columnNames
+        resultFetcher.row = resultFetcher.buildRow(queryResult: queryResult)
+        callback(resultFetcher)
+    }
 }
 
 extension String {
