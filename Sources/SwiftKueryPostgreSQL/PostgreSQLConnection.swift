@@ -452,10 +452,11 @@ public class PostgreSQLConnection: Connection {
             runCompletionHandler(.successNoData, onCompletion: onCompletion)
         }
         else if status == PGRES_SINGLE_TUPLE {
-            let resultFetcher = PostgreSQLResultFetcher(queryResult: result, connection: self)
-            setState(.fetchingResultSet)
-            currentResultFetcher = resultFetcher
-            runCompletionHandler(.resultSet(ResultSet(resultFetcher, connection: self)), onCompletion: onCompletion)
+            PostgreSQLResultFetcher.create(queryResult: result, connection: self) { resultFetcher in
+                self.setState(.fetchingResultSet)
+                self.currentResultFetcher = resultFetcher
+                runCompletionHandler(.resultSet(ResultSet(resultFetcher, connection: self)), onCompletion: onCompletion)
+            }
         }
         else {
             let errorMessage = String(validatingUTF8: PQresultErrorMessage(result)) ?? "Unknown"
@@ -591,7 +592,6 @@ public class PostgreSQLConnection: Connection {
             return "The connection is in the middle of running a query"
 
         case .fetchingResultSet:
-            currentResultFetcher?.hasMoreRows = false
             unlockStateLock()
             clearResult(nil, connection: self)
             lockStateLock()

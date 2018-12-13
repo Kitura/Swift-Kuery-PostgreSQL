@@ -71,7 +71,7 @@ class TestTypes: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-            
+
             pool.getConnection() { connection, error in
                 guard let connection = connection else {
                     XCTFail("Failed to get connection")
@@ -163,7 +163,7 @@ class TestTypes: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-            
+
             pool.getConnection() { connection, error in
                 guard let connection = connection else {
                     XCTFail("Failed to get connection")
@@ -323,7 +323,7 @@ class TestTypes: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-            
+
             pool.getConnection() { connection, error in
                 guard let connection = connection else {
                     XCTFail("Failed to get connection")
@@ -382,7 +382,7 @@ class TestTypes: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-            
+
             pool.getConnection() { connection, error in
                 guard let connection = connection else {
                     XCTFail("Failed to get connection")
@@ -492,7 +492,7 @@ class TestTypes: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-            
+
             pool.getConnection() { connection, error in
                 guard let connection = connection else {
                     XCTFail("Failed to get connection")

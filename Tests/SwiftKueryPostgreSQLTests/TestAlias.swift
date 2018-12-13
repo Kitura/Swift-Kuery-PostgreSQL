@@ -69,27 +69,44 @@ class TestAlias: XCTestCase {
                                 XCTAssertNotNil(rows, "SELECT returned no rows")
                                 let resultSet = result.asResultSet!
                                 XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 6")
-                                XCTAssertEqual(resultSet.titles[1], "number", "Wrong column name: \(resultSet.titles[1]) instead of 'number'")
-                                XCTAssertEqual(resultSet.titles[0], "fruit name", "Wrong column name: \(resultSet.titles[0]) instead of 'fruit name'")
+                                resultSet.getColumnTitles() { titles, error in
+                                    guard let titles = titles else {
+                                    XCTFail("No titles in result set")
+                                    return
+                                    }
+                                    XCTAssertEqual(titles[1], "number", "Wrong column name: \(titles[1]) instead of 'number'")
+                                    XCTAssertEqual(titles[0], "fruit name", "Wrong column name: \(titles[0]) instead of 'fruit name'")
 
-                                let s2 = Select(from: t.as("new"))
-                                executeQuery(query: s2, connection: connection) { result, rows in
-                                    XCTAssertEqual(result.success, true, "SELECT failed")
-                                    XCTAssertNotNil(rows, "SELECT returned no rows")
-                                    let resultSet = result.asResultSet!
-                                    XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 6")
-                                    XCTAssertEqual(resultSet.titles[0], "a", "Wrong column name: \(resultSet.titles[0]) instead of 'a'")
-                                    XCTAssertEqual(resultSet.titles[1], "b", "Wrong column name: \(resultSet.titles[1]) instead of 'b'")
-
-                                    let t2 = t.as("\"t 2\"")
-                                    let s3 = Select(t2.a, from: t2)
-                                    executeQuery(query: s3, connection: connection) { result, rows in
+                                    let s2 = Select(from: t.as("new"))
+                                    executeQuery(query: s2, connection: connection) { result, rows in
                                         XCTAssertEqual(result.success, true, "SELECT failed")
                                         XCTAssertNotNil(rows, "SELECT returned no rows")
                                         let resultSet = result.asResultSet!
                                         XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 6")
-                                        XCTAssertEqual(resultSet.titles[0], "a", "Wrong column name: \(resultSet.titles[0]) instead of 'a'")
-                                        expectation.fulfill()
+                                        resultSet.getColumnTitles() { titles, error in
+                                            guard let titles = titles else {
+                                                XCTFail("No titles in result set")
+                                                return
+                                            }
+                                            XCTAssertEqual(titles[0], "a", "Wrong column name: \(titles[0]) instead of 'a'")
+                                            XCTAssertEqual(titles[1], "b", "Wrong column name: \(titles[1]) instead of 'b'")
+                                            let t2 = t.as("\"t 2\"")
+                                            let s3 = Select(t2.a, from: t2)
+                                            executeQuery(query: s3, connection: connection) { result, rows in
+                                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                let resultSet = result.asResultSet!
+                                                XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 6")
+                                                resultSet.getColumnTitles() { titles, error in
+                                                    guard let titles = titles else {
+                                                        XCTFail("No titles in result set")
+                                                        return
+                                                    }
+                                                    XCTAssertEqual(titles[0], "a", "Wrong column name: \(titles[0]) instead of 'a'")
+                                                    expectation.fulfill()
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
