@@ -85,10 +85,16 @@ Alternatively, call:
 let connection = PostgreSQLConnection(url: URL(string: "Postgres://\(username):\(password)@\(host):\(port)")!))
 ```
 
-To establish a connection call:
+To establish a connection to the database call:
 
 ```swift
-PostgreSQLConnection.connect(onCompletion: (QueryError?) -> ())
+connection.connect() { result in
+    guard let _ = result.success else {
+        // Connection not established, handle error
+        return
+    }
+    // Connection established
+}
 ```
 You now have a connection that can be used to execute SQL queries created using Swift-Kuery.
 
