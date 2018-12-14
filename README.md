@@ -351,34 +351,40 @@ Another possibility is to use `QueryResult.asRows` that returns the result as an
 
 ```swift
 func grades(_ callback: @escaping (String) -> Void) -> Void {
-  connection.connect() { error in
-    if let error = error {
-      callback("Error is \(error)")
-      return
-    }
-    else {
-      let query = Select(grades.course, grades.grade, from: grades)
-      connection.execute(query: query) { result in
-        if let rows = result.asRows {
-            var retString = ""
-            for row in rows {
-                for (title, value) in row {
-                    if let value = value {
-                        retString.append("\(title): \(value) ")
-                    }
-                }
-                retString.append("\n")
+    connection.connect() { result in
+        guard result.success else {
+            guard let error = result.asError else {
+                callback("Error connecting: Unknown Error")
+                return
             }
-            callback("\(retString)")
+            callback("Error connecting: \(error)")
+            return
         }
-        else if let queryError = result.asError {
-          callback("Something went wrong \(queryError)")
+        let query = Select(grades.course, grades.grade, from: grades)
+        connection.execute(query: query) { result in
+            result.asRows() { rows, error in
+                guard let rows = rows else {
+                    guard let error = error else {
+                        callback("Error getting rows: Unknown Error")
+                        return
+                    }
+                    callback("Error getting rows: \(error)")
+                    return
+                }
+                var retString = ""
+                for row in rows {
+                    for (title, value) in row {
+                        if let value = value {
+                            retString.append("\(title): \(value) ")
+                        }
+                    }
+                    retString.append("\n")
+                }
+                callback("\(retString)")
+            }
         }
-      }
     }
-  }
 }
-
 ```
 At <a href="http://localhost:8080">http://localhost:8080</a> you should see:
 
