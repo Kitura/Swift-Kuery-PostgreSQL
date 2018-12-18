@@ -89,7 +89,7 @@ To establish a connection to the database call:
 
 ```swift
 connection.connect() { result in
-    guard let _ = result.success else {
+    guard result.success else {
         // Connection not established, handle error
         return
     }
@@ -234,11 +234,9 @@ func grades(_ callback: @escaping (String) -> Void) -> Void {
     connection.connect() { result in
         guard result.success else {
             guard let error = result.asError else {
-                callback("Error connecting: Unknown Error")
-                return
+                return callback("Error connecting: Unknown Error")
             }
-            callback("Error connecting: \(error)")
-            return
+            return callback("Error connecting: \(error)")
         }
         // Build and execute your query here.
 
@@ -249,21 +247,17 @@ func grades(_ callback: @escaping (String) -> Void) -> Void {
         connection.execute(query: query) { result in
             guard let resultSet = result.asResultSet else {
                 guard let error = result.asError else {
-                    callback("Error executing query: Unknown Error")
-                    return
+                    return callback("Error executing query: Unknown Error")
                 }
-                callback("Error executing query: \(error)")
-                return
+                return callback("Error executing query: \(error)")
             }
             var retString = ""
             resultSet.getColumnTitles() { titles, error in
                 guard let titles = titles else {
                     guard let error = error else {
-                        callback("Error fetching column titles: Unknown Error")
-                        return
+                        return callback("Error fetching column titles: Unknown Error")
                     }
-                    callback("Error fetching column titles: \(error)")
-                    return
+                    return callback("Error fetching column titles: \(error)")
                 }
                 for title in titles {
                     //The column names of the result.
@@ -275,12 +269,10 @@ func grades(_ callback: @escaping (String) -> Void) -> Void {
                     guard let row = row else {
                         // A null row means we have run out of results unless we encountered an error
                         if let error = error {
-                            callback("Error fetching row: \(error)")
-                            return
+                            return callback("Error fetching row: \(error)")
                         }
                         // No error so all rows are processed, make final callback passing result.
-                        callback(retString)
-                        return
+                        return callback(retString)
                     }
                     for value in row {
                         if let value = value {
@@ -354,22 +346,18 @@ func grades(_ callback: @escaping (String) -> Void) -> Void {
     connection.connect() { result in
         guard result.success else {
             guard let error = result.asError else {
-                callback("Error connecting: Unknown Error")
-                return
+                return callback("Error connecting: Unknown Error")
             }
-            callback("Error connecting: \(error)")
-            return
+            return callback("Error connecting: \(error)")
         }
         let query = Select(grades.course, grades.grade, from: grades)
         connection.execute(query: query) { result in
             result.asRows() { rows, error in
                 guard let rows = rows else {
                     guard let error = error else {
-                        callback("Error getting rows: Unknown Error")
-                        return
+                        return callback("Error getting rows: Unknown Error")
                     }
-                    callback("Error getting rows: \(error)")
-                    return
+                    return callback("Error getting rows: \(error)")
                 }
                 var retString = ""
                 for row in rows {
@@ -380,7 +368,7 @@ func grades(_ callback: @escaping (String) -> Void) -> Void {
                     }
                     retString.append("\n")
                 }
-                callback("\(retString)")
+                return callback("\(retString)")
             }
         }
     }
