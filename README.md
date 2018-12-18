@@ -368,7 +368,7 @@ func grades(_ callback: @escaping (String) -> Void) -> Void {
                     }
                     retString.append("\n")
                 }
-                return callback("\(retString)")
+                return callback(retString)
             }
         }
     }
