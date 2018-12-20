@@ -31,10 +31,10 @@ class TestSchema: XCTestCase {
     static var allTests: [(String, (TestSchema) -> () throws -> Void)] {
         return [
             ("testCreateTable", testCreateTable),
-//            ("testForeignKeys", testForeignKeys),
-//            ("testPrimaryKeys", testPrimaryKeys),
-//            ("testTypes", testTypes),
-//            ("testAutoIncrement", testAutoIncrement),
+            ("testForeignKeys", testForeignKeys),
+            ("testPrimaryKeys", testPrimaryKeys),
+            ("testTypes", testTypes),
+            ("testAutoIncrement", testAutoIncrement),
         ]
     }
     
