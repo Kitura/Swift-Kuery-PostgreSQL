@@ -347,12 +347,11 @@ public class PostgreSQLConnection: Connection {
         // Remove entry from the preparedStatements set
         preparedStatements.remove(statement.name)
         var result:QueryResult?
-        self.execute("DEALLOCATE \(statement.name)") { (dealloc_result:QueryResult) in
+        self.execute("DEALLOCATE '\(statement.name)'") { (dealloc_result:QueryResult) in
             if let _ = dealloc_result.asError {
                 result = dealloc_result
             }
         }
-        // No need to deallocate prepared statements in PostgreSQL.
         onCompletion(result ?? .successNoData)
     }
 
