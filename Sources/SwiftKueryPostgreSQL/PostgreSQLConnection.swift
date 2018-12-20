@@ -194,6 +194,7 @@ public class PostgreSQLConnection: Connection {
     /// Close the connection to the database.
     public func closeConnection() {
         if let connection = connection {
+            
             PQfinish(connection)
             self.connection = nil
         }
@@ -345,8 +346,14 @@ public class PostgreSQLConnection: Connection {
         }
         // Remove entry from the preparedStatements set
         preparedStatements.remove(statement.name)
+        var result:QueryResult?
+        self.execute("DEALLOCATE \(statement.name)") { (dealloc_result:QueryResult) in
+            if let _ = dealloc_result.asError {
+                result = dealloc_result
+            }
+        }
         // No need to deallocate prepared statements in PostgreSQL.
-        onCompletion(.successNoData)
+        onCompletion(result ?? .successNoData)
     }
 
     private func execute(query: String?, preparedStatement: PreparedStatement?, with parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
