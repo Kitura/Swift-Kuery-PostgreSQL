@@ -362,8 +362,8 @@ public class PostgreSQLConnection: Connection {
             if let _ = dealloc_result.asError {
                 result = dealloc_result
             }
+            return self.runCompletionHandler(result ?? .successNoData, onCompletion: onCompletion)
         }
-        return runCompletionHandler(result ?? .successNoData, onCompletion: onCompletion)
     }
 
     private func execute(query: String?, preparedStatement: PreparedStatement?, with parameters: [Any?], onCompletion: @escaping ((QueryResult) -> ())) {
