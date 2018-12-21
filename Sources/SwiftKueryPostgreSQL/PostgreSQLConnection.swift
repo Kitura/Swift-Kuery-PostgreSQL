@@ -208,8 +208,14 @@ public class PostgreSQLConnection: Connection {
     
     /// Close the connection to the database.
     public func closeConnection() {
-        PQfinish(connection)
-        connection = nil
+        if let connection = self.connection {
+            PQfinish(connection)
+            self.connection = nil
+        }
+    }
+
+    deinit {
+        closeConnection()
     }
 
     /// Execute a query with parameters.
