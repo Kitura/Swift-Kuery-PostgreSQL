@@ -417,7 +417,7 @@ public class PostgreSQLConnection: Connection {
                 if let parameter = parameter {
                     let parameterString = String(describing: parameter)
                     let count = parameterString.lengthOfBytes(using: .utf8) + 1
-                    // Convert the string value to UTF8 string, we cannot relay on UnsafeRawPointer(String) to return a UTF8 string that is null terminated like in the previous implementation.
+                    // Convert the string value to a UTF8 string, we cannot rely on UnsafeRawPointer(String) to return a UTF8 string that is null terminated so explicitly terminate it.
                     guard let parameterUTF8_data = parameterString.data(using: .utf8) else {
                         return onCompletion(.error(QueryError.syntaxError("Could not convert parameter to UTF8 string")))
                     }
