@@ -403,16 +403,34 @@ public class PostgreSQLConnection: Connection {
                 return
             }
 
-            var parameterPointers = [UnsafeMutablePointer<Int8>?]()
+            var parameterPointers = [UnsafeMutablePointer<UInt8>?]()
             var parameterData = [UnsafePointer<Int8>?]()
+
+            // Reserve capacity of pointers, otherwise it may cause performance issues
+            if parameters.count > 0 {
+                parameterPointers.reserveCapacity(parameters.count)
+                parameterData.reserveCapacity(parameters.count)
+            }
+
             // At the moment we only create string parameters. Binary parameters should be added.
             for parameter in parameters {
                 if let parameter = parameter {
                     let parameterString = String(describing: parameter)
                     let count = parameterString.lengthOfBytes(using: .utf8) + 1
-                    parameterPointers.append(UnsafeMutablePointer<Int8>.allocate(capacity: Int(count)))
-                    memcpy(parameterPointers[parameterPointers.count-1]!, UnsafeRawPointer(parameterString), count)
-                    parameterData.append(parameterPointers.last!)
+                    // Convert the string value to a UTF8 string, we cannot rely on UnsafeRawPointer(String) to return a UTF8 string that is null terminated so explicitly terminate it.
+                    guard let parameterUTF8_data = parameterString.data(using: .utf8) else {
+                        return onCompletion(.error(QueryError.syntaxError("Could not convert parameter to UTF8 string")))
+                    }
+                    // Allocate memory
+                    let parameter_pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: count)
+                    parameterUTF8_data.copyBytes(to: parameter_pointer, count: count-1)
+                    // Force null termination of C UTF8 string
+                    parameter_pointer[count-1] = 0
+                    // parameterPointers will be used later to free memory
+                    parameterPointers.append(parameter_pointer)
+                    parameter_pointer.withMemoryRebound(to: Int8.self, capacity: count) { parameter_pointer in
+                        parameterData.append(parameter_pointer)
+                    }
                 }
                 else {
                     parameterData.append(nil)
