@@ -403,58 +403,19 @@ public class PostgreSQLConnection: Connection {
                 return
             }
 
-            var parameterPointers = [UnsafeMutablePointer<UInt8>?]()
-            var parameterData = [UnsafePointer<Int8>?]()
-
-            // Reserve capacity of pointers, otherwise it may cause performance issues
-            if parameters.count > 0 {
-                parameterPointers.reserveCapacity(parameters.count)
-                parameterData.reserveCapacity(parameters.count)
-            }
-
-            // At the moment we only create string parameters. Binary parameters should be added.
-            for parameter in parameters {
-                if let parameter = parameter {
-                    let parameterString = String(describing: parameter)
-                    let count = parameterString.lengthOfBytes(using: .utf8) + 1
-                    // Convert the string value to a UTF8 string, we cannot rely on UnsafeRawPointer(String) to return a UTF8 string that is null terminated so explicitly terminate it.
-                    guard let parameterUTF8_data = parameterString.data(using: .utf8) else {
-                        return onCompletion(.error(QueryError.syntaxError("Could not convert parameter to UTF8 string")))
-                    }
-                    // Allocate memory
-                    let parameter_pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: count)
-                    parameterUTF8_data.copyBytes(to: parameter_pointer, count: count-1)
-                    // Force null termination of C UTF8 string
-                    parameter_pointer[count-1] = 0
-                    // parameterPointers will be used later to free memory
-                    parameterPointers.append(parameter_pointer)
-                    parameter_pointer.withMemoryRebound(to: Int8.self, capacity: count) { parameter_pointer in
-                        parameterData.append(parameter_pointer)
-                    }
-                }
-                else {
-                    parameterData.append(nil)
-                }
-            }
-
-            // Ensure pointers are freed upon exiting this closure
-            defer {
-                for pointer in parameterPointers {
-                    free(pointer)
-                }
-            }
-
+            let parameterSet = PostgreSQLParameterSet(parameters: parameters)
             if let query = query {
-                _ = parameterData.withUnsafeBufferPointer { buffer in
-                    PQsendQueryParams(connection, query, Int32(parameters.count), nil, buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
+                parameterSet.withUnsafeBufferPointers {
+                    PQsendQueryParams(connection, query, Int32(parameters.count), nil, $0.values, $0.lengths, $0.formats, 1)
                 }
             } else {
                 guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
                     // We should never get here as the prepared statement parameter has already been validated as a PostgreSQLPreparedStatement
                     return assertionFailure("Unexpected invalid pepared statement")
                 }
-                _ = parameterData.withUnsafeBufferPointer { buffer in
-                    PQsendQueryPrepared(connection, statement.name, Int32(parameters.count), buffer.isEmpty ? nil : buffer.baseAddress, nil, nil, 1)
+
+                parameterSet.withUnsafeBufferPointers {
+                    PQsendQueryPrepared(connection, statement.name, Int32(parameters.count), $0.values, $0.lengths, $0.formats, 1)
                 }
             }
 
@@ -579,8 +540,9 @@ public class PostgreSQLConnection: Connection {
     }
 
     private func buildQuery(_ query: Query) throws  -> String {
+        // NOTE: The following call into SwiftKuery does not pack binary types
+        // properly - it still uses String(describing:) instead of yielding a Data object.
         var postgresQuery = try query.build(queryBuilder: queryBuilder)
-
         if let insertQuery = query as? Insert, insertQuery.returnID {
             let columns = insertQuery.table.columns.filter { $0.isPrimaryKey && $0.autoIncrement }
 

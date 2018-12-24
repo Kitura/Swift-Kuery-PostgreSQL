@@ -23,10 +23,12 @@ import SwiftKuery
 let tableParameters = "tableParametersLinux"
 let tableNamedParameters = "tableNamedParametersLinux"
 let tablePreparedStatements = "tablePreparedStatementsLinux"
+let tablePreparedStatementsBinary = "tablePreparedStatementsBinaryLinux"
 #else
 let tableParameters = "tableParametersOSX"
 let tableNamedParameters = "tableNamedParametersOSX"
 let tablePreparedStatements = "tablePreparedStatementsOSX"
+let tablePreparedStatementsBinary = "tablePreparedStatementsBinaryOSX"
 #endif
 
 class TestParameters: XCTestCase {
@@ -45,7 +47,89 @@ class TestParameters: XCTestCase {
         
         let tableName = tableParameters
     }
-    
+
+    func testBinaryParameter() {
+        let t = MyTable()
+
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
+        performTest(asyncTasks: { expectation in
+
+            pool.getConnection() { connection, error in
+                guard let connection = connection else {
+                    XCTFail("Failed to get connection")
+                    return
+                }
+
+                let dataBlob1 = "1234567890".data(using: .ascii)!
+                let dataBlob2 = "0987654321".data(using: .ascii)!
+                let dataBlob3 = "nhkqn\0eofejoijflqkjfoidsflsk".data(using: .ascii)!
+
+                cleanUp(table: t.tableName, connection: connection) { result in
+
+                    executeRawQuery("CREATE TABLE \"" +  t.tableName + "\" (a varchar(40), b bytea)", connection: connection) { result, rows in
+                        XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+
+                        let i1 = Insert(into: t, rows: [["apricot", Parameter()], [Parameter(), Parameter()]])
+                        executeQueryWithParameters(query: i1, connection: connection, parameters: dataBlob1, "banana", dataBlob2) { result, rows in
+                            XCTAssertEqual(result.success, true, "INSERT failed")
+                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+
+                            let s1 = Select(from: t)
+                            executeQuery(query: s1, connection: connection) { result, rows in
+                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
+                                XCTAssertEqual(rows![0][0]! as! String, "apricot", "Wrong value in row 0 column 0")
+                                XCTAssertEqual(rows![0][1]! as! Data, dataBlob1, "Wrong value in row 0 column 1")
+
+                                XCTAssertEqual(rows![1][0]! as! String, "banana", "Wrong value in row 1 column 0")
+                                XCTAssertEqual(rows![1][1]! as! Data, dataBlob2, "Wrong value in row 1 column 1")
+
+                                let u1 = Update(t, set: [(t.a, Parameter()), (t.b, Parameter())], where: t.a == "banana")
+                                executeQueryWithParameters(query: u1, connection: connection, parameters: "peach", dataBlob3) { result, rows in
+                                    XCTAssertEqual(result.success, true, "UPDATE failed")
+                                    XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")
+
+                                    executeQuery(query: s1, connection: connection) { result, rows in
+                                        XCTAssertEqual(result.success, true, "SELECT failed")
+                                        XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                        XCTAssertNotNil(rows, "SELECT returned no rows")
+                                        XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
+                                        XCTAssertEqual(rows![1][0]! as! String, "peach", "Wrong value in row 1 column 0")
+                                        XCTAssertEqual(rows![1][1]! as! Data, dataBlob3, "Wrong value in row 1 column 1")
+
+                                        let raw = "UPDATE \"" + t.tableName + "\" SET a = 'banana', b = $1 WHERE a = $2"
+                                        executeRawQueryWithParameters(raw, connection: connection, parameters: Data(), "peach") { result, rows in
+                                            XCTAssertEqual(result.success, true, "UPDATE failed")
+                                            XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")
+
+                                            executeQuery(query: s1, connection: connection) { result, rows in
+                                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
+                                                XCTAssertEqual(rows![1][0]! as! String, "banana", "Wrong value in row 1 column 0")
+                                                XCTAssertEqual(rows![1][1]! as! Data, Data(), "Wrong value in row 1 column 1")
+
+                                                let s2 = Select(from: t).where(t.a != Parameter())
+                                                executeQueryWithParameters(query: s2, connection: connection, parameters: nil) { result, rows in
+                                                    XCTAssertEqual(result.success, true, "SELECT failed")
+                                                    expectation.fulfill()
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
+
     func testParameters() {
         let t = MyTable()
         
@@ -142,6 +226,7 @@ class TestParameters: XCTestCase {
                     XCTFail("Failed to get connection")
                     return
                 }
+
                 cleanUp(table: t.tableName, connection: connection) { result in
 
                     executeRawQuery("CREATE TABLE \"" +  t.tableName + "\" (a varchar(40), b integer)", connection: connection) { result, rows in
@@ -303,6 +388,134 @@ class TestParameters: XCTestCase {
                                                                 result.asRows() { rows, error in
                                                                     guard let rows = rows else {
                                                                     return XCTFail("Query expected to return a row")
+                                                                    }
+                                                                    XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                                    XCTAssertEqual(rows.count, 3, "Wrong number of rows")
+                                                                    connection.release(preparedStatement: preparedSelect2) { result in
+                                                                        if let error = result.asError {
+                                                                            XCTFail("Error releasing prepared statement: \(error)")
+                                                                        }
+                                                                        XCTAssertEqual(result.success, true, "Expected a successNoData result but was: \(result)")
+                                                                        expectation.fulfill()
+                                                                    }
+                                                                }
+                                                            }
+
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+
+
+    class PreparedTableWithBinary: Table {
+        let a = Column("a", Varchar.self, length: 40)
+        let b = Column("b", ByteA.self)
+
+        let tableName = tablePreparedStatementsBinary
+    }
+
+    func testPreparedStatementsWithBinaryParameters() {
+        let t = PreparedTableWithBinary()
+
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
+        performTest(asyncTasks: { expectation in
+
+            pool.getConnection() { connection, error in
+                guard let connection = connection else {
+                    XCTFail("Failed to get connection")
+                    return
+                }
+
+                let dataBlob1 = "1234567890".data(using: .ascii)!
+                let dataBlob2 = "0987654321".data(using: .ascii)!
+                let dataBlob3 = "nhkqn\0eofejoijflqkjfoidsflsk".data(using: .ascii)!
+
+                cleanUp(table: t.tableName, connection: connection) { result in
+
+                    t.create(connection: connection) { result in
+                        XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                        XCTAssertNil(result.asError)
+
+                        // NOTE: Use of binary convertible parameters in Insert queries does not work because of the String-only behavior of `SwiftKuery.Utils.packType()` -- this will be addressed in subsequent work.
+                        //       At the moment, the function `executeQuery(query:, connection:, parameters:` must be used in order to leverage binary parameters.
+
+                        let i1 = Insert(into: t, rows: [[Parameter(), Parameter()], ["banana", Parameter()], [Parameter(), Parameter()]])
+                        connection.prepareStatement(i1) { result in
+                            guard let preparedInsert = result.asPreparedStatement else {
+                                if let error = result.asError {
+                                    XCTFail("Unable to prepare statement preparedInsert: \(error.localizedDescription)")
+                                }
+                                XCTFail("Unable to prepare statement preparedInsert")
+                                expectation.fulfill()
+                                return
+                            }
+                            connection.execute(preparedStatement: preparedInsert, parameters: ["apple", dataBlob3, dataBlob1, "banana", dataBlob2]) { result in
+                                XCTAssertEqual(result.success, true, "INSERT failed")
+                                XCTAssertNil(result.asError)
+
+                                let s1 = Select(from: t).where(t.a == Parameter())
+                                connection.prepareStatement(s1) { result in
+                                    guard let preparedSelect = result.asPreparedStatement else {
+                                        if let error = result.asError {
+                                            XCTFail("Unable to prepare statement preparedSelect: \(error.localizedDescription)")
+                                        }
+                                        XCTFail("Unable to prepare statement preparedSelect")
+                                        expectation.fulfill()
+                                        return
+                                    }
+                                    connection.execute(preparedStatement: preparedSelect, parameters: ["apple"]) { result in
+                                        XCTAssertEqual(result.success, true, "SELECT failed")
+                                        XCTAssertNil(result.asError)
+                                        result.asRows() { rows, error in
+                                            guard let rows = rows else {
+                                                return XCTFail("Query expected to return a row")
+                                            }
+                                            XCTAssertNotNil(rows, "SELECT returned no rows")
+                                            XCTAssertEqual(rows.count, 1, "Wrong number of rows")
+
+                                            connection.execute(preparedStatement: preparedSelect, parameters: ["banana"]) { result in
+                                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                                XCTAssertNil(result.asError)
+                                                result.asRows() { rows, error in
+                                                    guard let rows = rows else {
+                                                        return XCTFail("Query expected to return a row")
+                                                    }
+                                                    XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                    XCTAssertEqual(rows.count, 2, "Wrong number of rows")
+
+                                                    connection.release(preparedStatement: preparedSelect) { result in
+                                                        if let error = result.asError {
+                                                            XCTFail("Error releasing prepared statement: \(error)")
+                                                        }
+                                                        XCTAssertEqual(result.success, true, "Expected a successNoData result but was: \(result)")
+                                                        let s2 = "SELECT * FROM \"" + t.tableName + "\""
+                                                        connection.prepareStatement(s2) { result in
+                                                            guard let preparedSelect2 = result.asPreparedStatement else {
+                                                                if let error = result.asError {
+                                                                    XCTFail("Unable to prepare statement preparedSelect2: \(error.localizedDescription)")
+                                                                }
+                                                                XCTFail("Unable to prepare statement preparedSelect2")
+                                                                expectation.fulfill()
+                                                                return
+                                                            }
+
+                                                            connection.execute(preparedStatement: preparedSelect2) { result in
+                                                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                                                XCTAssertNil(result.asError)
+                                                                result.asRows() { rows, error in
+                                                                    guard let rows = rows else {
+                                                                        return XCTFail("Query expected to return a row")
                                                                     }
                                                                     XCTAssertNotNil(rows, "SELECT returned no rows")
                                                                     XCTAssertEqual(rows.count, 3, "Wrong number of rows")
