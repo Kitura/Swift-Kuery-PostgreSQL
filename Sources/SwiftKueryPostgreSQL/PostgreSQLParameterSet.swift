@@ -19,11 +19,11 @@ internal struct PostgreSQLParameterSet {
     /// Perform a block, yielding raw pointers to the parameters of this object.
     ///
     /// - Parameter body: A block which is called synchronously by this function.
-    internal func withUnsafeBufferPointers(_ body: (UnsafePointers) -> Void) {
+    internal func withUnsafeBufferPointers(_ body: @escaping (UnsafePointers) -> Void) {
         let (values, lengths, formats) = parameterData()
-        defer { values.forEach { $0?.deallocate() } }
+        defer { values.forEach({ free($0) }) }
 
-        values.withUnsafeBufferPointer { valuesBuffer in
+        values.map({ UnsafePointer($0) }).withUnsafeBufferPointer { valuesBuffer in
             lengths.withUnsafeBufferPointer { lengthsBuffer in
                 formats.withUnsafeBufferPointer { formatsBuffer in
                     let pointers = UnsafePointers(
@@ -39,8 +39,8 @@ internal struct PostgreSQLParameterSet {
     }
 
     /// Helper function returning formatted data useful for Postgres API function calls.
-    private func parameterData() -> ([UnsafePointer<Int8>?], [Int32], [Int32]) {
-        var values = [UnsafePointer<Int8>?]()
+    private func parameterData() -> ([UnsafeMutablePointer<Int8>?], [Int32], [Int32]) {
+        var values = [UnsafeMutablePointer<Int8>?]()
         var lengths = [Int32]()
         var formats = [Int32]()
 
