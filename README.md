@@ -85,10 +85,16 @@ Alternatively, call:
 let connection = PostgreSQLConnection(url: URL(string: "Postgres://\(username):\(password)@\(host):\(port)/\(databaseName)")!)
 ```
 
-To establish a connection call:
+To establish a connection to the database call:
 
 ```swift
-connection.connect(onCompletion: (QueryError?) -> ())
+connection.connect() { result in
+    guard result.success else {
+        // Connection not established, handle error
+        return
+    }
+    // Connection established
+}
 ```
 You now have a connection that can be used to execute SQL queries created using Swift-Kuery.
 
@@ -225,45 +231,60 @@ let grades = Grades()
 let connection = PostgreSQLConnection(host: "localhost", port: 5432, options: [.databaseName("school")])
 
 func grades(_ callback: @escaping (String) -> Void) -> Void {
-  connection.connect() { error in
-    if let error = error {
-      callback("Error is \(error)")
-      return
-    }
-    else {
-      // Build and execute your query here.
-
-      // First build query
-      let query = Select(grades.course, grades.grade, from: grades)
-
-      connection.execute(query: query) { result in
-        if let resultSet = result.asResultSet {
-          var retString = ""
-
-          for title in resultSet.titles {
-            // The column names of the result.
-            retString.append("\(title.padding(toLength: 35, withPad: " ", startingAt: 0))")
-          }
-          retString.append("\n")
-
-          for row in resultSet.rows {
-            for value in row {
-              if let value = value {
-                 let valueString = String(describing: value)
-                 retString.append("\(valueString.padding(toLength: 35, withPad: " ", startingAt: 0))")
-              }
+    connection.connect() { result in
+        guard result.success else {
+            guard let error = result.asError else {
+                return callback("Error connecting: Unknown Error")
             }
-            retString.append("\n")
-          }
-          callback(retString)
+            return callback("Error connecting: \(error)")
         }
-        else if let queryError = result.asError {
-          // Something went wrong.
-          callback("Something went wrong \(queryError)")
+        // Build and execute your query here.
+
+        // First build query
+        let query = Select(grades.course, grades.grade, from: grades)
+
+        // Execute query
+        connection.execute(query: query) { result in
+            guard let resultSet = result.asResultSet else {
+                guard let error = result.asError else {
+                    return callback("Error executing query: Unknown Error")
+                }
+                return callback("Error executing query: \(error)")
+            }
+            var retString = ""
+            resultSet.getColumnTitles() { titles, error in
+                guard let titles = titles else {
+                    guard let error = error else {
+                        return callback("Error fetching column titles: Unknown Error")
+                    }
+                    return callback("Error fetching column titles: \(error)")
+                }
+                for title in titles {
+                    //The column names of the result.
+                    retString.append("\(title.padding(toLength: 35, withPad: " ", startingAt: 0))")
+                }
+                retString.append("\n")
+
+                resultSet.forEach() { row, error in
+                    guard let row = row else {
+                        // A null row means we have run out of results unless we encountered an error
+                        if let error = error {
+                            return callback("Error fetching row: \(error)")
+                        }
+                        // No error so all rows are processed, make final callback passing result.
+                        return callback(retString)
+                    }
+                    for value in row {
+                        if let value = value {
+                            let valueString = String(describing: value)
+                            retString.append("\(valueString.padding(toLength: 35, withPad: " ", startingAt: 0))")
+                        }
+                    }
+                    retString.append("\n")
+                }
+            }
         }
-      }
     }
-  }
 }
 
 router.get("/") {
@@ -322,34 +343,36 @@ Another possibility is to use `QueryResult.asRows` that returns the result as an
 
 ```swift
 func grades(_ callback: @escaping (String) -> Void) -> Void {
-  connection.connect() { error in
-    if let error = error {
-      callback("Error is \(error)")
-      return
-    }
-    else {
-      let query = Select(grades.course, grades.grade, from: grades)
-      connection.execute(query: query) { result in
-        if let rows = result.asRows {
-            var retString = ""
-            for row in rows {
-                for (title, value) in row {
-                    if let value = value {
-                        retString.append("\(title): \(value) ")
-                    }
-                }
-                retString.append("\n")
+    connection.connect() { result in
+        guard result.success else {
+            guard let error = result.asError else {
+                return callback("Error connecting: Unknown Error")
             }
-            callback("\(retString)")
+            return callback("Error connecting: \(error)")
         }
-        else if let queryError = result.asError {
-          callback("Something went wrong \(queryError)")
+        let query = Select(grades.course, grades.grade, from: grades)
+        connection.execute(query: query) { result in
+            result.asRows() { rows, error in
+                guard let rows = rows else {
+                    guard let error = error else {
+                        return callback("Error getting rows: Unknown Error")
+                    }
+                    return callback("Error getting rows: \(error)")
+                }
+                var retString = ""
+                for row in rows {
+                    for (title, value) in row {
+                        if let value = value {
+                            retString.append("\(title): \(value) ")
+                        }
+                    }
+                    retString.append("\n")
+                }
+                return callback(retString)
+            }
         }
-      }
     }
-  }
 }
-
 ```
 At <a href="http://localhost:8080">http://localhost:8080</a> you should see:
 

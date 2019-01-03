@@ -45,80 +45,89 @@ class TestUpdate: XCTestCase {
         
         let pool = CommonUtils.sharedInstance.getConnectionPool()
         performTest(asyncTasks: { expectation in
-            
-            guard let connection = pool.getConnection() else {
-                XCTFail("Failed to get connection")
-                return
-            }
-            
-            cleanUp(table: t.tableName, connection: connection) { result in
-                
-                executeRawQuery("CREATE TABLE \"" +  t.tableName + "\" (a varchar(40), b integer)", connection: connection) { result, rows in
-                    XCTAssertEqual(result.success, true, "CREATE TABLE failed")
-                    XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
-                    
-                    let i1 = Insert(into: t, rows: [["apple", 10], ["apricot", 3], ["banana", 17], ["apple", 17], ["banana", -7], ["banana", 27]])
-                    executeQuery(query: i1, connection: connection) { result, rows in
-                        XCTAssertEqual(result.success, true, "INSERT failed")
-                        XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
-                        
-                        let s1 = Select(from: t)
-                        executeQuery(query: s1, connection: connection) { result, rows in
-                            XCTAssertEqual(result.success, true, "SELECT failed")
-                            XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
-                            XCTAssertNotNil(rows, "SELECT returned no rows")
-                            XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 6")
-                            
-                            let u1 = Update(t, set: [(t.a, "peach"), (t.b, 2)])
-                                .where(t.a == "banana")
-                            executeQuery(query: u1, connection: connection) { result, rows in
-                                XCTAssertEqual(result.success, true, "UPDATE failed")
-                                XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")
-                                
-                                let u2 = Update(t, set: [(t.a, "peach"), (t.b, 2)])
-                                    .where(t.a == "apple")
-                                    .suffix("RETURNING b")
-                                executeQuery(query: u2, connection: connection) { result, rows in
+
+            pool.getConnection() { connection, error in
+                guard let connection = connection else {
+                    XCTFail("Failed to get connection")
+                    return
+                }
+                cleanUp(table: t.tableName, connection: connection) { result in
+
+                    executeRawQuery("CREATE TABLE \"" +  t.tableName + "\" (a varchar(40), b integer)", connection: connection) { result, rows in
+                        XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+
+                        let i1 = Insert(into: t, rows: [["apple", 10], ["apricot", 3], ["banana", 17], ["apple", 17], ["banana", -7], ["banana", 27]])
+                        executeQuery(query: i1, connection: connection) { result, rows in
+                            XCTAssertEqual(result.success, true, "INSERT failed")
+                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+
+                            let s1 = Select(from: t)
+                            executeQuery(query: s1, connection: connection) { result, rows in
+                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                XCTAssertEqual(rows!.count, 6, "SELECT returned wrong number of rows: \(rows!.count) instead of 6")
+
+                                let u1 = Update(t, set: [(t.a, "peach"), (t.b, 2)])
+                                    .where(t.a == "banana")
+                                executeQuery(query: u1, connection: connection) { result, rows in
                                     XCTAssertEqual(result.success, true, "UPDATE failed")
                                     XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")
-                                    XCTAssertNotNil(result.asResultSet, "UPDATE returned no rows")
-                                    XCTAssertNotNil(rows, "UPDATE returned no rows")
-                                    let resultSet = result.asResultSet!
-                                    XCTAssertEqual(rows!.count, 2, "UPDATE returned wrong number of rows: \(rows!.count) instead of 2")
-                                    XCTAssertEqual(resultSet.titles[0], "b", "Wrong column name: \(resultSet.titles[0]) instead of b")
-                                    XCTAssertEqual(rows![0][0]! as! Int32, 2, "Wrong value in row 0 column 0")
-                                    XCTAssertEqual(rows![1][0]! as! Int32, 2, "Wrong value in row 1 column 0")
-                  
-                                    let s2 = Select(t.a, t.b, from: t)
-                                        .where(t.a == "banana")
-                                    executeQuery(query: s2, connection: connection) { result, rows in
-                                        XCTAssertEqual(result.success, true, "SELECT failed")
-                                        XCTAssertNil(result.asResultSet, "SELECT should not return any rows")
-                                        
-                                        let d1 = Delete(from: t)
-                                            .where(t.b == "2")
-                                            .suffix("RETURNING b")
-                                        executeQuery(query: d1, connection: connection) { result, rows in
-                                            XCTAssertEqual(result.success, true, "DELETE failed")
-                                            XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
-                                            XCTAssertNotNil(result.asResultSet, "DELETE returned no rows")
-                                            XCTAssertNotNil(rows, "DELETE returned no rows")
-                                            XCTAssertEqual(rows!.count, 5, "DELETE returned wrong number of rows: \(rows!.count) instead of 5")
-                                            
-                                            executeQuery(query: s1, connection: connection) { result, rows in
+
+                                    let u2 = Update(t, set: [(t.a, "peach"), (t.b, 2)])
+                                        .where(t.a == "apple")
+                                        .suffix("RETURNING b")
+                                    executeQuery(query: u2, connection: connection) { result, rows in
+                                        XCTAssertEqual(result.success, true, "UPDATE failed")
+                                        XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")
+                                        XCTAssertNotNil(result.asResultSet, "UPDATE returned no rows")
+                                        XCTAssertNotNil(rows, "UPDATE returned no rows")
+                                        let resultSet = result.asResultSet!
+                                        XCTAssertEqual(rows!.count, 2, "UPDATE returned wrong number of rows: \(rows!.count) instead of 2")
+                                        resultSet.getColumnTitles() { titles, error in
+                                            guard let titles = titles else {
+                                                XCTFail("No titles in result set")
+                                                return
+                                            }
+                                            XCTAssertEqual(titles[0], "b", "Wrong column name: \(titles[0]) instead of b")
+
+                                            XCTAssertEqual(rows![0][0]! as! Int32, 2, "Wrong value in row 0 column 0")
+                                            XCTAssertEqual(rows![1][0]! as! Int32, 2, "Wrong value in row 1 column 0")
+
+                                            let s2 = Select(t.a, t.b, from: t)
+                                                .where(t.a == "banana")
+                                            executeQuery(query: s2, connection: connection) { result, rows in
                                                 XCTAssertEqual(result.success, true, "SELECT failed")
-                                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
-                                                XCTAssertNotNil(rows, "SELECT returned no rows")
-                                                XCTAssertEqual(rows!.count, 1, "SELECT returned wrong number of rows: \(rows!.count) instead of 1")
-                                                
-                                                let d2 = Delete(from: t)
-                                                executeQuery(query: d2, connection: connection) { result, rows in
+                                                XCTAssertNil(result.asResultSet, "SELECT should not return any rows")
+
+                                                let d1 = Delete(from: t)
+                                                    .where(t.b == "2")
+                                                    .suffix("RETURNING b")
+                                                executeQuery(query: d1, connection: connection) { result, rows in
                                                     XCTAssertEqual(result.success, true, "DELETE failed")
                                                     XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
-                                                    
+                                                    XCTAssertNotNil(result.asResultSet, "DELETE returned no rows")
+                                                    XCTAssertNotNil(rows, "DELETE returned no rows")
+                                                    XCTAssertEqual(rows!.count, 5, "DELETE returned wrong number of rows: \(rows!.count) instead of 5")
+
                                                     executeQuery(query: s1, connection: connection) { result, rows in
                                                         XCTAssertEqual(result.success, true, "SELECT failed")
-                                                        XCTAssertNil(result.asResultSet, "SELECT should not return any rows")
+                                                        XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                                        XCTAssertNotNil(rows, "SELECT returned no rows")
+                                                        XCTAssertEqual(rows!.count, 1, "SELECT returned wrong number of rows: \(rows!.count) instead of 1")
+
+                                                        let d2 = Delete(from: t)
+                                                        executeQuery(query: d2, connection: connection) { result, rows in
+                                                            XCTAssertEqual(result.success, true, "DELETE failed")
+                                                            XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
+
+                                                            executeQuery(query: s1, connection: connection) { result, rows in
+                                                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                                                XCTAssertNil(result.asResultSet, "SELECT should not return any rows")
+                                                                expectation.fulfill()
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             }
@@ -130,7 +139,6 @@ class TestUpdate: XCTestCase {
                     }
                 }
             }
-            expectation.fulfill()
         })
     }
 }
