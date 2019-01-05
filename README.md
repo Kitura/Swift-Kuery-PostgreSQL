@@ -82,7 +82,7 @@ For more details refer to the [PostgreSQL manual](https://www.postgresql.org/doc
 Alternatively, call:
 
 ```swift
-let connection = PostgreSQLConnection(url: URL(string: "Postgres://\(username):\(password)@\(host):\(port)")!))
+let connection = PostgreSQLConnection(url: URL(string: "Postgres://\(username):\(password)@\(host):\(port)/\(databaseName)")!)
 ```
 
 To establish a connection to the database call:
