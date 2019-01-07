@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>ConnectionOptions Enum Reference</title>
+    <title>ConnectionOptions Enumeration Reference</title>
     <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
     <meta charset="utf-8">
     <script src="../js/jquery.min.js" defer></script>
     <script src="../js/jazzy.js" defer></script>
     
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
   </head>
   <body>
 
     <a name="//apple_ref/swift/Enum/ConnectionOptions" class="dashAnchor"></a>
 
-    <a title="ConnectionOptions Enum Reference"></a>
+    <a title="ConnectionOptions Enumeration Reference"></a>
 
     <header class="header">
       <p class="header-col header-col--primary">
@@ -21,6 +24,12 @@
           SwiftKueryPostgreSQL Docs
         </a>
          (100% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="../search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
       </p>
     
         <p class="header-col header-col--secondary">
@@ -35,7 +44,7 @@
     <p class="breadcrumbs">
       <a class="breadcrumb" href="../index.html">SwiftKueryPostgreSQL Reference</a>
       <img class="carat" src="../img/carat.png" />
-      ConnectionOptions Enum Reference
+      ConnectionOptions Enumeration Reference
     </p>
 
     <div class="content-wrapper">
@@ -53,10 +62,18 @@
             </ul>
           </li>
           <li class="nav-group-name">
-            <a class="nav-group-name-link" href="../Enums.html">Enums</a>
+            <a class="nav-group-name-link" href="../Enums.html">Enumerations</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Enums/ConnectionOptions.html">ConnectionOptions</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/PostgreSQLPreparedStatement.html">PostgreSQLPreparedStatement</a>
               </li>
             </ul>
           </li>
@@ -69,7 +86,7 @@
             <h1>ConnectionOptions</h1>
               <div class="declaration">
                 <div class="language">
-                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">ConnectionOptions</span></code></pre>
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">ConnectionOptions</span></code></pre>
 
                 </div>
               </div>
@@ -85,9 +102,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FO20SwiftKueryPostgreSQL17ConnectionOptions7optionsFMS0_FSSS0_"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL17ConnectionOptionsO7optionsACSScACmF"></a>
                     <a name="//apple_ref/swift/Element/options" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FO20SwiftKueryPostgreSQL17ConnectionOptions7optionsFMS0_FSSS0_">options</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL17ConnectionOptionsO7optionsACSScACmF">options</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -102,7 +119,7 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="k">case</span> <span class="nf">options</span><span class="p">(</span><span class="kt">String</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">options</span><span class="p">(</span><span class="kt">String</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -116,9 +133,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FO20SwiftKueryPostgreSQL17ConnectionOptions12databaseNameFMS0_FSSS0_"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL17ConnectionOptionsO12databaseNameACSScACmF"></a>
                     <a name="//apple_ref/swift/Element/databaseName" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FO20SwiftKueryPostgreSQL17ConnectionOptions12databaseNameFMS0_FSSS0_">databaseName</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL17ConnectionOptionsO12databaseNameACSScACmF">databaseName</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -133,7 +150,7 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="k">case</span> <span class="nf">databaseName</span><span class="p">(</span><span class="kt">String</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">databaseName</span><span class="p">(</span><span class="kt">String</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -147,9 +164,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FO20SwiftKueryPostgreSQL17ConnectionOptions8userNameFMS0_FSSS0_"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL17ConnectionOptionsO8userNameACSScACmF"></a>
                     <a name="//apple_ref/swift/Element/userName" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FO20SwiftKueryPostgreSQL17ConnectionOptions8userNameFMS0_FSSS0_">userName</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL17ConnectionOptionsO8userNameACSScACmF">userName</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -164,7 +181,7 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="k">case</span> <span class="nf">userName</span><span class="p">(</span><span class="kt">String</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">userName</span><span class="p">(</span><span class="kt">String</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -178,9 +195,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FO20SwiftKueryPostgreSQL17ConnectionOptions8passwordFMS0_FSSS0_"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL17ConnectionOptionsO8passwordACSScACmF"></a>
                     <a name="//apple_ref/swift/Element/password" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FO20SwiftKueryPostgreSQL17ConnectionOptions8passwordFMS0_FSSS0_">password</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL17ConnectionOptionsO8passwordACSScACmF">password</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -195,7 +212,7 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="k">case</span> <span class="nf">password</span><span class="p">(</span><span class="kt">String</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">password</span><span class="p">(</span><span class="kt">String</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -209,9 +226,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FO20SwiftKueryPostgreSQL17ConnectionOptions17connectionTimeoutFMS0_FSiS0_"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL17ConnectionOptionsO17connectionTimeoutACSicACmF"></a>
                     <a name="//apple_ref/swift/Element/connectionTimeout" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FO20SwiftKueryPostgreSQL17ConnectionOptions17connectionTimeoutFMS0_FSiS0_">connectionTimeout</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL17ConnectionOptionsO17connectionTimeoutACSicACmF">connectionTimeout</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -226,7 +243,7 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="k">case</span> <span class="nf">connectionTimeout</span><span class="p">(</span><span class="kt">Int</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">connectionTimeout</span><span class="p">(</span><span class="kt">Int</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -241,8 +258,8 @@
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2017-06-01)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.0</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2019 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2019-01-07)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>
