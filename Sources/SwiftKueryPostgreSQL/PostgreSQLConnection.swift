@@ -404,23 +404,29 @@ public class PostgreSQLConnection: Connection {
             }
 
             let parameterSet = PostgreSQLParameterSet(parameters: parameters)
-            if let query = query {
-                parameterSet.withUnsafeBufferPointers {
-                    PQsendQueryParams(connection, query, Int32(parameters.count), nil, $0.values, $0.lengths, $0.formats, 1)
-                }
-            } else {
-                guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
-                    // We should never get here as the prepared statement parameter has already been validated as a PostgreSQLPreparedStatement
-                    return assertionFailure("Unexpected invalid pepared statement")
+
+            do {
+                if let query = query {
+                    try parameterSet.withUnsafeBufferPointers {
+                        PQsendQueryParams(connection, query, Int32(parameters.count), nil, $0.values, $0.lengths, $0.formats, 1)
+                    }
+                } else {
+                    guard let statement = preparedStatement as? PostgreSQLPreparedStatement else {
+                        // We should never get here as the prepared statement parameter has already been validated as a PostgreSQLPreparedStatement
+                        return assertionFailure("Unexpected invalid pepared statement")
+                    }
+
+                    try parameterSet.withUnsafeBufferPointers {
+                        PQsendQueryPrepared(connection, statement.name, Int32(parameters.count), $0.values, $0.lengths, $0.formats, 1)
+                    }
                 }
 
-                parameterSet.withUnsafeBufferPointers {
-                    PQsendQueryPrepared(connection, statement.name, Int32(parameters.count), $0.values, $0.lengths, $0.formats, 1)
-                }
+                PQsetSingleRowMode(connection)
+                self.processQueryResult(query: query ?? "Execution of prepared statement \(preparedStatement!)", onCompletion: onCompletion)
+            } catch {
+                // parameterSet.withUnsafeBufferPointers will throw if a parameter cannot be converted to data
+                onCompletion(.error(error))
             }
-
-            PQsetSingleRowMode(connection)
-            self.processQueryResult(query: query ?? "Execution of prepared statement \(preparedStatement!)", onCompletion: onCompletion)
         }
     }
 
