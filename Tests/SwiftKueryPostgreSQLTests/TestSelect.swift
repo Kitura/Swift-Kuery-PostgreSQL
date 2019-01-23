@@ -27,12 +27,14 @@ let tableSelect2 = "tableSelect2Linux"
 let tableSelect3 = "tableSelect3Linux"
 let tableSelectDate = "tableSelectDateLinux"
 let tableConnectionState = "tableConnectionStateLinux"
+let tableSelectWithBinaryColumn = "tableSelectWithBinaryColumnLinux"
 #else
 let tableSelect = "tableSelectOSX"
 let tableSelect2 = "tableSelect2OSX"
 let tableSelect3 = "tableSelect3OSX"
 let tableSelectDate = "tableSelectDateOSX"
 let tableConnectionState = "tableConnectionStateOSX"
+let tableSelectWithBinaryColumn = "tableSelectWithBinaryColumnOSX"
 #endif
 
 class TestSelect: XCTestCase {
@@ -43,6 +45,7 @@ class TestSelect: XCTestCase {
             ("testSelectDate", testSelectDate),
             ("testSelectFromMany", testSelectFromMany),
             ("testConnectionState", testConnectionState),
+            ("testSelectBinaryData", testSelectBinaryData)
         ]
     }
     
@@ -357,7 +360,8 @@ class TestSelect: XCTestCase {
                         XCTAssertEqual(result.success, true, "CREATE TABLE failed")
                         XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
 
-                        let i1 = Insert(into: t, values: "now", Date(), Date(), Date())
+                        let nowDate = Date()
+                        let i1 = Insert(into: t, values: "nowDate", nowDate, nowDate, nowDate)
                         executeQuery(query: i1, connection: connection) { result, rows in
                             XCTAssertEqual(result.success, true, "INSERT failed")
 
@@ -455,6 +459,62 @@ class TestSelect: XCTestCase {
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    class MyTableWithBinaryColumn : Table {
+        let a = Column("a")
+        let b = Column("b")
+
+        let tableName = tableSelectWithBinaryColumn
+    }
+
+    func testSelectBinaryData() {
+        let t = MyTableWithBinaryColumn()
+
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
+        performTest(asyncTasks: { expectation in
+
+            pool.getConnection() { connection, error in
+                guard let connection = connection else {
+                    XCTFail("Failed to get connection")
+                    return
+                }
+
+                let dataBlob1 = "1234567890".data(using: .ascii)!
+                let dataBlob2 = "0987654321".data(using: .ascii)!
+                let dataBlob3 = "nhkqn\0eofejoijflqkjfoidsflsk".data(using: .ascii)!
+                let dataBlob4 = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0".data(using: .ascii)!
+                let dataBlob5 = Data()
+                let dataBlob6 = Data(count: 1000)
+
+                cleanUp(table: t.tableName, connection: connection) { result in
+                    executeRawQuery("CREATE TABLE \"" +  t.tableName + "\" (a varchar(40), b bytea)", connection: connection) { result, rows in
+                        XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+
+                        // NOTE: Use of binary convertible parameters in Insert queries does not work because of the String-only behavior of `SwiftKuery.Utils.packType()` -- this will be addressed in subsequent work.
+                        //       At the moment, the function `executeQuery(query:, connection:, parameters:` must be used in order to leverage binary parameters.
+                        let i = Insert(into: t, rows: [["apple", Parameter()], ["apricot", Parameter()], ["banana", Parameter()], ["qiwi", Parameter()], ["plum", Parameter()], ["peach", Parameter()]])
+                        executeQueryWithParameters(query: i, connection: connection, parameters: dataBlob1, dataBlob2, dataBlob3, dataBlob4, dataBlob5, dataBlob6) { result, rows in
+                            XCTAssertEqual(result.success, true, "INSERT failed")
+                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+
+                            let s1 = Select(from: t)
+                                .limit(to: 3)
+                                .offset(2)
+                            executeQuery(query: s1, connection: connection) { result, rows in
+                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                XCTAssertEqual(rows!.count, 3, "SELECT returned wrong number of rows: \(rows!.count) instead of 3")
+
+                                expectation.fulfill()
                             }
                         }
                     }

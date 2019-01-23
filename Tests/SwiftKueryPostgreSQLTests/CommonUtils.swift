@@ -152,7 +152,6 @@ func createConnection() -> PostgreSQLConnection {
     
     // Create connection with URL
     //return PostgreSQLConnection(url: URL(string: "Postgres://\(username):\(password)@\(host):\(port)")!)
-    
     return PostgreSQLConnection(host: host, port: port, options: [.userName(username), .password(password)])
 }
 
