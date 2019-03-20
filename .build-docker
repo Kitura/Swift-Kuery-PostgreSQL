@@ -1,3 +1,4 @@
 #!/bin/bash
-psql --version || { service postgresql start && psql --version; }
+service postgresql status || service postgresql start && service postgresql status
+psql --version
 swift build
