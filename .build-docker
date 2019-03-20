@@ -1,3 +1,3 @@
 #!/bin/bash
-psql --version || { apt-get update && apt-get install -y postgresql postgresql-contrib && service postgresql start && psql --version; }
+psql --version || { service postgresql start && psql --version; }
 swift build
