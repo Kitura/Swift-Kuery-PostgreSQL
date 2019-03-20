@@ -1,4 +1,25 @@
 #!/bin/bash
-service postgresql status || service postgresql start && service postgresql status
-psql --version
+# Reconfigure default Postgres cluster in Docker environment
+
+POSTGRES_VERSION=`pg_lsclusters | tail -n 1 | cut -d' ' -f1`
+
+# Set locale to match tests
+export LC_ALL=en_us.UTF-8
+export LANG=en_us.UTF-8
+export LANGUAGE=en_us.UTF-8
+
+# Drop and recreate default postgres cluster with correct locale
+pg_dropcluster --stop ${POSTGRES_VERSION} main
+pg_createcluster ${POSTGRES_VERSION} main
+
+# Configure postgres to trust all local connections
+sed -i "1s#^#host all all 127.0.0.1/32 trust\n#" /etc/postgresql/${POSTGRES_VERSION}/main/pg_hba.conf
+
+# Restart postgres
+service postgresql restart && service postgresql status
+
+# Confirm database exists, postgres user is authorized and locale is correct
+psql -U postgres -h localhost -l
+
+# Build project
 swift build
