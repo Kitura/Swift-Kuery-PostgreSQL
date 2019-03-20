@@ -9,26 +9,30 @@
 branches:
   only:
     - master
-    - next
     - /^issue.*$/
 
 matrix:
   include:
     - os: linux
-      dist: trusty
+      dist: xenial
       sudo: required
-      env: SWIFT_SNAPSHOT=4.0.3
+      services: docker
+      env: DOCKER_IMAGE=swift:4.0.3 SWIFT_SNAPSHOT=4.0.3 DOCKER_PACKAGES="libpq-dev postgresql postgresql-contrib locales locales-all" CUSTOM_BUILD_SCRIPT=.build-docker
     - os: linux
-      dist: trusty
+      dist: xenial
       sudo: required
-      env: SWIFT_SNAPSHOT=4.1.3
+      services: docker
+      env: DOCKER_IMAGE=swift:4.1.3 SWIFT_SNAPSHOT=4.1.3 DOCKER_PACKAGES="libpq-dev postgresql postgresql-contrib locales locales-all" CUSTOM_BUILD_SCRIPT=.build-docker
     - os: linux
-      dist: trusty
+      dist: xenial
       sudo: required
+      services: docker
+      env: DOCKER_IMAGE=swift:4.2.3 DOCKER_PACKAGES="libpq-dev postgresql postgresql-contrib locales locales-all" CUSTOM_BUILD_SCRIPT=.build-docker
     - os: linux
-      dist: trusty
+      dist: xenial
       sudo: required
-      env: SWIFT_SNAPSHOT=$SWIFT_DEVELOPMENT_SNAPSHOT
+      services: docker
+      env: DOCKER_IMAGE=swift:4.2.3 SWIFT_SNAPSHOT=$SWIFT_DEVELOPMENT_SNAPSHOT DOCKER_PACKAGES="libpq-dev postgresql postgresql-contrib locales locales-all" CUSTOM_BUILD_SCRIPT=.build-docker
     - os: osx
       osx_image: xcode9.2
       sudo: required
