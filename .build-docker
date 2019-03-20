@@ -4,9 +4,9 @@
 POSTGRES_VERSION=`pg_lsclusters | tail -n 1 | cut -d' ' -f1`
 
 # Set locale to match tests
-export LC_ALL=en_us.UTF-8
-export LANG=en_us.UTF-8
-export LANGUAGE=en_us.UTF-8
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
 
 # Drop and recreate default postgres cluster with correct locale
 pg_dropcluster --stop ${POSTGRES_VERSION} main
