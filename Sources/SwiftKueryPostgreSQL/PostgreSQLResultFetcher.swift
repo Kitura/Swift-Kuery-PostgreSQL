@@ -141,27 +141,28 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 return (Int64(bigEndian: value.withMemoryRebound(to: Int64.self, capacity: 1) { $0.pointee }), nil)
                 
             case .float4:
-                #if swift(<5.0)
-                return (Float32(bitPattern: UInt32(bigEndian: data.withUnsafeBytes { $0.pointee } )), nil)
-                #else
+                #if swift(>=5)
                 let uintValue = data.withUnsafeBytes( { (address: UnsafeRawBufferPointer) in (address.baseAddress?.assumingMemoryBound(to: UInt32.self).pointee) } )
                 guard let bits = uintValue else {
                     return(nil, QueryError.noResult("Unable to convert value to Float32 while reading result"))
                 }
                 return (Float32(bitPattern: UInt32(bigEndian: bits)), nil)
+                #else
+                return (Float32(bitPattern: UInt32(bigEndian: data.withUnsafeBytes { $0.pointee } )), nil)
                 #endif
                 
             case .float8:
 
-                #if swift(<5.0)
-                return Float64(bitPattern: UInt64(bigEndian: data.withUnsafeBytes { $0.pointee } ))
-                #else
+                #if swift(>=5)
                 let uintValue = data.withUnsafeBytes( { (address: UnsafeRawBufferPointer) in (address.baseAddress?.assumingMemoryBound(to: UInt64.self).pointee) } )
                 guard let bits = uintValue else {
                     return(nil, QueryError.noResult("Unable to convert value to Float64 while reading result"))
                 }
                 return (Float64(bitPattern: UInt64(bigEndian: bits)), nil)
+                #else
+                return Float64(bitPattern: UInt64(bigEndian: data.withUnsafeBytes { $0.pointee } ))
                 #endif
+
             case .numeric:
                 // Numeric is a sequence of Int16's: number of digits, weight, sign, display scale, numeric digits.
                 // The numeric digits are stored in the form of a series of 16 bit base-10000 numbers each representing
