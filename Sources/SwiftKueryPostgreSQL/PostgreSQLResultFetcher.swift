@@ -160,7 +160,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 }
                 return (Float64(bitPattern: UInt64(bigEndian: bits)), nil)
                 #else
-                return Float64(bitPattern: UInt64(bigEndian: data.withUnsafeBytes { $0.pointee } ))
+                return (Float64(bitPattern: UInt64(bigEndian: data.withUnsafeBytes { $0.pointee } )), nil)
                 #endif
 
             case .numeric:
