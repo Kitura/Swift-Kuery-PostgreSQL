@@ -53,8 +53,7 @@ internal struct PostgreSQLParameterSet {
                 let pointer = UnsafeMutablePointer<Int8>.allocate(capacity: Int(count))
                 #if swift(>=5)
                 _ = try parameterData.withUnsafeBytes( { (data: UnsafeRawBufferPointer) in
-                    let basePointer = data.baseAddress?.assumingMemoryBound(to: Int8.self)
-                    guard let source = basePointer else {
+                    guard let source = data.baseAddress?.assumingMemoryBound(to: Int8.self) else {
                         throw QueryError.databaseError("Unable to format binary parameter data")
                     }
                     memcpy(pointer, source, count)
@@ -78,8 +77,7 @@ internal struct PostgreSQLParameterSet {
                 let pointer = UnsafeMutablePointer<Int8>.allocate(capacity: count + 1)
                 #if swift(>=5)
                 _ = try parameterData.withUnsafeBytes( { (data: UnsafeRawBufferPointer) in
-                    let basePointer = data.baseAddress?.assumingMemoryBound(to: Int8.self)
-                    guard let source = basePointer else {
+                    guard let source = data.baseAddress?.assumingMemoryBound(to: Int8.self) else {
                         throw QueryError.databaseError("Unable to format parameter data")
                     }
                     memcpy(pointer, source, count)
