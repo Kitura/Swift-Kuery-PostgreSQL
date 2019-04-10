@@ -106,7 +106,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
         let data = Data(bytes: value!, count: count)
         
         let type = PostgreSQLType(rawValue: PQftype(queryResult, column))
-        
+
         if PQfformat(queryResult, column) == 0 {
             return (String(data: data, encoding: String.Encoding.utf8) ?? "", nil)
         }

@@ -8,6 +8,9 @@
     <script src="js/jquery.min.js" defer></script>
     <script src="js/jazzy.js" defer></script>
     
+    <script src="js/lunr.min.js" defer></script>
+    <script src="js/typeahead.jquery.js" defer></script>
+    <script src="js/jazzy.search.js" defer></script>
   </head>
   <body>
 
@@ -20,6 +23,12 @@
           SwiftKueryPostgreSQL Docs
         </a>
          (100% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
       </p>
     
         <p class="header-col header-col--secondary">
@@ -52,10 +61,18 @@
             </ul>
           </li>
           <li class="nav-group-name">
-            <a class="nav-group-name-link" href="Enums.html">Enums</a>
+            <a class="nav-group-name-link" href="Enums.html">Enumerations</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="Enums/ConnectionOptions.html">ConnectionOptions</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/PostgreSQLPreparedStatement.html">PostgreSQLPreparedStatement</a>
               </li>
             </ul>
           </li>
@@ -85,9 +102,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:C20SwiftKueryPostgreSQL20PostgreSQLConnection"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC"></a>
                     <a name="//apple_ref/swift/Class/PostgreSQLConnection" class="dashAnchor"></a>
-                    <a class="token" href="#/s:C20SwiftKueryPostgreSQL20PostgreSQLConnection">PostgreSQLConnection</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC">PostgreSQLConnection</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -104,7 +121,7 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">PostgreSQLConnection</span><span class="p">:</span> <span class="kt">Connection</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">PostgreSQLConnection</span><span class="p">:</span> <span class="kt">Connection</span></code></pre>
 
                         </div>
                       </div>
@@ -125,9 +142,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:C20SwiftKueryPostgreSQL23PostgreSQLResultFetcher"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C16SQLResultFetcherC"></a>
                     <a name="//apple_ref/swift/Class/PostgreSQLResultFetcher" class="dashAnchor"></a>
-                    <a class="token" href="#/s:C20SwiftKueryPostgreSQL23PostgreSQLResultFetcher">PostgreSQLResultFetcher</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C16SQLResultFetcherC">PostgreSQLResultFetcher</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -143,7 +160,7 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">PostgreSQLResultFetcher</span><span class="p">:</span> <span class="kt">ResultFetcher</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">PostgreSQLResultFetcher</span><span class="p">:</span> <span class="kt">ResultFetcher</span></code></pre>
 
                         </div>
                       </div>
@@ -158,8 +175,8 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2017-06-01)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.0</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2019 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2019-01-07)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>
