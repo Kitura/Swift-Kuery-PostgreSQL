@@ -27,7 +27,7 @@ matrix:
       dist: xenial
       sudo: required
       services: docker
-      env: DOCKER_IMAGE=swift:4.2.4 DOCKER_PACKAGES="libpq-dev postgresql postgresql-contrib locales locales-all" CUSTOM_BUILD_SCRIPT=.build-docker
+      env: DOCKER_IMAGE=swift:4.2.4 DOCKER_PACKAGES="libpq-dev postgresql postgresql-contrib locales locales-all" CUSTOM_BUILD_SCRIPT=.build-docker SWIFT_SNAPSHOT=4.2.4
     - os: linux
       dist: xenial
       sudo: required
