@@ -57,7 +57,11 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 clearResult(queryResult, connection: self.connection)
                 return callback((nil, QueryError.noResult("Error retrieving result from database")))
             }
-            return callback((self.buildRow(queryResult: queryResult), nil))
+            let builtRow = self.buildRow(queryResult: queryResult)
+            guard let row = builtRow.row else {
+                return callback((nil, builtRow.error))
+            }
+            return callback((row, nil))
         }
     }
 
@@ -68,19 +72,26 @@ public class PostgreSQLResultFetcher: ResultFetcher {
         callback((self.titles, nil))
     }
     
-    private func buildRow(queryResult: OpaquePointer) -> [Any?] {
+    private func buildRow(queryResult: OpaquePointer) -> (row: [Any?]?, error: Error?) {
         let columns = PQnfields(queryResult)
+        defer {
+            PQclear(queryResult)
+        }
         var row = [Any?]()
         for column in 0 ..< columns {
             if PQgetisnull(queryResult, 0, column) == 1 {
                 row.append(nil)
             }
             else {
-                row.append(PostgreSQLResultFetcher.convert(queryResult, row: 0, column: column))
+                let convertedValue = PostgreSQLResultFetcher.convert(queryResult, row: 0, column: column)
+                guard let value = convertedValue.value else {
+                    return (nil, convertedValue.error)
+                }
+
+                row.append(value)
             }
         }
-        PQclear(queryResult)
-        return row
+        return (row, nil)
     }
 
     /// Indicate no further calls will be made to this ResultFetcher allowing the connection in use to be released.
@@ -89,7 +100,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
         clearResult(nil, connection: connection)
     }
 
-    private static func convert(_ queryResult: OpaquePointer, row: Int32, column: Int32) -> Any {
+    private static func convert(_ queryResult: OpaquePointer, row: Int32, column: Int32) -> (value: Any?, error: Error?) {
         let value = PQgetvalue(queryResult, row, column)
         let count = Int(PQgetlength(queryResult, row, column))
         let data = Data(bytes: value!, count: count)
@@ -97,11 +108,11 @@ public class PostgreSQLResultFetcher: ResultFetcher {
         let type = PostgreSQLType(rawValue: PQftype(queryResult, column))
 
         if PQfformat(queryResult, column) == 0 {
-            return String(data: data, encoding: String.Encoding.utf8) ?? ""
+            return (String(data: data, encoding: String.Encoding.utf8) ?? "", nil)
         }
         else {
             guard let type = type, let value = value else {
-                return data
+                return (data, nil)
             }
             
             switch type {
@@ -118,23 +129,40 @@ public class PostgreSQLResultFetcher: ResultFetcher {
             case .json:
                 fallthrough
             case .xml:
-                return String(cString: value)
+                return (String(cString: value), nil)
                 
             case .int2:
-                return PostgreSQLResultFetcher.int16NetworkToHost(from: value)
+                return (PostgreSQLResultFetcher.int16NetworkToHost(from: value), nil)
                 
             case .int4:
-                return Int32(bigEndian: value.withMemoryRebound(to: Int32.self, capacity: 1) { $0.pointee })
+                return (Int32(bigEndian: value.withMemoryRebound(to: Int32.self, capacity: 1) { $0.pointee }), nil)
                 
             case .int8:
-                return Int64(bigEndian: value.withMemoryRebound(to: Int64.self, capacity: 1) { $0.pointee })
+                return (Int64(bigEndian: value.withMemoryRebound(to: Int64.self, capacity: 1) { $0.pointee }), nil)
                 
             case .float4:
-                return Float32(bitPattern: UInt32(bigEndian: data.withUnsafeBytes { $0.pointee } ))
+                #if swift(>=5)
+                let uintValue = data.withUnsafeBytes( { (address: UnsafeRawBufferPointer) in (address.baseAddress?.assumingMemoryBound(to: UInt32.self).pointee) } )
+                guard let bits = uintValue else {
+                    return(nil, QueryError.databaseError("Unable to convert value to Float32 while reading result"))
+                }
+                return (Float32(bitPattern: UInt32(bigEndian: bits)), nil)
+                #else
+                return (Float32(bitPattern: UInt32(bigEndian: data.withUnsafeBytes { $0.pointee } )), nil)
+                #endif
                 
             case .float8:
-                return Float64(bitPattern: UInt64(bigEndian: data.withUnsafeBytes { $0.pointee } ))
-                
+
+                #if swift(>=5)
+                let uintValue = data.withUnsafeBytes( { (address: UnsafeRawBufferPointer) in (address.baseAddress?.assumingMemoryBound(to: UInt64.self).pointee) } )
+                guard let bits = uintValue else {
+                    return(nil, QueryError.databaseError("Unable to convert value to Float64 while reading result"))
+                }
+                return (Float64(bitPattern: UInt64(bigEndian: bits)), nil)
+                #else
+                return (Float64(bitPattern: UInt64(bigEndian: data.withUnsafeBytes { $0.pointee } )), nil)
+                #endif
+
             case .numeric:
                 // Numeric is a sequence of Int16's: number of digits, weight, sign, display scale, numeric digits.
                 // The numeric digits are stored in the form of a series of 16 bit base-10000 numbers each representing
@@ -148,12 +176,12 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 // https://www.postgresql.org/message-id/491DC5F3D279CD4EB4B157DDD62237F404E27FE9@zipwire.esri.com
                 let sign = PostgreSQLResultFetcher.int16NetworkToHost(from: value.advanced(by: 4))
                 if sign == -16384 { // 0xC000
-                    return "NaN"
+                    return ("NaN", nil)
                 }
                 
                 let numberOfDigits = PostgreSQLResultFetcher.int16NetworkToHost(from: value)
                 if numberOfDigits <= 0  {
-                    return "0"
+                    return ("0", nil)
                 }
                 
                 var result: String = ""
@@ -213,12 +241,12 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                     result = "-" + result
                 }
                 
-                return result
+                return (result, nil)
                 
             case .date:
                 let days = Int32(bigEndian: value.withMemoryRebound(to: Int32.self, capacity: 1) { $0.pointee })
                 let timeInterval = TimeInterval(days * secondsInDay)
-                return Date(timeIntervalSince1970: timeInterval + timeIntervalBetween1970AndPostgresReferenceDate)
+                return (Date(timeIntervalSince1970: timeInterval + timeIntervalBetween1970AndPostgresReferenceDate), nil)
                 
             case .time:
                 fallthrough
@@ -229,17 +257,17 @@ public class PostgreSQLResultFetcher: ResultFetcher {
             case .timestamptz:
                 let microseconds = Int64(bigEndian: value.withMemoryRebound(to: Int64.self, capacity: 1) { $0.pointee })
                 let timeInterval = TimeInterval(microseconds / 1000000)
-                return Date(timeIntervalSince1970: timeInterval + timeIntervalBetween1970AndPostgresReferenceDate)
+                return (Date(timeIntervalSince1970: timeInterval + timeIntervalBetween1970AndPostgresReferenceDate), nil)
                 
             case .bool:
-                return Bool(value.withMemoryRebound(to: Bool.self, capacity: 1) { $0.pointee })
+                return (Bool(value.withMemoryRebound(to: Bool.self, capacity: 1) { $0.pointee }), nil)
 
             case .bytea:
-                return data
+                return (data, nil)
 
             case .uuid:
                 let uuid = UUID(uuid: uuid_t(value.withMemoryRebound(to: uuid_t.self, capacity: 1) { $0.pointee }))
-                return uuid.uuidString
+                return (uuid.uuidString, nil)
             }
         }
     }
@@ -254,7 +282,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
 
     // Static factory method to create an instance of PostgreSQLQueryBuilder
     // This exists to allow the column names from the returned result to be retrieved while we have access to a result set as part of an asynchronous callback chain.
-    internal static func create(queryResult: OpaquePointer, connection: PostgreSQLConnection, callback: (PostgreSQLResultFetcher) ->()) {
+    internal static func create(queryResult: OpaquePointer, connection: PostgreSQLConnection, callback: ((PostgreSQLResultFetcher?, Error?)) ->()) {
         let resultFetcher = PostgreSQLResultFetcher(connection: connection)
         let columns = PQnfields(queryResult)
         var columnNames = [String]()
@@ -262,8 +290,12 @@ public class PostgreSQLResultFetcher: ResultFetcher {
             columnNames.append(String(validatingUTF8: PQfname(queryResult, column))!)
         }
         resultFetcher.titles = columnNames
-        resultFetcher.row = resultFetcher.buildRow(queryResult: queryResult)
-        callback(resultFetcher)
+        let rowResult = resultFetcher.buildRow(queryResult: queryResult)
+        guard let row = rowResult.row else {
+            return callback((nil, rowResult.error))
+        }
+        resultFetcher.row = row
+        callback((resultFetcher, nil))
     }
 }
 

@@ -449,7 +449,15 @@ public class PostgreSQLConnection: Connection {
             runCompletionHandler(.successNoData, onCompletion: onCompletion)
         }
         else if status == PGRES_SINGLE_TUPLE {
-            PostgreSQLResultFetcher.create(queryResult: result, connection: self) { resultFetcher in
+            PostgreSQLResultFetcher.create(queryResult: result, connection: self) { resultFetcher, error in
+                guard let resultFetcher = resultFetcher else {
+                    guard let error = error else {
+                        clearResult(result, connection: self)
+                        return runCompletionHandler(.error(QueryError.databaseError("Unknown error creating ResultFetcher")), onCompletion: onCompletion)
+                    }
+                    clearResult(result, connection: self)
+                    return runCompletionHandler(.error(error), onCompletion: onCompletion)
+                }
                 self.setState(.fetchingResultSet)
                 self.currentResultFetcher = resultFetcher
                 runCompletionHandler(.resultSet(ResultSet(resultFetcher, connection: self)), onCompletion: onCompletion)

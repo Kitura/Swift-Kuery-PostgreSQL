@@ -51,8 +51,17 @@ internal struct PostgreSQLParameterSet {
                 let parameterData = binaryConvertibleParameter.asPostgreSQLBinaryParameter()
                 let count = parameterData.count
                 let pointer = UnsafeMutablePointer<Int8>.allocate(capacity: Int(count))
+                #if swift(>=5)
+                _ = try parameterData.withUnsafeBytes( { (data: UnsafeRawBufferPointer) in
+                    guard let source = data.baseAddress?.assumingMemoryBound(to: Int8.self) else {
+                        throw QueryError.databaseError("Unable to format binary parameter data")
+                    }
+                    memcpy(pointer, source, count)
+                    return
+                } )
+                #else
                 _ = parameterData.withUnsafeBytes { memcpy(pointer, $0, count) }
-
+                #endif
                 values.append(pointer)
                 lengths.append(Int32(count))
                 formats.append(1) // indicate binary data for the PQsendQuery APIs
@@ -66,7 +75,17 @@ internal struct PostgreSQLParameterSet {
                 // Copy memory and provide explicit null termination for the C-string
                 let count = parameterData.count
                 let pointer = UnsafeMutablePointer<Int8>.allocate(capacity: count + 1)
+                #if swift(>=5)
+                _ = try parameterData.withUnsafeBytes( { (data: UnsafeRawBufferPointer) in
+                    guard let source = data.baseAddress?.assumingMemoryBound(to: Int8.self) else {
+                        throw QueryError.databaseError("Unable to format parameter data")
+                    }
+                    memcpy(pointer, source, count)
+                    return
+                } )
+                #else
                 _ = parameterData.withUnsafeBytes { memcpy(pointer, $0, count) }
+                #endif
                 pointer[parameterData.count] = 0
 
                 values.append(pointer)
