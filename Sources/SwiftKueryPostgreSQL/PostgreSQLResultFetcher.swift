@@ -144,7 +144,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 #if swift(>=5)
                 let uintValue = data.withUnsafeBytes( { (address: UnsafeRawBufferPointer) in (address.baseAddress?.assumingMemoryBound(to: UInt32.self).pointee) } )
                 guard let bits = uintValue else {
-                    return(nil, QueryError.noResult("Unable to convert value to Float32 while reading result"))
+                    return(nil, QueryError.databaseError("Unable to convert value to Float32 while reading result"))
                 }
                 return (Float32(bitPattern: UInt32(bigEndian: bits)), nil)
                 #else
@@ -156,7 +156,7 @@ public class PostgreSQLResultFetcher: ResultFetcher {
                 #if swift(>=5)
                 let uintValue = data.withUnsafeBytes( { (address: UnsafeRawBufferPointer) in (address.baseAddress?.assumingMemoryBound(to: UInt64.self).pointee) } )
                 guard let bits = uintValue else {
-                    return(nil, QueryError.noResult("Unable to convert value to Float64 while reading result"))
+                    return(nil, QueryError.databaseError("Unable to convert value to Float64 while reading result"))
                 }
                 return (Float64(bitPattern: UInt64(bigEndian: bits)), nil)
                 #else
