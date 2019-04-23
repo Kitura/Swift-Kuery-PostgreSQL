@@ -1,5 +1,5 @@
 /**
- Copyright IBM Corporation 2016, 2017
+ Copyright IBM Corporation 2016, 2017, 2018, 2019
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -23,10 +23,12 @@ import SwiftKuery
 let tableInsert = "tableInsertLinux"
 let tableInsert2 = "tableInsert2Linux"
 let tableInsert3 = "tableInsert3Linux"
+let tableInsert4 = "tableInsert4Linux"
 #else
 let tableInsert = "tableInsertOSX"
 let tableInsert2 = "tableInsert2OSX"
 let tableInsert3 = "tableInsert3OSX"
+let tableInsert4 = "tableInsert4OSX"
 #endif
 
 class TestInsert: XCTestCase {
@@ -34,7 +36,8 @@ class TestInsert: XCTestCase {
     static var allTests: [(String, (TestInsert) -> () throws -> Void)] {
         return [
             ("testInsert", testInsert),
-            ("testInsertID", testInsertID)
+            ("testInsertID", testInsertID),
+            ("testInsertNil", testInsertNil),
         ]
     }
 
@@ -58,6 +61,14 @@ class TestInsert: XCTestCase {
 
         let tableName = tableInsert3
     }
+
+    class MyTable4 : Table {
+        let a = Column("a", String.self)
+        let b = Column("b", Int64.self, autoIncrement:true, primaryKey: true)
+
+        let tableName = tableInsert4
+    }
+
     func testInsert() {
         let t = MyTable()
         let t2 = MyTable2()
@@ -227,6 +238,49 @@ class TestInsert: XCTestCase {
 
                                 let dropT3 = Raw(query: "DROP TABLE", table: t3)
                                 executeQuery(query: dropT3, connection: connection) { result, rows in
+                                    XCTAssertEqual(result.success, true, "DROP TABLE failed")
+                                    XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
+                                    expectation.fulfill()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    func testInsertNil() {
+        let t = MyTable4()
+
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
+        performTest(asyncTasks: { expectation in
+            pool.getConnection { connection, error in
+                guard let connection = connection else {
+                    XCTFail("Failed to get connection")
+                    return
+                }
+                cleanUp(table: t.tableName, connection: connection) { result in
+                    executeRawQuery("CREATE TABLE \"" +  t.tableName + "\" (a TEXT, b SERIAL PRIMARY KEY)", connection: connection) { result, rows in
+                        XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+
+                        let optionalString: String? = nil
+                        let insertNil = Insert(into: t, valueTuples: [(t.a, optionalString as Any)])
+                        executeQuery(query: insertNil, connection: connection) { result, rows in
+                            XCTAssertEqual(result.success, true, "INSERT failed")
+                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+
+                            let select = Select(from: t)
+                            executeQuery(query: select, connection: connection) { result, rows in
+                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                XCTAssertNil(result.asError, "Error in SELECT: \(result.asError!)")
+                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                XCTAssertEqual(rows?.count, 1, "SELECT returned wrong number of rows: \(String(describing: rows?.count)) instead of 1")
+                                XCTAssertNil(rows?[0][0], "Expected value `nil` not found, returned: \(String(describing: rows?[0][0])) instead")
+
+                                let drop = Raw(query: "DROP TABLE", table: t)
+                                executeQuery(query: drop, connection: connection) { result, rows in
                                     XCTAssertEqual(result.success, true, "DROP TABLE failed")
                                     XCTAssertNil(result.asError, "Error in DELETE: \(result.asError!)")
                                     expectation.fulfill()

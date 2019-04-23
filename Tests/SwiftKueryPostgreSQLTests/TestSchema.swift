@@ -1,5 +1,5 @@
 /**
- Copyright IBM Corporation 2017, 2018
+ Copyright IBM Corporation 2017, 2018, 2019
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ class TestSchema: XCTestCase {
             ("testPrimaryKeys", testPrimaryKeys),
             ("testTypes", testTypes),
             ("testAutoIncrement", testAutoIncrement),
+            ("testCreateTableNilDefault", testCreateTableNilDefault),
         ]
     }
     
@@ -444,6 +445,51 @@ class TestSchema: XCTestCase {
                                         expectation.fulfill()
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    class MyNilDefaultTable: Table {
+        let a = Column("a", String.self, defaultValue: nil, nullDefaultValue: true)
+        let b = Column("b", Int64.self, autoIncrement: true, primaryKey: true)
+        let c = Column("c", Int64.self)
+
+        let tableName = "MyNilDefaultTable" + tableNameSuffix
+    }
+
+    func testCreateTableNilDefault() {
+        let t = MyNilDefaultTable()
+
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
+        performTest(asyncTasks: { expectation in
+
+            pool.getConnection { connection, error in
+                guard let connection = connection else {
+                    XCTFail("Failed to get connection")
+                    return
+                }
+                cleanUp(table: t.tableName, connection: connection) { _ in
+                    t.create(connection: connection) { result in
+                        if let error = result.asError {
+                            XCTFail("Error in CREATE TABLE: \(error)")
+                            return
+                        }
+
+                        let insert = Insert(into: t, columns: [t.c], values: [5])
+                        executeQuery(query: insert, connection: connection) { result, rows in
+                            XCTAssertNil(result.asError, "Error in INSERT")
+
+                            let select = Select(from: t)
+                            executeQuery(query: select, connection: connection) { result, rows in
+                                XCTAssertNil(result.asError, "Error on SELECT")
+                                XCTAssertNotNil(rows, "Expected rows but none returned")
+                                XCTAssertNil(rows?[0][0], "Non nil default value stored, expecting nil but returned \(String(describing: rows?[0][0]))")
+
+                                expectation.fulfill()
                             }
                         }
                     }
