@@ -32,12 +32,12 @@ matrix:
       dist: xenial
       sudo: required
       services: docker
-      env: DOCKER_IMAGE=swift:5.0-xenial DOCKER_PACKAGES="libpq-dev postgresql postgresql-contrib locales locales-all" CUSTOM_BUILD_SCRIPT=.build-docker
+      env: DOCKER_IMAGE=swift:5.0.1-xenial DOCKER_PACKAGES="libpq-dev postgresql postgresql-contrib locales locales-all" CUSTOM_BUILD_SCRIPT=.build-docker
     - os: linux
       dist: xenial
       sudo: required
       services: docker
-      env: DOCKER_IMAGE=swift:5.0 SWIFT_SNAPSHOT=$SWIFT_DEVELOPMENT_SNAPSHOT DOCKER_PACKAGES="libpq-dev postgresql postgresql-contrib locales locales-all" CUSTOM_BUILD_SCRIPT=.build-docker
+      env: DOCKER_IMAGE=swift:5.0.1 SWIFT_SNAPSHOT=$SWIFT_DEVELOPMENT_SNAPSHOT DOCKER_PACKAGES="libpq-dev postgresql postgresql-contrib locales locales-all" CUSTOM_BUILD_SCRIPT=.build-docker
     - os: osx
       osx_image: xcode9.2
       sudo: required
