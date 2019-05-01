@@ -1,5 +1,5 @@
 /**
- Copyright IBM Corporation 2016, 2017, 2018
+ Copyright IBM Corporation 2016, 2017, 2018, 2019
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -649,14 +649,8 @@ class PostgreSQLColumnBuilder: ColumnCreator {
         if column.isUnique {
             result += " UNIQUE"
         }
-        if let defaultValue = column.defaultValue {
-            var packedType: String
-            do {
-                packedType = try packType(defaultValue, queryBuilder: queryBuilder)
-            } catch {
-                return nil
-            }
-            result += " DEFAULT " + packedType
+        if let defaultValue = getDefaultValue(for: column, queryBuilder: queryBuilder) {
+            result += " DEFAULT " + defaultValue
         }
         if let checkExpression = column.checkExpression {
             result += checkExpression.contains(column.name) ? " CHECK (" + checkExpression.replacingOccurrences(of: column.name, with: "\"\(column.name)\"") + ")" : " CHECK (" + checkExpression + ")"
@@ -677,25 +671,6 @@ class PostgreSQLColumnBuilder: ColumnCreator {
             return "bigserial "
         default:
             return nil
-        }
-    }
-
-    func packType(_ item: Any, queryBuilder: QueryBuilder) throws -> String {
-        switch item {
-        case let val as String:
-            return "'\(val)'"
-        case let val as Bool:
-            return val ? queryBuilder.substitutions[QueryBuilder.QuerySubstitutionNames.booleanTrue.rawValue]
-                : queryBuilder.substitutions[QueryBuilder.QuerySubstitutionNames.booleanFalse.rawValue]
-        case let val as Parameter:
-            return try val.build(queryBuilder: queryBuilder)
-        case let value as Date:
-            if let dateFormatter = queryBuilder.dateFormatter {
-                return dateFormatter.string(from: value)
-            }
-            return "'\(String(describing: value))'"
-        default:
-            return String(describing: item)
         }
     }
 }
