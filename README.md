@@ -381,7 +381,7 @@ grade: 99 course: How to build your first computer
 grade: 71 course: How to work at a rock quarry  
 ```
 ## API Documentation
-For more information visit our [API reference](https://ibm-swift.github.io/SwiftKueryPostgreSQL/index.html).
+For more information visit our [API reference](https://ibm-swift.github.io/Swift-Kuery-PostgreSQL/index.html).
 
 ## Community
 
