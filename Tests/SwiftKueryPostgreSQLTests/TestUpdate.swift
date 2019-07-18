@@ -31,6 +31,7 @@ class TestUpdate: XCTestCase {
         return [
             ("testUpdateAndDelete", testUpdateAndDelete),
             ("testUpdateNilValue", testUpdateNilValue),
+            ("testUpdateTimestamp", testUpdateTimestamp),
         ]
     }
     
