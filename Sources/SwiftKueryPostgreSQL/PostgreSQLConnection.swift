@@ -614,8 +614,24 @@ public class PostgreSQLConnection: Connection {
     }
 
     public func addLastUpdatedTrigger(for table: Table, onCompletion: @escaping ((QueryResult) -> ())) {
-        let addTriggerStmt = "CREATE TRIGGER \"\(table.nameInQuery)_lastUpdatedTrigger\" BEFORE UPDATE ON \"\(table.nameInQuery)\" FOR EACH ROW EXECUTE PROCEDURE update_lastUpdated();"
-        return self.execute(addTriggerStmt, onCompletion: onCompletion)
+        // Need to query the database to determine if the trigger functon `swiftkuerypostgresql_update_lastUpdated()` is already defined
+        let functionCheck = "select pg_get_functiondef('swiftkuerypostgreSQL_update_lastUpdated()'::regprocedure);"
+        self.execute(functionCheck) { result in
+            guard result.success else {
+                // The trigger function is not defined so create it
+                let functionCreate = "CREATE OR REPLACE FUNCTION swiftkuerypostgreSQL_update_lastUpdated() RETURNS TRIGGER AS $$ BEGIN NEW.\"lastUpdated\" = NOW(); RETURN NEW; END; $$ language 'plpgsql';"
+                return self.execute(functionCreate) { result in
+                    guard result.success else {
+                        return onCompletion(.error(QueryError.databaseError("Unable to define required trigger function")))
+                    }
+                    // We have created the trigger function so call recursively
+                    return self.addLastUpdatedTrigger(for: table, onCompletion: onCompletion)
+                }
+            }
+            // Trigger function exists so add trigger to table
+            let addTriggerStmt = "CREATE TRIGGER \"\(table.nameInQuery)_lastUpdatedTrigger\" BEFORE UPDATE ON \"\(table.nameInQuery)\" FOR EACH ROW EXECUTE PROCEDURE swiftkuerypostgreSQL_update_lastUpdated();"
+            return self.execute(addTriggerStmt, onCompletion: onCompletion)
+        }
     }
 }
 
