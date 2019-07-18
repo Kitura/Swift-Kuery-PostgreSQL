@@ -40,6 +40,68 @@ class TestUpdate: XCTestCase {
         
         let tableName = tableUpdate
     }
+
+    class MyTimestampTable: Table {
+        let a = Column("a", Int32.self, primaryKey: true)
+        let b = Column("b", String.self)
+
+        let tableName = "MyTimestampTable" + tableNameSuffix
+    }
+
+    func testUpdateTimestamp() {
+        let t = MyTimestampTable(lastUpdated: true)
+
+        let pool = CommonUtils.sharedInstance.getConnectionPool()
+        performTest(asyncTasks: { expectation in
+            pool.getConnection() { connection, error in
+                guard let connection = connection else {
+                    XCTFail("Failed to get connection")
+                    return
+                }
+                cleanUp(table: t.tableName, connection: connection) { result in
+                    t.create(connection: connection) { result in
+                        XCTAssertEqual(result.success, true, "CREATE TABLE failed")
+                        XCTAssertNil(result.asError, "Error in CREATE TABLE: \(result.asError!)")
+
+                        let insert = Insert(into: t, rows: [[1, "Original"],[2,"Original"]])
+                        executeQuery(query: insert, connection: connection) { result, rows in
+                            XCTAssertEqual(result.success, true, "INSERT failed")
+                            XCTAssertNil(result.asError, "Error in INSERT: \(result.asError!)")
+
+                            let select = Select(from: t)
+                            executeQuery(query: select, connection: connection) { result, rows in
+                                XCTAssertEqual(result.success, true, "SELECT failed")
+                                XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                XCTAssertNotNil(rows, "SELECT returned no rows")
+                                XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
+
+                                let insertTime: Date = rows![1][2] as! Date
+                                // We need to ensure the update timestamp is later than the default value assigned on insert.
+                                usleep(1000000)
+
+                                let update = Update(t, set: [(t.b, "Updated")], where: t.a == 2)
+                                executeQuery(query: update, connection: connection) { result, rows in
+                                    XCTAssertEqual(result.success, true, "UPDATE failed")
+                                    XCTAssertNil(result.asError, "Error in UPDATE: \(result.asError!)")
+
+                                    let select = Select(from: t)
+                                    executeQuery(query: select, connection: connection) { result, rows in
+                                        XCTAssertEqual(result.success, true, "SELECT failed")
+                                        XCTAssertNotNil(result.asResultSet, "SELECT returned no rows")
+                                        XCTAssertNotNil(rows, "SELECT returned no rows")
+                                        XCTAssertEqual(rows!.count, 2, "SELECT returned wrong number of rows: \(rows!.count) instead of 2")
+
+                                        XCTAssertNotEqual(insertTime.timeIntervalSinceReferenceDate, (rows![1][2] as! Date).timeIntervalSinceReferenceDate, "Update trigger failed.")
+                                        expectation.fulfill()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
     
     func testUpdateAndDelete () {
         let t = MyTable()

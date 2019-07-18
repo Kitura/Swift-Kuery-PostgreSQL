@@ -612,6 +612,11 @@ public class PostgreSQLConnection: Connection {
 
         return nil
     }
+
+    public func addLastUpdatedTrigger(for table: Table, onCompletion: @escaping ((QueryResult) -> ())) {
+        let addTriggerStmt = "CREATE TRIGGER \"\(table.nameInQuery)_lastUpdatedTrigger\" BEFORE UPDATE ON \"\(table.nameInQuery)\" FOR EACH ROW EXECUTE PROCEDURE update_lastUpdated();"
+        return self.execute(addTriggerStmt, onCompletion: onCompletion)
+    }
 }
 
 class PostgreSQLColumnBuilder: ColumnCreator {
@@ -651,6 +656,8 @@ class PostgreSQLColumnBuilder: ColumnCreator {
         }
         if let defaultValue = getDefaultValue(for: column, queryBuilder: queryBuilder) {
             result += " DEFAULT " + defaultValue
+        } else if column.lastUpdated || column.createdAt {
+            result += " DEFAULT NOW()"
         }
         if let checkExpression = column.checkExpression {
             result += checkExpression.contains(column.name) ? " CHECK (" + checkExpression.replacingOccurrences(of: column.name, with: "\"\(column.name)\"") + ")" : " CHECK (" + checkExpression + ")"
