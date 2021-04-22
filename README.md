@@ -1,16 +1,16 @@
 <p align="center">
     <a href="http://kitura.io/">
-        <img src="https://raw.githubusercontent.com/IBM-Swift/Kitura/master/Sources/Kitura/resources/kitura-bird.svg?sanitize=true" height="100" alt="Kitura">
+        <img src="https://raw.githubusercontent.com/Kitura/Kitura/master/Sources/Kitura/resources/kitura-bird.svg?sanitize=true" height="100" alt="Kitura">
     </a>
 </p>
 
 
 <p align="center">
-    <a href="https://ibm-swift.github.io/Swift-Kuery-PostgreSQL/index.html">
+    <a href="https://Kitura.github.io/Swift-Kuery-PostgreSQL/index.html">
     <img src="https://img.shields.io/badge/apidoc-SwiftKueryPostgreSQL-1FBCE4.svg?style=flat" alt="APIDoc">
     </a>
-    <a href="https://travis-ci.org/IBM-Swift/Swift-Kuery-PostgreSQL">
-    <img src="https://travis-ci.org/IBM-Swift/Swift-Kuery-PostgreSQL.svg?branch=master" alt="Build Status - Master">
+    <a href="https://travis-ci.org/Kitura/Swift-Kuery-PostgreSQL">
+    <img src="https://travis-ci.org/Kitura/Swift-Kuery-PostgreSQL.svg?branch=master" alt="Build Status - Master">
     </a>
     <img src="https://img.shields.io/badge/os-macOS-green.svg?style=flat" alt="macOS">
     <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux">
@@ -22,7 +22,7 @@
 
 # Swift-Kuery-PostgreSQL
 
-[PostgreSQL](https://www.postgresql.org/) plugin for the [Swift-Kuery](https://github.com/IBM-Swift/Swift-Kuery) framework. It enables you to use Swift-Kuery to manipulate data in a PostgreSQL database.
+[PostgreSQL](https://www.postgresql.org/) plugin for the [Swift-Kuery](https://github.com/Kitura/Swift-Kuery) framework. It enables you to use Swift-Kuery to manipulate data in a PostgreSQL database.
 
 ## PostgreSQL client installation
 To use Swift-Kuery-PostgreSQL you must have the appropriate PostgreSQL C-language client installed.
@@ -41,10 +41,10 @@ $ sudo apt-get install libpq-dev
 
 #### Add dependencies
 
-Add the `SwiftKueryPostgreSQL` package to the dependencies within your application’s `Package.swift` file. Substitute `"x.x.x"` with the latest `SwiftKueryPostgreSQL` [release](https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL/releases).
+Add the `SwiftKueryPostgreSQL` package to the dependencies within your application’s `Package.swift` file. Substitute `"x.x.x"` with the latest `SwiftKueryPostgreSQL` [release](https://github.com/Kitura/Swift-Kuery-PostgreSQL/releases).
 
 ```swift
-.package(url: "https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL.git", from: "x.x.x")
+.package(url: "https://github.com/Kitura/Swift-Kuery-PostgreSQL.git", from: "x.x.x")
 ```
 
 Add `SwiftKueryPostgreSQL` to your target's dependencies:
@@ -198,8 +198,8 @@ import PackageDescription
 let package = Package(
     name: "swift-kuery-play",
     dependencies: [
-        .package(url: "https://github.com/IBM-Swift/Kitura.git", from: "x.x.x"),
-        .package(url: "https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL", from: "x.x.x")
+        .package(url: "https://github.com/Kitura/Kitura.git", from: "x.x.x"),
+        .package(url: "https://github.com/Kitura/Swift-Kuery-PostgreSQL", from: "x.x.x")
     ],
     targets: [
         .target(
@@ -381,11 +381,11 @@ grade: 99 course: How to build your first computer
 grade: 71 course: How to work at a rock quarry  
 ```
 ## API Documentation
-For more information visit our [API reference](https://ibm-swift.github.io/Swift-Kuery-PostgreSQL/index.html).
+For more information visit our [API reference](https://Kitura.github.io/Swift-Kuery-PostgreSQL/index.html).
 
 ## Community
 
 We love to talk server-side Swift, and Kitura. Join our [Slack](http://swift-at-ibm-slack.mybluemix.net/) to meet the team!
 
 ## License
-This library is licensed under Apache 2.0. Full license text is available in [LICENSE](https://github.com/IBM-Swift/SwiftKueryPostgreSQL/blob/master/LICENSE.txt)
+This library is licensed under Apache 2.0. Full license text is available in [LICENSE](https://github.com/Kitura/SwiftKueryPostgreSQL/blob/master/LICENSE.txt)
