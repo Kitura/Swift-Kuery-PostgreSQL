@@ -23,7 +23,7 @@ internal struct PostgreSQLParameterSet {
     /// - Throws: QueryError.unsupported if parameter cannot be converted to data
     internal func withUnsafeBufferPointers(_ body: @escaping (UnsafePointers) -> Void) throws {
         let (values, lengths, formats) = try parameterData()
-        defer { values.forEach({ free($0) }) }
+        defer { values.compactMap({ $0 }).forEach({ free($0) }) }
 
         values.map({ UnsafePointer($0) }).withUnsafeBufferPointer { valuesBuffer in
             lengths.withUnsafeBufferPointer { lengthsBuffer in
