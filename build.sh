@@ -12,6 +12,6 @@ else
     psql --version || { apt-get update && apt-get install -y postgresql postgresql-contrib && service postgresql start && psql --version; }
 fi
 
-git clone https://github.com/IBM-Swift/Package-Builder.git
+git clone https://github.com/Kitura/Package-Builder.git
 ./Package-Builder/build-package.sh -projectDir $(pwd)
 

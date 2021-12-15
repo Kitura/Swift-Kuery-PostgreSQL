@@ -1,6 +1,6 @@
 module: SwiftKueryPostgreSQL
-author: IBM
-github_url: https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL/
+author: IBM & Kitura project authors
+github_url: https://github.com/Kitura/Swift-Kuery-PostgreSQL/
 
 theme: fullwidth
 clean: true
@@ -10,5 +10,3 @@ readme: README.md
 
 skip_undocumented: false
 hide_documentation_coverage: false
-
-xcodebuild_arguments: [-project, SwiftKueryPostgreSQL.xcodeproj, -target, SwiftKueryPostgreSQL, LIBRARY_SEARCH_PATHS=.build/debug]

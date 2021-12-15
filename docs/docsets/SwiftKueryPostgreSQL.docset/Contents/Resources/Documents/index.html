@@ -32,7 +32,7 @@
       </p>
     
         <p class="header-col header-col--secondary">
-          <a class="header-link" href="https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL/">
+          <a class="header-link" href="https://github.com/Kitura/Swift-Kuery-PostgreSQL/">
             <img class="header-icon" src="img/gh.png"/>
             View on GitHub
           </a>
@@ -69,6 +69,14 @@
             </ul>
           </li>
           <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/Data.html">Data</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
             <a class="nav-group-name-link" href="Structs.html">Structures</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
@@ -81,20 +89,20 @@
       <article class="main-content">
 
         <section class="section">
-          <div class="section-content">
+          <div class="section-content top-matter">
             
             <p align="center">
     <a href="http://kitura.io/">
-        <img src="https://raw.githubusercontent.com/IBM-Swift/Kitura/master/Sources/Kitura/resources/kitura-bird.svg?sanitize=true" height="100" alt="Kitura">
+        <img src="https://raw.githubusercontent.com/Kitura/Kitura/master/Sources/Kitura/resources/kitura-bird.svg?sanitize=true" height="100" alt="Kitura">
     </a>
 </p>
 
 <p align="center">
-    <a href="https://ibm-swift.github.io/Swift-Kuery-PostgreSQL/index.html">
+    <a href="https://kitura.github.io/Swift-Kuery-PostgreSQL/index.html">
     <img src="https://img.shields.io/badge/apidoc-SwiftKueryPostgreSQL-1FBCE4.svg?style=flat" alt="APIDoc">
     </a>
-    <a href="https://travis-ci.org/IBM-Swift/Swift-Kuery-PostgreSQL">
-    <img src="https://travis-ci.org/IBM-Swift/Swift-Kuery-PostgreSQL.svg?branch=master" alt="Build Status - Master">
+    <a href="https://travis-ci.org/Kitura/Swift-Kuery-PostgreSQL">
+    <img src="https://travis-ci.org/Kitura/Swift-Kuery-PostgreSQL.svg?branch=master" alt="Build Status - Master">
     </a>
     <img src="https://img.shields.io/badge/os-macOS-green.svg?style=flat" alt="macOS">
     <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux">
@@ -105,7 +113,7 @@
 </p>
 <h1 id='swift-kuery-postgresql' class='heading'>Swift-Kuery-PostgreSQL</h1>
 
-<p><a href="https://www.postgresql.org/">PostgreSQL</a> plugin for the <a href="https://github.com/IBM-Swift/Swift-Kuery">Swift-Kuery</a> framework. It enables you to use Swift-Kuery to manipulate data in a PostgreSQL database.</p>
+<p><a href="https://www.postgresql.org/">PostgreSQL</a> plugin for the <a href="https://github.com/Kitura/Swift-Kuery">Swift-Kuery</a> framework. It enables you to use Swift-Kuery to manipulate data in a PostgreSQL database.</p>
 <h2 id='postgresql-client-installation' class='heading'>PostgreSQL client installation</h2>
 
 <p>To use Swift-Kuery-PostgreSQL you must have the appropriate PostgreSQL C-language client installed.</p>
@@ -118,12 +126,12 @@
 <h2 id='usage' class='heading'>Usage</h2>
 <h4 id='add-dependencies' class='heading'>Add dependencies</h4>
 
-<p>Add the <code>SwiftKueryPostgreSQL</code> package to the dependencies within your application’s <code>Package.swift</code> file. Substitute <code>&quot;x.x.x&quot;</code> with the latest <code>SwiftKueryPostgreSQL</code> <a href="https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL/releases">release</a>.</p>
-<pre class="highlight swift"><code><span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"x.x.x"</span><span class="p">)</span>
+<p>Add the <code>SwiftKueryPostgreSQL</code> package to the dependencies within your application’s <code>Package.swift</code> file. Substitute <code>&quot;x.x.x&quot;</code> with the latest <code>SwiftKueryPostgreSQL</code> <a href="https://github.com/Kitura/Swift-Kuery-PostgreSQL/releases">release</a>.</p>
+<pre class="highlight swift"><code><span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/Kitura/Swift-Kuery-PostgreSQL.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"x.x.x"</span><span class="p">)</span>
 </code></pre>
 
-<p>Add <code>SwiftKueryPostgreSQL</code> to your target&rsquo;s dependencies:</p>
-<pre class="highlight swift"><code><span class="o">.</span><span class="nf">target</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"example"</span><span class="p">,</span> <span class="nv">dependencies</span><span class="p">:</span> <span class="p">[</span><span class="s">"SwiftKueryPostgreSQL"</span><span class="p">]),</span>
+<p>Add <code>SwiftKueryPostgreSQL</code> to application&rsquo;s dependencies:</p>
+<pre class="highlight swift"><code><span class="o">.</span><span class="nf">target</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Application"</span><span class="p">,</span> <span class="nv">dependencies</span><span class="p">:</span> <span class="p">[</span><span class="s">"SwiftKueryPostgreSQL"</span><span class="p">]),</span>
 </code></pre>
 <h4 id='import-package' class='heading'>Import package</h4>
 <pre class="highlight swift"><code>  <span class="kd">import</span> <span class="kt">SwiftKueryPostgreSQL</span>
@@ -198,16 +206,16 @@ school=#
 <p>First, create the student table:</p>
 <pre class="highlight sql"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">student</span> <span class="p">(</span>
  <span class="n">studentId</span> <span class="n">BIGSERIAL</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
- <span class="n">name</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">CHECK</span> <span class="p">(</span><span class="n">name</span> <span class="o">&lt;&gt;</span> <span class="s1">''</span><span class="p">)</span>
+ <span class="n">name</span> <span class="nb">varchar</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">CHECK</span> <span class="p">(</span><span class="n">name</span> <span class="o">&lt;&gt;</span> <span class="s1">''</span><span class="p">)</span>
 <span class="p">);</span>
 </code></pre>
 
 <p>Next, create the grades table:</p>
 <pre class="highlight sql"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">grades</span> <span class="p">(</span>
   <span class="k">key</span> <span class="n">BIGSERIAL</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
-  <span class="n">studentId</span> <span class="n">integer</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
-  <span class="n">course</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
-  <span class="n">grade</span> <span class="n">integer</span>
+  <span class="n">studentId</span> <span class="nb">integer</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="n">course</span> <span class="nb">varchar</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="n">grade</span> <span class="nb">integer</span>
 <span class="p">);</span>
 </code></pre>
 <h3 id='populate-the-tables' class='heading'>Populate the tables</h3>
@@ -248,8 +256,8 @@ Edit <code>Package.swift</code> to contain the following, substituting <code>&qu
 <span class="k">let</span> <span class="nv">package</span> <span class="o">=</span> <span class="kt">Package</span><span class="p">(</span>
     <span class="nv">name</span><span class="p">:</span> <span class="s">"swift-kuery-play"</span><span class="p">,</span>
     <span class="nv">dependencies</span><span class="p">:</span> <span class="p">[</span>
-        <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/IBM-Swift/Kitura.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"x.x.x"</span><span class="p">),</span>
-        <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"x.x.x"</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/Kitura/Kitura.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"x.x.x"</span><span class="p">),</span>
+        <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/Kitura/Swift-Kuery-PostgreSQL"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"x.x.x"</span><span class="p">)</span>
     <span class="p">],</span>
     <span class="nv">targets</span><span class="p">:</span> <span class="p">[</span>
         <span class="o">.</span><span class="nf">target</span><span class="p">(</span>
@@ -417,13 +425,13 @@ grade: 71 course: How to work at a rock quarry
 </code></pre>
 <h2 id='api-documentation' class='heading'>API Documentation</h2>
 
-<p>For more information visit our <a href="https://ibm-swift.github.io/SwiftKueryPostgreSQL/index.html">API reference</a>.</p>
+<p>For more information visit our <a href="https://kitura.github.io/Swift-Kuery-PostgreSQL/index.html">API reference</a>.</p>
 <h2 id='community' class='heading'>Community</h2>
 
 <p>We love to talk server-side Swift, and Kitura. Join our <a href="http://swift-at-ibm-slack.mybluemix.net/">Slack</a> to meet the team!</p>
 <h2 id='license' class='heading'>License</h2>
 
-<p>This library is licensed under Apache 2.0. Full license text is available in <a href="https://github.com/IBM-Swift/SwiftKueryPostgreSQL/blob/master/LICENSE.txt">LICENSE</a></p>
+<p>This library is licensed under Apache 2.0. Full license text is available in <a href="https://github.com/Kitura/SwiftKueryPostgreSQL/blob/master/LICENSE.txt">LICENSE</a></p>
 
           </div>
         </section>
@@ -432,8 +440,8 @@ grade: 71 course: How to work at a rock quarry
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2019 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2019-01-07)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2021 <a class="link" href="" target="_blank" rel="external">IBM &amp; Kitura project authors</a>. All rights reserved. (Last updated: 2021-12-14)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.7</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>

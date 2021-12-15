@@ -33,7 +33,7 @@
       </p>
     
         <p class="header-col header-col--secondary">
-          <a class="header-link" href="https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL/">
+          <a class="header-link" href="https://github.com/Kitura/Swift-Kuery-PostgreSQL/">
             <img class="header-icon" src="../img/gh.png"/>
             View on GitHub
           </a>
@@ -70,6 +70,14 @@
             </ul>
           </li>
           <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Extensions/Data.html">Data</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
             <a class="nav-group-name-link" href="../Structs.html">Structures</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
@@ -82,11 +90,12 @@
       <article class="main-content">
 
         <section class="section">
-          <div class="section-content">
+          <div class="section-content top-matter">
             <h1>PostgreSQLConnection</h1>
               <div class="declaration">
                 <div class="language">
-                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">PostgreSQLConnection</span><span class="p">:</span> <span class="kt">Connection</span></code></pre>
+                  
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">PostgreSQLConnection</span> <span class="p">:</span> <span class="kt">Connection</span></code></pre>
 
                 </div>
               </div>
@@ -120,7 +129,7 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">isConnected</span><span class="p">:</span> <span class="kt">Bool</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">isConnected</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
@@ -157,9 +166,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionCACSS4host_s5Int32V4portSayAA17ConnectionOptionsOGSg7optionstcfc"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC4host4port7optionsACSS_s5Int32VSayAA17ConnectionOptionsOGSgtcfc"></a>
                     <a name="//apple_ref/swift/Method/init(host:port:options:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionCACSS4host_s5Int32V4portSayAA17ConnectionOptionsOGSg7optionstcfc">init(host:port:options:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC4host4port7optionsACSS_s5Int32VSayAA17ConnectionOptionsOGSgtcfc">init(host:<wbr>port:<wbr>options:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -227,9 +236,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionCAC10Foundation3URLV3url_tcfc"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC3urlAC10Foundation3URLV_tcfc"></a>
                     <a name="//apple_ref/swift/Method/init(url:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionCAC10Foundation3URLV3url_tcfc">init(url:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC3urlAC10Foundation3URLV_tcfc">init(url:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -273,9 +282,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC10createPool0aB0010ConnectionG0C10Foundation3URLV3url_AE0hG7OptionsV04poolL0tFZ"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC10createPool3url11poolOptions0aB0010ConnectionG0C10Foundation3URLV_AG0kgJ0VtFZ"></a>
                     <a name="//apple_ref/swift/Method/createPool(url:poolOptions:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC10createPool0aB0010ConnectionG0C10Foundation3URLV3url_AE0hG7OptionsV04poolL0tFZ">createPool(url:poolOptions:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC10createPool3url11poolOptions0aB0010ConnectionG0C10Foundation3URLV_AG0kgJ0VtFZ">createPool(url:<wbr>poolOptions:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -335,9 +344,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC10createPool0aB0010ConnectionG0CSS4host_s5Int32V4portSayAA0H7OptionsOGSg7optionsAE0hgL0V04poolL0tFZ"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC10createPool4host4port7options11poolOptions0aB0010ConnectionG0CSS_s5Int32VSayAA0mL0OGSgAI0mgL0VtFZ"></a>
                     <a name="//apple_ref/swift/Method/createPool(host:port:options:poolOptions:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC10createPool0aB0010ConnectionG0CSS4host_s5Int32V4portSayAA0H7OptionsOGSg7optionsAE0hgL0V04poolL0tFZ">createPool(host:port:options:poolOptions:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC10createPool4host4port7options11poolOptions0aB0010ConnectionG0CSS_s5Int32VSayAA0mL0OGSgAI0mgL0VtFZ">createPool(host:<wbr>port:<wbr>options:<wbr>poolOptions:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -421,9 +430,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC13descriptionOfSS0aB05Query_p5query_tKF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC13descriptionOf5querySS0aB05Query_p_tKF"></a>
                     <a name="//apple_ref/swift/Method/descriptionOf(query:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC13descriptionOfSS0aB05Query_p5query_tKF">descriptionOf(query:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC13descriptionOf5querySS0aB05Query_p_tKF">descriptionOf(query:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -476,9 +485,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7connectyy0aB011QueryResultOc12onCompletion_tF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7connect12onCompletionyy0aB011QueryResultOc_tF"></a>
                     <a name="//apple_ref/swift/Method/connect(onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7connectyy0aB011QueryResultOc12onCompletion_tF">connect(onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7connect12onCompletionyy0aB011QueryResultOc_tF">connect(onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -580,9 +589,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executey0aB05Query_p5query_SayypSgG10parametersyAE0G6ResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute5query10parameters12onCompletiony0aB05Query_p_SayypSgGyAH0K6ResultOctF"></a>
                     <a name="//apple_ref/swift/Method/execute(query:parameters:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executey0aB05Query_p5query_SayypSgG10parametersyAE0G6ResultOc12onCompletiontF">execute(query:parameters:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute5query10parameters12onCompletiony0aB05Query_p_SayypSgGyAH0K6ResultOctF">execute(query:<wbr>parameters:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -650,9 +659,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executey0aB05Query_p5query_yAE0G6ResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute5query12onCompletiony0aB05Query_p_yAG0J6ResultOctF"></a>
                     <a name="//apple_ref/swift/Method/execute(query:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executey0aB05Query_p5query_yAE0G6ResultOc12onCompletiontF">execute(query:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute5query12onCompletiony0aB05Query_p_yAG0J6ResultOctF">execute(query:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -708,9 +717,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executeySS_y0aB011QueryResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute_12onCompletionySS_y0aB011QueryResultOctF"></a>
                     <a name="//apple_ref/swift/Method/execute(_:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executeySS_y0aB011QueryResultOc12onCompletiontF">execute(_:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute_12onCompletionySS_y0aB011QueryResultOctF">execute(_:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -766,9 +775,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executeySS_SayypSgG10parametersy0aB011QueryResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute_10parameters12onCompletionySS_SayypSgGy0aB011QueryResultOctF"></a>
                     <a name="//apple_ref/swift/Method/execute(_:parameters:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executeySS_SayypSgG10parametersy0aB011QueryResultOc12onCompletiontF">execute(_:parameters:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute_10parameters12onCompletionySS_SayypSgGy0aB011QueryResultOctF">execute(_:<wbr>parameters:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -836,9 +845,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executeySS_s10DictionaryVySSypSgG10parametersy0aB011QueryResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute_10parameters12onCompletionySS_SDySSypSgGy0aB011QueryResultOctF"></a>
                     <a name="//apple_ref/swift/Method/execute(_:parameters:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executeySS_s10DictionaryVySSypSgG10parametersy0aB011QueryResultOc12onCompletiontF">execute(_:parameters:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute_10parameters12onCompletionySS_SDySSypSgGy0aB011QueryResultOctF">execute(_:<wbr>parameters:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -853,7 +862,7 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">execute</span><span class="p">(</span><span class="n">_</span> <span class="nv">raw</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">parameters</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span><span class="kt">Any</span><span class="p">?],</span> <span class="nv">onCompletion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">((</span><span class="kt">QueryResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">()))</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">execute</span><span class="p">(</span><span class="n">_</span> <span class="nv">raw</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">parameters</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span> <span class="p">:</span> <span class="kt">Any</span><span class="p">?],</span> <span class="nv">onCompletion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">((</span><span class="kt">QueryResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">()))</span></code></pre>
 
                         </div>
                       </div>
@@ -906,9 +915,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC16prepareStatementy0aB05Query_p_yAE0H6ResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC16prepareStatement_12onCompletiony0aB05Query_p_yAF0J6ResultOctF"></a>
                     <a name="//apple_ref/swift/Method/prepareStatement(_:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC16prepareStatementy0aB05Query_p_yAE0H6ResultOc12onCompletiontF">prepareStatement(_:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC16prepareStatement_12onCompletiony0aB05Query_p_yAF0J6ResultOctF">prepareStatement(_:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -964,9 +973,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC16prepareStatementySS_y0aB011QueryResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC16prepareStatement_12onCompletionySS_y0aB011QueryResultOctF"></a>
                     <a name="//apple_ref/swift/Method/prepareStatement(_:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC16prepareStatementySS_y0aB011QueryResultOc12onCompletiontF">prepareStatement(_:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC16prepareStatement_12onCompletionySS_y0aB011QueryResultOctF">prepareStatement(_:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1022,9 +1031,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executey0aB017PreparedStatement_p08preparedH0_yAE11QueryResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute17preparedStatement12onCompletiony0aB008PreparedH0_p_yAG11QueryResultOctF"></a>
                     <a name="//apple_ref/swift/Method/execute(preparedStatement:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executey0aB017PreparedStatement_p08preparedH0_yAE11QueryResultOc12onCompletiontF">execute(preparedStatement:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute17preparedStatement12onCompletiony0aB008PreparedH0_p_yAG11QueryResultOctF">execute(preparedStatement:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1080,9 +1089,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executey0aB017PreparedStatement_p08preparedH0_SayypSgG10parametersyAE11QueryResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute17preparedStatement10parameters12onCompletiony0aB008PreparedH0_p_SayypSgGyAH11QueryResultOctF"></a>
                     <a name="//apple_ref/swift/Method/execute(preparedStatement:parameters:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executey0aB017PreparedStatement_p08preparedH0_SayypSgG10parametersyAE11QueryResultOc12onCompletiontF">execute(preparedStatement:parameters:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute17preparedStatement10parameters12onCompletiony0aB008PreparedH0_p_SayypSgGyAH11QueryResultOctF">execute(preparedStatement:<wbr>parameters:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1150,9 +1159,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executey0aB017PreparedStatement_p08preparedH0_s10DictionaryVySSypSgG10parametersyAE11QueryResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute17preparedStatement10parameters12onCompletiony0aB008PreparedH0_p_SDySSypSgGyAH11QueryResultOctF"></a>
                     <a name="//apple_ref/swift/Method/execute(preparedStatement:parameters:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7executey0aB017PreparedStatement_p08preparedH0_s10DictionaryVySSypSgG10parametersyAE11QueryResultOc12onCompletiontF">execute(preparedStatement:parameters:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7execute17preparedStatement10parameters12onCompletiony0aB008PreparedH0_p_SDySSypSgGyAH11QueryResultOctF">execute(preparedStatement:<wbr>parameters:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1167,7 +1176,7 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">execute</span><span class="p">(</span><span class="nv">preparedStatement</span><span class="p">:</span> <span class="kt">PreparedStatement</span><span class="p">,</span> <span class="nv">parameters</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span><span class="kt">Any</span><span class="p">?],</span> <span class="nv">onCompletion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">((</span><span class="kt">QueryResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">()))</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">execute</span><span class="p">(</span><span class="nv">preparedStatement</span><span class="p">:</span> <span class="kt">PreparedStatement</span><span class="p">,</span> <span class="nv">parameters</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span> <span class="p">:</span> <span class="kt">Any</span><span class="p">?],</span> <span class="nv">onCompletion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">((</span><span class="kt">QueryResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">()))</span></code></pre>
 
                         </div>
                       </div>
@@ -1220,9 +1229,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7releasey0aB017PreparedStatement_p08preparedH0_yAE11QueryResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7release17preparedStatement12onCompletiony0aB008PreparedH0_p_yAG11QueryResultOctF"></a>
                     <a name="//apple_ref/swift/Method/release(preparedStatement:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7releasey0aB017PreparedStatement_p08preparedH0_yAE11QueryResultOc12onCompletiontF">release(preparedStatement:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7release17preparedStatement12onCompletiony0aB008PreparedH0_p_yAG11QueryResultOctF">release(preparedStatement:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1278,9 +1287,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC16startTransactionyy0aB011QueryResultOc12onCompletion_tF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC16startTransaction12onCompletionyy0aB011QueryResultOc_tF"></a>
                     <a name="//apple_ref/swift/Method/startTransaction(onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC16startTransactionyy0aB011QueryResultOc12onCompletion_tF">startTransaction(onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC16startTransaction12onCompletionyy0aB011QueryResultOc_tF">startTransaction(onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1324,9 +1333,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC6commityy0aB011QueryResultOc12onCompletion_tF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC6commit12onCompletionyy0aB011QueryResultOc_tF"></a>
                     <a name="//apple_ref/swift/Method/commit(onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC6commityy0aB011QueryResultOc12onCompletion_tF">commit(onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC6commit12onCompletionyy0aB011QueryResultOc_tF">commit(onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1370,9 +1379,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC8rollbackyy0aB011QueryResultOc12onCompletion_tF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC8rollback12onCompletionyy0aB011QueryResultOc_tF"></a>
                     <a name="//apple_ref/swift/Method/rollback(onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC8rollbackyy0aB011QueryResultOc12onCompletion_tF">rollback(onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC8rollback12onCompletionyy0aB011QueryResultOc_tF">rollback(onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1416,9 +1425,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC6createySS9savepoint_y0aB011QueryResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC6create9savepoint12onCompletionySS_y0aB011QueryResultOctF"></a>
                     <a name="//apple_ref/swift/Method/create(savepoint:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC6createySS9savepoint_y0aB011QueryResultOc12onCompletiontF">create(savepoint:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC6create9savepoint12onCompletionySS_y0aB011QueryResultOctF">create(savepoint:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1474,9 +1483,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC8rollbackySS2to_y0aB011QueryResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC8rollback2to12onCompletionySS_y0aB011QueryResultOctF"></a>
                     <a name="//apple_ref/swift/Method/rollback(to:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC8rollbackySS2to_y0aB011QueryResultOc12onCompletiontF">rollback(to:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC8rollback2to12onCompletionySS_y0aB011QueryResultOctF">rollback(to:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1520,9 +1529,9 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7releaseySS9savepoint_y0aB011QueryResultOc12onCompletiontF"></a>
+                    <a name="/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7release9savepoint12onCompletionySS_y0aB011QueryResultOctF"></a>
                     <a name="//apple_ref/swift/Method/release(savepoint:onCompletion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7releaseySS9savepoint_y0aB011QueryResultOc12onCompletiontF">release(savepoint:onCompletion:)</a>
+                    <a class="token" href="#/s:20SwiftKueryPostgreSQL0C13SQLConnectionC7release9savepoint12onCompletionySS_y0aB011QueryResultOctF">release(savepoint:<wbr>onCompletion:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1583,8 +1592,8 @@ Please see <a href="https://www.postgresql.org/docs/8.0/static/libpq-exec.html">
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2019 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2019-01-07)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2021 <a class="link" href="" target="_blank" rel="external">IBM &amp; Kitura project authors</a>. All rights reserved. (Last updated: 2021-12-14)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.7</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>
