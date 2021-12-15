@@ -47,10 +47,10 @@ Add the `SwiftKueryPostgreSQL` package to the dependencies within your applicati
 .package(url: "https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL.git", from: "x.x.x")
 ```
 
-Add `SwiftKueryPostgreSQL` to your target's dependencies:
+Add `SwiftKueryPostgreSQL` to application's dependencies:
 
 ```swift
-.target(name: "example", dependencies: ["SwiftKueryPostgreSQL"]),
+.target(name: "Application", dependencies: ["SwiftKueryPostgreSQL"]),
 ```
 
 #### Import package
